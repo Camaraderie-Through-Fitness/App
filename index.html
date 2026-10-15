@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>CTF Community</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CTF">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#3E4A2E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
@@ -42,7 +50,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--brass);outline-offset:2px}
 .wrap{max-width:680px;margin:0 auto;padding:0 18px}
 header.top{padding:18px 0 6px;display:flex;align-items:center;gap:12px}
-.mark{width:40px;height:40px;border-radius:50%;background:var(--green);color:var(--green-ink);display:grid;place-items:center;font:700 15px var(--display);letter-spacing:.04em;flex:none}
+.mark{width:48px;height:48px;border-radius:50%;flex:none;display:block}
 header.top .name{font:600 1.1rem var(--display)}
 header.top .sub{color:var(--muted);font-size:.9rem;line-height:1.2}
 
@@ -118,7 +126,7 @@ input[type=email],input[type=password]{width:100%;min-height:44px;padding:10px 1
 <body>
 <div class="wrap">
   <header class="top">
-    <div class="mark" aria-hidden="true">CTF</div>
+    <img class="mark" src="logo.png" alt="" width="48" height="48">
     <div><div class="name">Camaraderie Through Fitness</div><div class="sub">Gainesville, FL</div></div>
     <button class="acct" id="acctBtn">Sign in</button>
   </header>
@@ -130,13 +138,13 @@ input[type=email],input[type=password]{width:100%;min-height:44px;padding:10px 1
     <div class="list" id="eventList"></div>
     <p id="seedWrap" hidden style="margin-top:14px"><button class="btn ghost" id="seedBtn">Load starter workouts and partners</button></p>
     <div class="panel admin" id="eventAdmin" hidden>
-      <h3>Add a workout</h3>
+      <h3 id="evHead">Add a workout</h3>
       <label for="evTitle">Name</label><input id="evTitle" type="text" placeholder="Trail ruck, San Felasco">
       <label for="evDate">Date</label><input id="evDate" type="date">
       <label for="evTime">Start time</label><input id="evTime" type="time">
       <label for="evLoc">Location</label><input id="evLoc" type="text">
       <label for="evDesc">Details</label><textarea id="evDesc" placeholder="What to bring, where to park"></textarea>
-      <p style="margin-top:14px"><button class="btn" id="evSave">Add workout</button></p>
+      <p style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="evSave">Add workout</button><button class="btn ghost" id="evCancel" hidden>Cancel</button></p>
     </div>
   </section>
 
@@ -144,6 +152,8 @@ input[type=email],input[type=password]{width:100%;min-height:44px;padding:10px 1
   <section id="tab-members" hidden>
     <h2>Veterans near you</h2>
     <p class="hint">Members choose whether to show up here.</p>
+    <div id="approvalNote"></div>
+    <div id="pendingWrap" class="panel admin" hidden><h3>Waiting on payment</h3><p class="hint">Check your payment platform, then tap Activate 1 year.</p><div class="list" id="pendingList" style="border-top:0"></div><div id="renewWrap"></div></div>
     <div class="list" id="memberList"></div>
     <div class="panel" id="profilePanel">
       <h3>Your profile</h3>
@@ -182,13 +192,13 @@ input[type=email],input[type=password]{width:100%;min-height:44px;padding:10px 1
     <h2>Businesses that back us</h2>
     <div class="list" id="bizList"></div>
     <div class="panel admin" id="partnerAdmin" hidden>
-      <h3>Add a partner</h3>
+      <h3 id="ptHead">Add a partner</h3>
       <label for="ptName">Name</label><input id="ptName" type="text">
       <label for="ptCat">Type</label><select id="ptCat"><option value="support">Counseling or care</option><option value="business">Supporting business</option></select>
       <label for="ptOffer">What they offer veterans</label><textarea id="ptOffer"></textarea>
       <label for="ptContact">Phone or email</label><input id="ptContact" type="text">
       <label for="ptWeb">Website</label><input id="ptWeb" type="url" placeholder="https://">
-      <p style="margin-top:14px"><button class="btn" id="ptSave">Add partner</button></p>
+      <p style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="ptSave">Add partner</button><button class="btn ghost" id="ptCancel" hidden>Cancel</button></p>
     </div>
   </section>
 
@@ -205,7 +215,9 @@ input[type=email],input[type=password]{width:100%;min-height:44px;padding:10px 1
       <h3>Donation link</h3>
       <p class="hint">Paste the link from your donation platform (Zeffy, Givebutter, Donorbox).</p>
       <label for="gUrl">Link</label><input id="gUrl" type="url" placeholder="https://">
-      <p style="margin-top:14px"><button class="btn" id="gSave">Save link</button></p>
+      <label for="gMember">Membership payment link ($22/year)</label><input id="gMember" type="url" placeholder="https://">
+      <p class="hint">Can be the same platform. Set it up as a $22 membership or ticket.</p>
+      <p style="margin-top:14px"><button class="btn" id="gSave">Save links</button></p>
     </div>
   </section>
 </div>
@@ -246,6 +258,14 @@ input[type=email],input[type=password]{width:100%;min-height:44px;padding:10px 1
   </div>
 </dialog>
 
+<dialog id="dateDlg">
+  <button class="dlg-close" id="dateClose" aria-label="Close">×</button>
+  <h3>Membership end date</h3>
+  <p class="hint" id="dateWho"></p>
+  <label for="dateInput">Active through</label><input id="dateInput" type="date">
+  <p style="margin-top:14px"><button class="btn" id="dateSave">Save date</button></p>
+</dialog>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script type="module">
@@ -271,7 +291,12 @@ const safeUrl = u => { try { const x = new URL(u); return (x.protocol === "https
 const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
-const S = { events:[], rsvps:{}, members:{}, stories:{}, partners:[], config:{}, user:null, admin:false, ready:false, loadError:false };
+const S = { events:[], rsvps:{}, members:{}, stories:{}, partners:[], config:{}, approvedIds:{}, user:null, admin:false, approved:false, ready:false, loadError:false };
+let editingEvent = null, editingPartner = null;
+const YEAR = 365*24*60*60*1000;
+const activeUntil = a => (a && typeof a.until === "number") ? a.until : 0;
+const isActive = a => activeUntil(a) > Date.now();
+const fmtDay = ms => { const d=new Date(ms); return MON[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear(); };
 const uid = () => S.user ? S.user.uid : null;
 const myName = () => S.user ? (S.user.displayName || (S.user.email||"").split("@")[0] || "Member") : "";
 
@@ -321,8 +346,8 @@ function renderWorkouts(){
       <h1>${esc(e.title)}</h1><div class="meta">${esc(fmtTime(e.time))} at ${esc(e.location||"location TBD")}</div>
       <div class="count">${n} ${n===1?"veteran":"veterans"} going</div>
       ${e.description?`<p class="meta" style="margin-top:8px">${esc(e.description)}</p>`:""}
-      ${rsvpButton(e,"")}
-      ${S.admin?` <button class="btn small danger" style="margin-top:16px;color:inherit;border-color:currentColor" data-del-event="${esc(e.id)}">Delete</button>`:""}`;
+      ${rsvpButton(e,"")} <button class="btn small ghost" style="margin-top:16px;color:inherit;border-color:currentColor" data-cal="${esc(e.id)}">Add to calendar</button>
+      ${S.admin?` <button class="btn small ghost" style="margin-top:16px;color:inherit;border-color:currentColor" data-edit-event="${esc(e.id)}">Edit</button> <button class="btn small danger" style="margin-top:16px;color:inherit;border-color:currentColor" data-del-event="${esc(e.id)}">Delete</button>`:""}`;
   }
   const rest = list.slice(1);
   $("#eventList").innerHTML = rest.length ? rest.map(e=>{const d=parseDate(e.date), n=goingCount(e.id); return `<div class="row">
@@ -330,20 +355,56 @@ function renderWorkouts(){
       <div class="body"><h3>${esc(e.title)}</h3><div class="meta">${DOW[d.getDay()]}, ${esc(fmtTime(e.time))} · ${esc(e.location||"Location TBD")}</div>
       ${e.description?`<p class="meta" style="margin-top:4px">${esc(e.description)}</p>`:""}
       <div class="meta">${n} going</div>
-      <div class="actions">${rsvpButton(e,"small ghost")}${S.admin?`<button class="btn small danger" data-del-event="${esc(e.id)}">Delete</button>`:""}</div></div></div>`;}).join("")
+      <div class="actions">${rsvpButton(e,"small ghost")}<button class="btn small ghost" data-cal="${esc(e.id)}">Add to calendar</button>${S.admin?`<button class="btn small ghost" data-edit-event="${esc(e.id)}">Edit</button><button class="btn small danger" data-del-event="${esc(e.id)}">Delete</button>`:""}</div></div></div>`;}).join("")
     : `<p class="empty-note">Nothing else scheduled yet.</p>`;
 }
 
+function memberRow(id, m, extra){
+  return `<div class="row"><div class="body">
+    <h3>${esc(m.name||"Member")}${id===uid()?" (you)":""}</h3>
+    <div>${m.branch?`<span class="tag">${esc(m.branch)}</span>`:""}<span class="meta">${esc(m.service||"")}</span></div>
+    ${m.about?`<p style="margin-top:6px">${esc(m.about)}</p>`:""}
+    ${m.reach?`<p class="meta">Reach out: ${esc(m.reach)}</p>`:""}
+    ${extra?`<div class="actions">${extra}</div>`:""}</div></div>`;
+}
 function renderMembers(){
-  if(!S.user){ $("#memberList").innerHTML=`<p class="empty-note">Sign in to see other members.</p>`; }
-  else {
-    const ids = Object.keys(S.members).filter(id=>S.members[id].listed);
-    $("#memberList").innerHTML = ids.length ? ids.map(id=>{const m=S.members[id]; return `<div class="row"><div class="body">
-        <h3>${esc(m.name||"Member")}${id===uid()?" (you)":""}</h3>
-        <div>${m.branch?`<span class="tag">${esc(m.branch)}</span>`:""}<span class="meta">${esc(m.service||"")}</span></div>
-        ${m.about?`<p style="margin-top:6px">${esc(m.about)}</p>`:""}
-        ${m.reach?`<p class="meta">Reach out: ${esc(m.reach)}</p>`:""}</div></div>`;}).join("")
+  const note=$("#approvalNote");
+  $("#pendingWrap").hidden = true;
+  const payUrl = safeUrl(S.config.memberUrl);
+  if(!S.user){
+    note.innerHTML=`<div class="panel"><h3>Join the CTF community</h3><p>Membership is $22 a year and unlocks the veteran directory and sharing your story. Workouts, RSVPs, and support resources stay free.</p></div>`;
+    $("#memberList").innerHTML=`<p class="empty-note">Sign in to get started.</p>`;
+  } else if(!S.approved){
+    const mine = S.approvedIds[uid()];
+    const expired = mine && !isActive(mine);
+    note.innerHTML=`<div class="panel"><h3>${expired?"Your membership expired":"Become a member"}</h3>
+      <p>Membership is $22 a year. It unlocks the veteran directory and sharing your story. Workouts, RSVPs, and support resources stay free.</p>
+      <p><b>1.</b> Save your profile below.<br><b>2.</b> Pay your membership${payUrl?"":" (link coming soon)"}, using the same name as your profile.<br><b>3.</b> A CTF admin activates your account, usually within a day or two.</p>
+      ${payUrl?`<p style="margin-top:12px"><a class="btn" href="${esc(payUrl)}" target="_blank" rel="noopener">Pay $22 membership</a></p>`:""}
+      <p class="hint" style="margin-top:10px">Can't swing the $22 right now? Talk to any CTF team member. No veteran gets turned away.</p></div>`;
+    $("#memberList").innerHTML="";
+  } else {
+    const mine = S.approvedIds[uid()];
+    note.innerHTML = (!S.admin && mine) ? `<p class="hint">Membership active through ${fmtDay(activeUntil(mine))}.</p>` : "";
+    const ok = id => isActive(S.approvedIds[id]) || id===uid();
+    const ids = Object.keys(S.members).filter(id=>S.members[id].listed && ok(id));
+    $("#memberList").innerHTML = ids.length ? ids.map(id=>{
+        const a=S.approvedIds[id];
+        const extra = S.admin && id!==uid() ? `<span class="meta">Paid through ${a?fmtDay(activeUntil(a)):"—"}</span><button class="btn small ghost" data-approve="${esc(id)}">Add 1 year</button><button class="btn small ghost" data-setdate="${esc(id)}">Set date</button><button class="btn small danger" data-revoke="${esc(id)}">Remove access</button>` : "";
+        return memberRow(id, S.members[id], extra);
+      }).join("")
       : `<p class="empty-note">No one's listed yet. Fill in your profile below and be the first.</p>`;
+    if(S.admin){
+      const pend = Object.keys(S.members).filter(id=>id!==uid() && !isActive(S.approvedIds[id]));
+      $("#pendingWrap").hidden = false;
+      $("#pendingList").innerHTML = pend.length ? pend.map(id=>{
+          const a=S.approvedIds[id];
+          return memberRow(id, S.members[id],
+            `${a?`<span class="tag">Expired ${fmtDay(activeUntil(a))}</span>`:`<span class="tag">New</span>`}<button class="btn small" data-approve="${esc(id)}">Activate 1 year</button><button class="btn small ghost" data-approve="${esc(id)}" data-free="1">Sponsored / free</button><button class="btn small ghost" data-setdate="${esc(id)}">Set date</button><button class="btn small danger" data-decline="${esc(id)}">Decline</button>`);
+        }).join("") : `<p class="empty-note">No one waiting.</p>`;
+      const soon = Object.keys(S.approvedIds).filter(id=>{ const u=activeUntil(S.approvedIds[id]); return u>Date.now() && u-Date.now() < 30*24*60*60*1000; });
+      $("#renewWrap").innerHTML = soon.length ? `<h3 style="margin-top:18px">Renewals due in 30 days</h3>`+soon.map(id=>`<div class="row"><div class="body"><h3>${esc((S.members[id]||{}).name||"Member")}</h3><span class="meta">Expires ${fmtDay(activeUntil(S.approvedIds[id]))}</span></div></div>`).join("") : "";
+    }
   }
   const mine = S.members[uid()];
   if(mine && !renderMembers.filled){ renderMembers.filled=true;
@@ -371,7 +432,7 @@ function partnerRow(p){
     <div class="actions">
       ${p.contact?`<span class="meta">${esc(p.contact)}</span>`:""}
       ${url?`<a class="btn small ghost" href="${esc(url)}" target="_blank" rel="noopener">Visit website</a>`:""}
-      ${S.admin?`<button class="btn small danger" data-del-partner="${esc(p.id)}">Delete</button>`:""}
+      ${S.admin?`<button class="btn small ghost" data-edit-partner="${esc(p.id)}">Edit</button><button class="btn small danger" data-del-partner="${esc(p.id)}">Delete</button>`:""}
     </div></div></div>`;
 }
 function renderSupport(){
@@ -385,6 +446,7 @@ function renderGive(){
   $("#giveAction").innerHTML = url ? `<a class="btn" href="${esc(url)}" target="_blank" rel="noopener">Donate to CTF</a>`
     : `<span class="hint">Online giving opens soon.</span>`;
   if(S.admin && document.activeElement !== $("#gUrl")) $("#gUrl").value = S.config.donateUrl || "";
+  if(S.admin && document.activeElement !== $("#gMember")) $("#gMember").value = S.config.memberUrl || "";
 }
 
 // ---------- Account ----------
@@ -452,17 +514,40 @@ document.addEventListener("click", async ev=>{
     try{ await setDoc(doc(fs,"rsvps",uid()), {events:cur}); toast(cur[id]?"You're on the list.":"RSVP canceled."); }
     catch(e){ writeFailed(e); } finally{ t.disabled=false; }
   }
+  if(t.dataset.setdate){ openDateDlg(t.dataset.setdate); return; }
+  if(t.dataset.cal){ addToCalendar(t.dataset.cal); return; }
+  if(t.dataset.editEvent){ startEditEvent(t.dataset.editEvent); return; }
+  if(t.dataset.editPartner){ startEditPartner(t.dataset.editPartner); return; }
+  if(t.dataset.approve){
+    const id=t.dataset.approve, start=Math.max(Date.now(), activeUntil(S.approvedIds[id]));
+    try{ await setDoc(doc(fs,"approved",id), {until:start+YEAR, by:uid(), at:Date.now(), sponsored:!!t.dataset.free}); toast("Active through "+fmtDay(start+YEAR)+"."); }catch(e){ writeFailed(e); }
+    return; }
+  if(t.dataset.decline && confirm("Decline this person? Their profile will be deleted.")){ try{ await deleteDoc(doc(fs,"members",t.dataset.decline)); toast("Declined."); }catch(e){ writeFailed(e); } return; }
+  if(t.dataset.revoke && confirm("Remove this person's member access?")){ try{ await deleteDoc(doc(fs,"approved",t.dataset.revoke)); toast("Access removed."); }catch(e){ writeFailed(e); } return; }
   if(t.dataset.delEvent && confirm("Delete this workout?")){ try{ await deleteDoc(doc(fs,"events",t.dataset.delEvent)); }catch(e){ writeFailed(e); } }
   if(t.dataset.delPartner && confirm("Delete this partner?")){ try{ await deleteDoc(doc(fs,"partners",t.dataset.delPartner)); }catch(e){ writeFailed(e); } }
   if(t.dataset.delStory && confirm("Remove this story?")){ try{ await deleteDoc(doc(fs,"stories",t.dataset.delStory)); }catch(e){ writeFailed(e); } }
 });
 
+const EV_FIELDS=["#evTitle","#evDate","#evTime","#evLoc","#evDesc"];
+function resetEventForm(){ editingEvent=null; EV_FIELDS.forEach(f=>$(f).value=""); $("#evHead").textContent="Add a workout"; $("#evSave").textContent="Add workout"; $("#evCancel").hidden=true; }
+function startEditEvent(id){
+  const e=S.events.find(x=>x.id===id); if(!e) return;
+  editingEvent=id;
+  $("#evTitle").value=e.title||""; $("#evDate").value=e.date||""; $("#evTime").value=e.time||""; $("#evLoc").value=e.location||""; $("#evDesc").value=e.description||"";
+  $("#evHead").textContent="Edit workout"; $("#evSave").textContent="Save changes"; $("#evCancel").hidden=false;
+  $("#eventAdmin").scrollIntoView({behavior:"smooth", block:"start"});
+}
+$("#evCancel").addEventListener("click", resetEventForm);
 $("#evSave").addEventListener("click", async ()=>{
   const title=$("#evTitle").value.trim(), date=$("#evDate").value;
   if(!title || !date){ toast("Add a name and a date."); return; }
-  try{ await addDoc(collection(fs,"events"), {title, date, time:$("#evTime").value, location:$("#evLoc").value.trim(), description:$("#evDesc").value.trim()});
-    ["#evTitle","#evDate","#evTime","#evLoc","#evDesc"].forEach(s=>$(s).value=""); toast("Workout added."); }
-  catch(e){ writeFailed(e); }
+  const data={title, date, time:$("#evTime").value, location:$("#evLoc").value.trim(), description:$("#evDesc").value.trim()};
+  try{
+    if(editingEvent){ await setDoc(doc(fs,"events",editingEvent), data); toast("Workout updated."); }
+    else { await addDoc(collection(fs,"events"), data); toast("Workout added."); }
+    resetEventForm();
+  } catch(e){ writeFailed(e); }
 });
 
 $("#pSave").addEventListener("click", async ()=>{
@@ -473,6 +558,7 @@ $("#pSave").addEventListener("click", async ()=>{
 
 $("#sSave").addEventListener("click", async ()=>{
   if(needSignIn()) return;
+  if(!S.approved){ toast("Sharing your story is for members. See the Members tab to join."); return; }
   const text=$("#sText").value.trim().slice(0,2000);
   if(!text){ toast("Write your story first."); return; }
   const branch = (S.members[uid()]||{}).branch || "";
@@ -484,16 +570,30 @@ $("#sDelete").addEventListener("click", async ()=>{
   try{ await deleteDoc(doc(fs,"stories",uid())); $("#sText").value=""; renderStories.filled=false; toast("Story removed."); }catch(e){ writeFailed(e); }
 });
 
+const PT_FIELDS=["#ptName","#ptOffer","#ptContact","#ptWeb"];
+function resetPartnerForm(){ editingPartner=null; PT_FIELDS.forEach(f=>$(f).value=""); $("#ptCat").value="support"; $("#ptHead").textContent="Add a partner"; $("#ptSave").textContent="Add partner"; $("#ptCancel").hidden=true; }
+function startEditPartner(id){
+  const p=S.partners.find(x=>x.id===id); if(!p) return;
+  editingPartner=id;
+  $("#ptName").value=p.name||""; $("#ptCat").value=p.category||"support"; $("#ptOffer").value=p.offer||""; $("#ptContact").value=p.contact||""; $("#ptWeb").value=p.website||"";
+  $("#ptHead").textContent="Edit partner"; $("#ptSave").textContent="Save changes"; $("#ptCancel").hidden=false;
+  $("#partnerAdmin").scrollIntoView({behavior:"smooth", block:"start"});
+}
+$("#ptCancel").addEventListener("click", resetPartnerForm);
 $("#ptSave").addEventListener("click", async ()=>{
   const name=$("#ptName").value.trim(); if(!name){ toast("Add a name."); return; }
-  try{ await addDoc(collection(fs,"partners"), {name, category:$("#ptCat").value, offer:$("#ptOffer").value.trim(), contact:$("#ptContact").value.trim(), website:$("#ptWeb").value.trim()});
-    ["#ptName","#ptOffer","#ptContact","#ptWeb"].forEach(s=>$(s).value=""); toast("Partner added."); }catch(e){ writeFailed(e); }
+  const data={name, category:$("#ptCat").value, offer:$("#ptOffer").value.trim(), contact:$("#ptContact").value.trim(), website:$("#ptWeb").value.trim()};
+  try{
+    if(editingPartner){ await setDoc(doc(fs,"partners",editingPartner), data); toast("Partner updated."); }
+    else { await addDoc(collection(fs,"partners"), data); toast("Partner added."); }
+    resetPartnerForm();
+  } catch(e){ writeFailed(e); }
 });
 
 $("#gSave").addEventListener("click", async ()=>{
-  const u=$("#gUrl").value.trim();
-  if(u && !safeUrl(u)){ toast("That link doesn't look right. Start it with https://"); return; }
-  try{ await setDoc(doc(fs,"config","site"), {...S.config, donateUrl:u}); toast("Donation link saved."); }catch(e){ writeFailed(e); }
+  const u=$("#gUrl").value.trim(), m=$("#gMember").value.trim();
+  if((u && !safeUrl(u)) || (m && !safeUrl(m))){ toast("A link doesn't look right. Start it with https://"); return; }
+  try{ await setDoc(doc(fs,"config","site"), {...S.config, donateUrl:u, memberUrl:m}); toast("Links saved."); }catch(e){ writeFailed(e); }
 });
 
 // One-time starter data for admins. Times are blank on purpose: fill them in from the app.
@@ -519,6 +619,54 @@ $("#seedBtn").addEventListener("click", async ()=>{
   try{ await b.commit(); toast("Starter data loaded."); }catch(e){ writeFailed(e); }
 });
 
+// ---------- Membership date editor ----------
+const dateDlg=$("#dateDlg"); let dateFor=null;
+function openDateDlg(id){
+  dateFor=id;
+  const u=activeUntil(S.approvedIds[id]);
+  const d=new Date(u||Date.now()+YEAR);
+  $("#dateInput").value=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  $("#dateWho").textContent=(S.members[id]||{}).name||"Member";
+  if(typeof dateDlg.showModal==="function") dateDlg.showModal(); else dateDlg.setAttribute("open","");
+}
+$("#dateClose").addEventListener("click",()=>dateDlg.close());
+$("#dateSave").addEventListener("click", async ()=>{
+  const v=$("#dateInput").value; if(!v||!dateFor){ toast("Pick a date."); return; }
+  const [y,m,d]=v.split("-").map(Number);
+  const until=new Date(y,m-1,d,23,59,59).getTime();
+  const prev=S.approvedIds[dateFor]||{};
+  try{ await setDoc(doc(fs,"approved",dateFor), {...prev, until, by:uid(), at:Date.now()}); dateDlg.close(); toast("Active through "+fmtDay(until)+"."); }catch(e){ writeFailed(e); }
+});
+
+// ---------- Add to calendar ----------
+function addToCalendar(id){
+  const e=S.events.find(x=>x.id===id); if(!e) return;
+  const ds=e.date.replace(/-/g,"");
+  const pad=n=>String(n).padStart(2,"0");
+  let start, end, timed=!!e.time;
+  if(timed){
+    const [h,mi]=e.time.split(":").map(Number);
+    start=`DTSTART;TZID=America/New_York:${ds}T${pad(h)}${pad(mi)}00`;
+    const eh=h+1;
+    end=`DTEND;TZID=America/New_York:${ds}T${pad(eh)}${pad(mi)}00`;
+  } else {
+    const n=parseDate(e.date); n.setDate(n.getDate()+1);
+    start=`DTSTART;VALUE=DATE:${ds}`;
+    end=`DTEND;VALUE=DATE:${n.getFullYear()}${pad(n.getMonth()+1)}${pad(n.getDate())}`;
+  }
+  const clean=v=>String(v||"").replace(/[\\,;]/g,m=>"\\"+m).replace(/\n/g,"\\n");
+  const ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//CTF//Community App//EN","BEGIN:VEVENT",
+    `UID:${id}@camaraderie-through-fitness`,`DTSTAMP:${new Date().toISOString().replace(/[-:]/g,"").slice(0,15)}Z`,
+    start,end,`SUMMARY:${clean("CTF: "+e.title)}`,`LOCATION:${clean(e.location)}`,`DESCRIPTION:${clean(e.description)}`,
+    "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:Reminder",timed?"TRIGGER:-PT2H":"TRIGGER:-PT12H","END:VALARM",
+    "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:Reminder","TRIGGER:-P1D","END:VALARM",
+    "END:VEVENT","END:VCALENDAR"].join("\r\n");
+  const url=URL.createObjectURL(new Blob([ics],{type:"text/calendar"}));
+  const a=document.createElement("a"); a.href=url; a.download="ctf-"+id+".ics";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+
 // ---------- Data ----------
 function loadFail(e){ console.error(e); S.loadError=true; render(); }
 onSnapshot(collection(fs,"events"), s=>{ S.events=s.docs.map(d=>({id:d.id, ...d.data()})); S.ready=true; S.loadError=false; render(); }, loadFail);
@@ -527,14 +675,35 @@ onSnapshot(collection(fs,"stories"), s=>{ S.stories=toMap(s); render(); }, e=>co
 onSnapshot(collection(fs,"partners"), s=>{ S.partners=s.docs.map(d=>({id:d.id, ...d.data()})); render(); }, e=>console.error(e));
 onSnapshot(doc(fs,"config","site"), d=>{ S.config=d.exists() ? d.data() : {}; render(); }, e=>console.error(e));
 
-let memberUnsub = null;
+let subs = [];
+function clearSubs(){ subs.forEach(u=>u()); subs=[]; }
+function subscribeMembers(){
+  clearSubs();
+  const u = S.user; if(!u) return;
+  // Always watch my own approval and my own profile.
+  subs.push(onSnapshot(doc(fs,"approved",u.uid), d=>{
+    const was = S.approved;
+    S.approvedIds = {...S.approvedIds, [u.uid]: d.exists()?d.data():undefined};
+    S.approved = S.admin || (d.exists() && isActive(d.data()));
+    if(S.approved !== was) subscribeMembers(); else render();
+  }, e=>console.error(e)));
+  if(S.approved){
+    subs.push(onSnapshot(collection(fs,"members"), s=>{ S.members=toMap(s); render(); }, e=>console.error(e)));
+    subs.push(onSnapshot(collection(fs,"approved"), s=>{ S.approvedIds=toMap(s); render(); }, e=>console.error(e)));
+  } else {
+    subs.push(onSnapshot(doc(fs,"members",u.uid), d=>{ S.members = d.exists() ? {[u.uid]:d.data()} : {}; render(); }, e=>console.error(e)));
+  }
+}
+
 onAuthStateChanged(auth, async u=>{
-  S.user=u; S.admin=false; S.members={};
-  if(memberUnsub){ memberUnsub(); memberUnsub=null; }
+  S.user=u; S.admin=false; S.approved=false; S.members={}; S.approvedIds={};
+  clearSubs();
   renderMembers.filled=false; renderStories.filled=false;
+  resetEventForm(); resetPartnerForm();
   if(u){
     try{ S.admin = (await getDoc(doc(fs,"admins",u.uid))).exists(); }catch(e){ console.error(e); }
-    memberUnsub = onSnapshot(collection(fs,"members"), s=>{ S.members=toMap(s); render(); }, e=>console.error(e));
+    try{ const d=await getDoc(doc(fs,"approved",u.uid)); S.approved = S.admin || (d.exists() && isActive(d.data())); }catch(e){ console.error(e); }
+    subscribeMembers();
   }
   render();
 });
