@@ -178,6 +178,14 @@ body.booting, body.out{padding-bottom:0}
 #ptr.spin img{animation:ptrspin .8s linear infinite}
 @keyframes ptrspin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){#ptr.spin img{animation:none}}
+.person-card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px 18px;text-align:center}
+.person-card .avatar-xl{width:120px;height:120px;border-radius:50%;object-fit:cover;margin:0 auto 12px;display:grid;place-items:center;background:var(--brass-soft);font:700 2.6rem var(--display);color:var(--ink)}
+.person-card h2{margin:4px 0 6px}
+.person-card .links,.person-card .actions{justify-content:center}
+.facts{text-align:left;margin-top:16px;border-top:1px solid var(--line)}
+.facts div{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.facts dt{color:var(--muted)} .facts dd{margin:0;font-weight:600;text-align:right}
+.tap{cursor:pointer}
 .going{margin-top:6px;font-size:.93rem}
 .going summary{cursor:pointer;font-weight:600}
 .going ul{margin:6px 0 0;padding-left:20px}
@@ -288,6 +296,13 @@ nav.tabs button{position:relative}
   </section>
 
   <!-- PROFILE (opened from your name, top right) -->
+  <section id="tab-person" hidden>
+    <div style="display:flex;align-items:center;gap:12px;margin:24px 0 8px">
+      <button class="btn small ghost" id="personBack">Back</button>
+    </div>
+    <div id="personBody"></div>
+  </section>
+
   <section id="tab-profile" hidden>
     <div style="display:flex;align-items:center;gap:12px;margin:24px 0 8px">
       <button class="btn small ghost" id="profileBack">Back</button>
@@ -528,7 +543,7 @@ let lastTab="workouts";
 function showTab(name){
   document.querySelectorAll("nav.tabs button").forEach(x=>{ if(x.dataset.tab===name) x.setAttribute("aria-current","page"); else x.removeAttribute("aria-current"); });
   document.querySelectorAll("section[id^=tab-]").forEach(s=>s.hidden = s.id !== "tab-"+name);
-  if(name!=="profile") lastTab=name;
+  if(name!=="profile" && name!=="person") lastTab=name;
   window.scrollTo(0,0);
 }
 function openProfile(){
@@ -548,7 +563,7 @@ document.querySelectorAll("nav.tabs button").forEach(b=>b.addEventListener("clic
 function render(){
   { const me=S.members[uid()]||{name:myName()};
     $("#acctBtn").innerHTML = S.user ? `${avatarHTML({...me,name:me.name||myName()},"acct-av")}<span>${esc(myName().split(" ")[0])}</span>` : ""; }
-  renderWorkouts(); renderMembers(); renderStories(); renderSupport(); renderGive();
+  renderWorkouts(); renderMembers(); renderPerson(); renderStories(); renderSupport(); renderGive();
   ["#eventAdmin","#partnerAdmin","#giveAdmin"].forEach(s=>$(s).hidden=!S.admin);
   $("#seedWrap").hidden = !(S.admin && S.ready && S.partners.every(p=>BUILTIN_PARTNER_IDS.has(p.id)));
 }
@@ -646,7 +661,10 @@ function buddyState(id){
 function canSeeFull(id){ const st=buddyState(id); return st==="self" || st==="buddy" || S.admin; }
 function fullProfile(id){
   const m=S.members[id]||{}; const pub={}; PUBLIC_KEYS.forEach(k=>{ if(m[k]!==undefined) pub[k]=m[k]; });
-  return canSeeFull(id) ? {...pub, ...(S.priv[id]||{})} : pub;
+  if(!canSeeFull(id)) return pub;
+  const legacy={}; PRIVATE_KEYS.forEach(k=>{ if(m[k]!==undefined && m[k]!=="" && m[k]!==null) legacy[k]=m[k]; });
+  if(m.service && !legacy.unit) legacy.unit=m.service;
+  return {...pub, ...legacy, ...(S.priv[id]||{})};
 }
 function bbButtons(id){
   switch(buddyState(id)){
@@ -670,9 +688,9 @@ function memberRow(id, _m, extra){
   const hiddenTag = S.admin && !m.listed && st!=="self" ? `<span class="tag" style="background:var(--line)">Hidden from list</span>` : "";
   const noProfile = S.admin && !status && st!=="self" ? `<span class="tag" style="background:var(--line)">Profile not filled in</span>` : "";
   return `<div class="row"><div class="member-head" style="flex:1">
-    ${avatarHTML(m,"avatar-md")}
+    <span class="tap" data-person="${esc(id)}" role="button" aria-label="Open ${esc(m.name||"member")}'s page">${avatarHTML(m,"avatar-md")}</span>
     <div class="body">
-      <h3>${mil && full && m.rank ? esc(m.rank)+" " : ""}${esc(m.name||"Member")}${st==="self"?" (you)":""}</h3>
+      <h3 class="tap" data-person="${esc(id)}" tabindex="0">${mil && full && m.rank ? esc(m.rank)+" " : ""}${esc(m.name||"Member")}${st==="self"?" (you)":""}</h3>
       <div>${hiddenTag}${noProfile}${st==="buddy"?`<span class="tag bb-tag">Battle buddy</span>`:""}${status?`<span class="tag">${esc(status)}</span>`:""}${mil && m.branch && m.branch!=="Family / supporter"?`<span class="tag">${esc(m.branch)}</span>`:""}</div>
       ${svc?`<div class="svc">${svc}</div>`:""}
       ${full && m.about?`<p style="margin-top:6px">${esc(m.about)}</p>`:""}
@@ -682,6 +700,34 @@ function memberRow(id, _m, extra){
       ${actions?`<div class="actions">${actions}</div>`:""}
     </div></div></div>`;
 }
+let personId=null;
+function renderPerson(){
+  if(!personId) return;
+  const id=personId, m=fullProfile(id), full=canSeeFull(id), st=buddyState(id), status=statusOf(m), mil=MILITARY.includes(status);
+  const av = m.photo && /^data:image\/(jpeg|png|webp);base64,/.test(m.photo) ? `<img class="avatar-xl" src="${m.photo}" alt="">` : `<div class="avatar-xl" aria-hidden="true">${esc(initials(m.name))}</div>`;
+  const facts = full ? [
+    mil && m.branch ? ["Branch", m.branch] : null,
+    mil && m.rank ? ["Rank", m.rank] : null,
+    mil && m.mos ? [m.branch==="Navy"||m.branch==="Coast Guard" ? "Rating" : m.branch==="Air Force"||m.branch==="Space Force" ? "AFSC" : "MOS", m.mos] : null,
+    mil && (m.unit||m.service) ? ["Unit", m.unit||m.service] : null,
+    mil && years(m) ? ["Served", years(m)] : null,
+    m.reach ? ["Reach out", m.reach] : null
+  ].filter(Boolean) : [];
+  const links = full ? [["LinkedIn",m.linkedin],["Facebook",m.facebook],["Instagram",m.instagram]].map(([l,u])=>[l,safeUrl(u)]).filter(([,u])=>u)
+    .map(([l,u])=>`<a class="btn small ghost" href="${esc(u)}" target="_blank" rel="noopener">${l}</a>`).join("") : "";
+  const empty = full && st!=="self" && !facts.length && !m.about && !links;
+  $("#personBody").innerHTML = `<div class="person-card">${av}
+    <h2>${mil && full && m.rank ? esc(m.rank)+" " : ""}${esc(m.name||"Member")}</h2>
+    <div>${st==="buddy"?`<span class="tag bb-tag">Battle buddy</span>`:""}${status?`<span class="tag">${esc(status)}</span>`:""}${mil && m.branch && !full?`<span class="tag">${esc(m.branch)}</span>`:""}</div>
+    ${full && m.about?`<p style="margin-top:14px">${esc(m.about)}</p>`:""}
+    ${facts.length?`<dl class="facts">${facts.map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(String(v))}</dd></div>`).join("")}</dl>`:""}
+    ${links?`<div class="links" style="margin-top:14px">${links}</div>`:""}
+    ${empty?`<p class="hint" style="margin-top:14px">${esc((m.name||"They").split(" ")[0])} hasn't filled in their profile details yet.</p>`:""}
+    ${!full?`<p class="locked" style="margin-top:14px">Connect as battle buddies to see their full profile.</p>`:""}
+    ${st==="self"?`<p style="margin-top:14px"><button class="btn small" data-welcome="profile">Edit my profile</button></p>`:`<div class="actions" style="margin-top:14px">${bbButtons(id)}</div>`}
+  </div>`;
+}
+function openPerson(id){ personId=id; renderPerson(); showTab("person"); }
 function renderMembers(){
   const note=$("#approvalNote");
   $("#pendingWrap").hidden = true;
@@ -909,6 +955,7 @@ $("#resetBtn").addEventListener("click", async ()=>{
 });
 $("#editProfileBtn").addEventListener("click", ()=>{ closeAuth(); openProfile(); });
 
+document.addEventListener("keydown", e=>{ if(e.key==="Enter" && e.target.dataset && e.target.dataset.person) openPerson(e.target.dataset.person); });
 document.addEventListener("input", e=>{ const sid=e.target.dataset && e.target.dataset.cmtInput; if(sid) S.cmtDrafts[sid]=e.target.value; });
 
 // ---------- Pull to refresh ----------
@@ -962,10 +1009,13 @@ $("#shareCopy").addEventListener("click", async ()=>{
   }
 });
 $("#profileBack").addEventListener("click", ()=>showTab(lastTab));
+$("#personBack").addEventListener("click", ()=>{ personId=null; showTab(lastTab); });
 $("#signOutBtn").addEventListener("click", async ()=>{ await signOut(auth); closeAuth(); toast("Signed out."); });
 
 // ---------- Actions ----------
 document.addEventListener("click", async ev=>{
+  const pp = ev.target.closest("[data-person]");
+  if(pp && !ev.target.closest("button,a")){ openPerson(pp.dataset.person); return; }
   const t = ev.target.closest("button"); if(!t) return;
   if(t.dataset.rsvp){
     if(needSignIn()) return;
@@ -1397,13 +1447,23 @@ onSnapshot(doc(fs,"config","site"), d=>{
 
 let subs = [], privSubs = {};
 function clearSubs(){ subs.forEach(u=>u()); subs=[]; Object.values(privSubs).forEach(u=>u()); privSubs={}; }
+const privRetries={};
 function watchPriv(id){
   if(privSubs[id]) return;
   privSubs[id]=onSnapshot(doc(fs,"private",id), d=>{
+    privRetries[id]=0;
     if(d.exists()) S.priv[id]=d.data(); else delete S.priv[id];
     if(id===uid()){ S.myPrivLoaded=true; migrateMine(); }
     render();
-  }, e=>{ console.error(e); if(id===uid()){ S.myPrivLoaded=true; render(); } });
+  }, e=>{
+    console.error(e);
+    if(id===uid()){ S.myPrivLoaded=true; render(); }
+    // Right after "Accept", the database can still see the request as pending and say no.
+    // Drop the dead listener and try again a few times.
+    delete privSubs[id];
+    const n=(privRetries[id]||0)+1; privRetries[id]=n;
+    if(n<=5) setTimeout(()=>{ if(id===uid() || buddyState(id)==="buddy") watchPriv(id); }, 1500*n);
+  });
 }
 function syncBuddyPriv(){
   if(S.admin) return; // admins watch the whole collection
