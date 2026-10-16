@@ -619,7 +619,21 @@ function openProfile(welcome){
   const mine=S.members[uid()];
   if(mine) fillProfile({...mine, ...(S.priv[uid()]||{})}); else showPhoto();
   showTab("profile");
+  profileSnap = profileState();
 }
+// ---------- Unsaved-changes guard for Edit profile ----------
+const P_FIELDS=["pName","pStatus","pBranch","pRank","pMos","pUnit","pStart","pEnd","pAbout","pLinkedin","pFacebook","pInstagram","pReach","pListed","pRemind"];
+let profileSnap=null;
+function profileState(){
+  return JSON.stringify([P_FIELDS.map(id=>{ const el=document.getElementById(id); return !el ? null : el.type==="checkbox" ? el.checked : el.value; }), pPhoto]);
+}
+function profileDirty(){ return !$("#tab-profile").hidden && profileSnap!==null && profileState()!==profileSnap; }
+function okToLeaveProfile(){
+  if(!profileDirty()) return true;
+  if(confirm("You have unsaved changes to your profile. Leave without saving?")){ profileSnap=null; return true; }
+  return false;
+}
+window.addEventListener("beforeunload", e=>{ if(profileDirty()){ e.preventDefault(); e.returnValue=""; } });
 // Anyone who hasn't said whether they're a veteran or supporter gets the profile
 // setup every time they open the app. "Skip for now" only skips this visit.
 function markWelcomed(){ welcoming=false; }
@@ -630,6 +644,7 @@ function maybeWelcome(){
   welcomeShown=true; openProfile(true);
 }
 document.querySelectorAll("nav.tabs button").forEach(b=>b.addEventListener("click",()=>{
+  if(!okToLeaveProfile()) return;
   lastTab=b.dataset.tab;
   document.querySelectorAll("nav.tabs button").forEach(x=>x.removeAttribute("aria-current"));
   b.setAttribute("aria-current","page");
@@ -1131,7 +1146,7 @@ $("#shareCopy").addEventListener("click", async ()=>{
     toast("Press and hold the link to copy it.");
   }
 });
-$("#profileBack").addEventListener("click", ()=>{ if(welcoming) markWelcomed(); showTab(lastTab); });
+$("#profileBack").addEventListener("click", ()=>{ if(!okToLeaveProfile()) return; if(welcoming) markWelcomed(); profileSnap=null; showTab(lastTab); });
 $("#personBack").addEventListener("click", ()=>{ personId=null; showTab(lastTab); });
 $("#signOutBtn").addEventListener("click", async ()=>{ await signOut(auth); closeAuth(); toast("Signed out."); });
 
@@ -1397,7 +1412,7 @@ $("#pSave").addEventListener("click", async ()=>{
     b.set(doc(fs,"members",uid()), pub);
     syncContact($("#pRemind").checked);
     await b.commit();
-    toast(welcoming ? "You're all set. Welcome to CTF." : "Profile saved."); if(welcoming) markWelcomed(); showTab(lastTab);
+    profileSnap=null; toast(welcoming ? "You're all set. Welcome to CTF." : "Profile saved."); if(welcoming) markWelcomed(); showTab(lastTab);
   }catch(e){ writeFailed(e); }
 });
 
