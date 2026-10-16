@@ -207,6 +207,7 @@ body.booting, body.out{padding-bottom:0}
 .profile-head h2{margin:0;flex:1}
 #profileBack{white-space:nowrap;flex:none}
 .profile-head.setup #profileBack{order:2}
+.ios-note{background:var(--brass-soft);color:var(--ink);border-radius:12px;padding:12px 14px;font-size:.93rem;margin-bottom:14px}
 /* ---- Battle buddies ---- */
 nav.tabs button{position:relative}
 .badge{position:absolute;top:2px;left:calc(50% + 6px);box-shadow:0 0 0 2px var(--surface);min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:var(--alert);color:#fff;font:700 .72rem/18px var(--body)}
@@ -246,6 +247,7 @@ nav.tabs button{position:relative}
         <button role="tab" id="modeIn" aria-selected="true">Sign in</button>
         <button role="tab" id="modeUp" aria-selected="false">Create account</button>
       </div>
+      <div class="ios-note" id="iosNote" hidden><b>Opened from your home screen?</b> Sign in with email below. Google sign-in doesn't always work in home-screen apps on iPhone. Made your account with Google? Enter your Gmail address and tap <b>Forgot password?</b> to set a password.</div>
       <button class="btn" id="googleBtn">Continue with Google</button>
       <div class="or">or use email</div>
       <div id="nameWrap" hidden><label for="aName">Your name</label><input id="aName" type="text" autocomplete="name"></div>
@@ -953,16 +955,21 @@ const AUTH_MSG = {
   "auth/missing-password":"Enter a password.",
   "auth/operation-not-allowed":"This sign-in method isn't turned on yet in Firebase.",
   "auth/unauthorized-domain":"This website isn't approved in Firebase yet (Authentication → Settings → Authorized domains).",
-  "auth/popup-closed-by-user":"Sign-in window closed before finishing.",
+  "auth/popup-closed-by-user":"Google sign-in closed before finishing. Try signing in with email instead.",
+  "auth/cancelled-popup-request":"Google sign-in didn't finish. Try signing in with email instead.",
+  "auth/web-storage-unsupported":"Google sign-in isn't supported here. Sign in with email instead.",
+  "auth/network-request-failed":"Couldn't reach the sign-in service. Check your connection and try again.",
   "auth/too-many-requests":"Too many tries. Wait a few minutes and try again."
 };
-function authFail(e){ console.error(e); $("#authErr").textContent = AUTH_MSG[e.code] || ("Sign-in failed: " + (e.code || e.message)); }
+function authFail(e){ console.error(e); $("#authErr").textContent = AUTH_MSG[e.code] || ("Sign-in didn't work (" + (e.code || e.message) + "). Try signing in with email instead."); }
 
 $("#googleBtn").addEventListener("click", async ()=>{
   const provider = new GoogleAuthProvider();
   try { await signInWithPopup(auth, provider); closeAuth(); }
   catch(e){ if(e.code === "auth/popup-blocked"){ await signInWithRedirect(auth, provider); } else authFail(e); }
 });
+// iPhone home-screen app: steer people to email sign-in.
+if(navigator.standalone === true) $("#iosNote").hidden = false;
 $("#emailIn").addEventListener("click", async ()=>{
   try { await signInWithEmailAndPassword(auth, $("#aEmail").value.trim(), $("#aPass").value); closeAuth(); } catch(e){ authFail(e); }
 });
