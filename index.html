@@ -221,6 +221,10 @@ body.booting, body.out{padding-bottom:0}
   <section id="tab-members" hidden>
     <h2>Members</h2>
     <p class="hint">Members choose whether to show up here.</p>
+    <div class="panel admin" id="paywallAdmin" hidden>
+      <label class="check" style="margin-top:0"><input type="checkbox" id="paywallToggle"> <span><b>Require paid membership</b> ($22/year) for the member directory and posting stories</span></label>
+      <p class="hint" id="paywallState" style="margin:8px 0 0"></p>
+    </div>
     <div id="approvalNote"></div>
     <div class="filter" id="dirFilter" role="group" aria-label="Filter members" hidden><button data-dir="all" aria-pressed="true">Everyone</button><button data-dir="mil" aria-pressed="false">Veterans &amp; military</button></div>
     <div id="pendingWrap" class="panel admin" hidden><h3>Waiting on payment</h3><p class="hint">Check your payment platform, then tap Activate 1 year.</p><div class="list" id="pendingList" style="border-top:0"></div><div id="renewWrap"></div></div>
@@ -386,6 +390,8 @@ const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
 const S = { events:[], rsvps:{}, members:{}, stories:{}, partners:[], config:{}, approvedIds:{}, user:null, admin:false, approved:false, ready:false, loadError:false };
 let editingEvent = null, editingPartner = null;
+const paywallOn = () => S.config.paywall === true;
+const computeApproved = mine => S.admin || !paywallOn() || isActive(mine);
 S.dir = (()=>{ try{ return localStorage.getItem("ctfDir")==="mil" ? "mil" : "all"; }catch{ return "all"; } })();
 const YEAR = 365*24*60*60*1000;
 const activeUntil = a => (a && typeof a.until === "number") ? a.until : 0;
@@ -488,6 +494,13 @@ function renderMembers(){
   $("#pendingWrap").hidden = true;
   const payUrl = safeUrl(S.config.memberUrl);
   $("#dirFilter").hidden = true;
+  $("#paywallAdmin").hidden = !S.admin;
+  if(S.admin){
+    $("#paywallToggle").checked = paywallOn();
+    $("#paywallState").textContent = paywallOn()
+      ? "On: members need an active $22 membership to see the directory and post stories."
+      : "Off: everyone who signs in gets the directory and stories for free.";
+  }
   if(!S.user){
     note.innerHTML=`<div class="panel"><h3>Join the CTF community</h3><p>Membership is $22 a year and unlocks the veteran directory and sharing your story. Workouts, RSVPs, and support resources stay free.</p></div>`;
     $("#memberList").innerHTML=`<p class="empty-note">Sign in to get started.</p>`;
@@ -502,18 +515,18 @@ function renderMembers(){
     $("#memberList").innerHTML="";
   } else {
     const mine = S.approvedIds[uid()];
-    note.innerHTML = (!S.admin && mine) ? `<p class="hint">Membership active through ${fmtDay(activeUntil(mine))}.</p>` : "";
-    const ok = id => isActive(S.approvedIds[id]) || id===uid();
+    note.innerHTML = (!S.admin && mine && paywallOn()) ? `<p class="hint">Membership active through ${fmtDay(activeUntil(mine))}.</p>` : "";
+    const ok = id => !paywallOn() || isActive(S.approvedIds[id]) || id===uid();
     $("#dirFilter").hidden = false;
     document.querySelectorAll("#dirFilter button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.dir===S.dir));
     const ids = Object.keys(S.members).filter(id=>S.members[id].listed && ok(id) && (S.dir!=="mil" || MILITARY.includes(statusOf(S.members[id]))));
     $("#memberList").innerHTML = ids.length ? ids.map(id=>{
         const a=S.approvedIds[id];
-        const extra = S.admin && id!==uid() ? `<span class="meta">Paid through ${a?fmtDay(activeUntil(a)):"—"}</span><button class="btn small ghost" data-approve="${esc(id)}">Add 1 year</button><button class="btn small ghost" data-setdate="${esc(id)}">Set date</button><button class="btn small danger" data-revoke="${esc(id)}">Remove access</button>` : "";
+        const extra = S.admin && id!==uid() && paywallOn() ? `<span class="meta">Paid through ${a?fmtDay(activeUntil(a)):"—"}</span><button class="btn small ghost" data-approve="${esc(id)}">Add 1 year</button><button class="btn small ghost" data-setdate="${esc(id)}">Set date</button><button class="btn small danger" data-revoke="${esc(id)}">Remove access</button>` : "";
         return memberRow(id, S.members[id], extra);
       }).join("")
       : `<p class="empty-note">${S.dir==="mil" ? "No veterans or service members listed yet." : "No one's listed yet. Fill in your profile below and be the first."}</p>`;
-    if(S.admin){
+    if(S.admin && paywallOn()){
       const pend = Object.keys(S.members).filter(id=>id!==uid() && !isActive(S.approvedIds[id]));
       $("#pendingWrap").hidden = false;
       $("#pendingList").innerHTML = pend.length ? pend.map(id=>{
@@ -879,6 +892,13 @@ $("#seedBtn").addEventListener("click", async ()=>{
   try{ await b.commit(); toast("Partners loaded."); }catch(e){ writeFailed(e); }
 });
 
+$("#paywallToggle").addEventListener("change", async e=>{
+  const on=e.target.checked;
+  if(on && !confirm("Turn the paywall on? Anyone without an active membership loses directory access.")){ e.target.checked=false; return; }
+  try{ await setDoc(doc(fs,"config","site"), {...S.config, paywall:on}); toast(on ? "Paywall on." : "Paywall off. Everyone has full access."); }
+  catch(err){ e.target.checked=!on; writeFailed(err); }
+});
+
 // ---------- Membership date editor ----------
 const dateDlg=$("#dateDlg"); let dateFor=null;
 function openDateDlg(id){
@@ -933,7 +953,11 @@ onSnapshot(collection(fs,"events"), s=>{ S.events=mergeEvents(s.docs.map(d=>({id
 onSnapshot(collection(fs,"rsvps"), s=>{ S.rsvps=toMap(s); render(); }, e=>console.error(e));
 onSnapshot(collection(fs,"stories"), s=>{ S.stories=toMap(s); render(); }, e=>console.error(e));
 onSnapshot(collection(fs,"partners"), s=>{ S.partners=s.docs.map(d=>({id:d.id, ...d.data()})); render(); }, e=>console.error(e));
-onSnapshot(doc(fs,"config","site"), d=>{ S.config=d.exists() ? d.data() : {}; render(); }, e=>console.error(e));
+onSnapshot(doc(fs,"config","site"), d=>{
+  S.config=d.exists() ? d.data() : {};
+  if(S.user){ const was=S.approved; S.approved=computeApproved(S.approvedIds[uid()]); if(was!==S.approved){ subscribeMembers(); return; } }
+  render();
+}, e=>console.error(e));
 
 let subs = [];
 function clearSubs(){ subs.forEach(u=>u()); subs=[]; }
@@ -944,7 +968,7 @@ function subscribeMembers(){
   subs.push(onSnapshot(doc(fs,"approved",u.uid), d=>{
     const was = S.approved;
     S.approvedIds = {...S.approvedIds, [u.uid]: d.exists()?d.data():undefined};
-    S.approved = S.admin || (d.exists() && isActive(d.data()));
+    S.approved = computeApproved(d.exists()?d.data():undefined);
     if(S.approved !== was) subscribeMembers(); else render();
   }, e=>console.error(e)));
   if(S.approved){
@@ -963,7 +987,7 @@ onAuthStateChanged(auth, async u=>{
   if(!u){ setView(); setMode("in"); $("#aPass").value=""; }
   if(u){
     try{ S.admin = (await getDoc(doc(fs,"admins",u.uid))).exists(); }catch(e){ console.error(e); }
-    try{ const d=await getDoc(doc(fs,"approved",u.uid)); S.approved = S.admin || (d.exists() && isActive(d.data())); }catch(e){ console.error(e); }
+    try{ const d=await getDoc(doc(fs,"approved",u.uid)); S.approvedIds[u.uid]=d.exists()?d.data():undefined; S.approved = computeApproved(S.approvedIds[u.uid]); }catch(e){ console.error(e); S.approved = computeApproved(undefined); }
     subscribeMembers();
     setView(); window.scrollTo(0,0);
   }
