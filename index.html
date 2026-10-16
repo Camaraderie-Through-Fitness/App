@@ -359,7 +359,7 @@ body.booting, body.out{padding-bottom:0}
     <h3 id="whoName">Signed in</h3>
     <p class="hint" id="whoEmail"></p>
     <p id="adminNote" class="hint"></p>
-    <p style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="editProfileBtn">Edit profile</button><button class="btn danger" id="signOutBtn">Sign out</button></p>
+    <p style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="editProfileBtn">Edit profile</button><button class="btn ghost" id="inviteBtn">Invite a veteran</button><button class="btn danger" id="signOutBtn">Sign out</button></p>
     <details class="uid-box">
       <summary>Account ID</summary>
       <div class="mono" id="whoId"></div>
@@ -374,6 +374,23 @@ body.booting, body.out{padding-bottom:0}
   <p class="hint" id="dateWho"></p>
   <label for="dateInput">Active through</label><input id="dateInput" type="date">
   <p style="margin-top:14px"><button class="btn" id="dateSave">Save date</button></p>
+</dialog>
+
+<dialog id="shareDlg">
+  <button class="dlg-close" id="shareClose" aria-label="Close">×</button>
+  <h3>Invite a veteran</h3>
+  <p class="hint">Send this link. Signing up is free.</p>
+  <div class="mono" id="shareUrl" style="margin-top:10px"></div>
+  <p style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn" id="shareNative" hidden>Share link</button>
+    <button class="btn ghost" id="shareCopy">Copy link</button>
+  </p>
+  <div class="form-group">
+    <h4>Add it to your home screen</h4>
+    <p style="margin-top:8px"><b>iPhone or iPad:</b> open the link in Safari, tap the Share button (square with an arrow), then <b>Add to Home Screen</b>.</p>
+    <p><b>Android:</b> open the link in Chrome, tap the <b>⋮</b> menu at the top right, then <b>Add to Home screen</b> or <b>Install app</b>.</p>
+    <p class="hint">It opens full screen with the CTF badge, just like an app.</p>
+  </div>
 </dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -680,6 +697,34 @@ $("#resetBtn").addEventListener("click", async ()=>{
   try { await sendPasswordResetEmail(auth, email); $("#authErr").textContent="Reset link sent. Check your email."; } catch(e){ authFail(e); }
 });
 $("#editProfileBtn").addEventListener("click", ()=>{ closeAuth(); openProfile(); });
+
+// ---------- Invite / share ----------
+const APP_URL = "https://camaraderie-through-fitness.github.io/App/";
+const SHARE_TEXT = "Join me on the Camaraderie Through Fitness app: workouts, RSVPs, and other veterans. Signing up is free.\n\n"
+  + "Add it to your home screen:\n"
+  + "iPhone: open in Safari, tap Share, then Add to Home Screen.\n"
+  + "Android: open in Chrome, tap the 3-dot menu, then Add to Home screen.";
+const shareDlg=$("#shareDlg");
+$("#inviteBtn").addEventListener("click", ()=>{
+  closeAuth();
+  $("#shareUrl").textContent = APP_URL;
+  $("#shareNative").hidden = !navigator.share;
+  if(typeof shareDlg.showModal==="function") shareDlg.showModal(); else shareDlg.setAttribute("open","");
+});
+$("#shareClose").addEventListener("click", ()=>shareDlg.close());
+$("#shareNative").addEventListener("click", async ()=>{
+  try{ await navigator.share({ title:"Camaraderie Through Fitness", text:SHARE_TEXT, url:APP_URL }); }
+  catch(e){ if(e && e.name!=="AbortError") toast("Couldn't open sharing. Use Copy link instead."); }
+});
+$("#shareCopy").addEventListener("click", async ()=>{
+  const msg = SHARE_TEXT + "\n\n" + APP_URL;
+  try{ await navigator.clipboard.writeText(msg); toast("Link and instructions copied. Paste them in a text."); }
+  catch{
+    const r=document.createRange(); r.selectNodeContents($("#shareUrl"));
+    const sel=getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    toast("Press and hold the link to copy it.");
+  }
+});
 $("#profileBack").addEventListener("click", ()=>showTab(lastTab));
 $("#signOutBtn").addEventListener("click", async ()=>{ await signOut(auth); closeAuth(); toast("Signed out."); });
 
