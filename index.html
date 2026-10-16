@@ -74,6 +74,15 @@ header.top .sub{color:var(--muted);font-size:.9rem;line-height:1.2}
 .muster .btn.going-badge{background:transparent;color:var(--green-ink);border-color:currentColor}
 .btn[disabled]{opacity:.5;cursor:not-allowed}
 
+.drops{display:flex;flex-direction:column;gap:10px;margin:10px 0 20px}
+.drop{border:1px solid var(--line);border-radius:14px;background:var(--surface);overflow:hidden}
+.drop summary{list-style:none;display:flex;align-items:center;gap:10px;padding:16px 16px;cursor:pointer;min-height:56px}
+.drop summary::-webkit-details-marker{display:none}
+.drop-title{flex:1;font:700 1.2rem/1.2 var(--display)}
+.drop-count{flex:none;min-width:26px;height:26px;padding:0 8px;border-radius:99px;background:var(--line);font:700 .85rem/26px var(--body);text-align:center}
+.chev{flex:none;width:10px;height:10px;border-right:2.5px solid currentColor;border-bottom:2.5px solid currentColor;transform:rotate(45deg);margin:0 4px 4px 0;transition:transform .2s}
+.drop[open] .chev{transform:rotate(-135deg);margin:4px 4px 0 0}
+.drop .list{padding:0 16px 6px}
 .list{display:flex;flex-direction:column;border-top:1px solid var(--line)}
 .row{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--line);align-items:flex-start}
 .date{flex:none;width:52px;text-align:center;border:2px solid var(--line);border-radius:10px;padding:4px 0}
@@ -418,13 +427,12 @@ nav.tabs button{position:relative}
       <h3>In crisis right now?</h3>
       <p>Call the Veterans Crisis Line: dial <a href="tel:988">988</a> and press 1. Or text <a href="sms:838255">838255</a>. Free, confidential, 24/7.</p>
     </div>
-    <h2 id="supportHead">Counseling and care</h2>
-    <p class="hint" id="supportHint">Partner organizations. Reach out to them directly.</p>
-    <div class="list" id="supportList"></div>
-    <h2 id="npHead">Pro-veteran nonprofits</h2>
-    <div class="list" id="npList"></div>
-    <h2 id="bizHead">Businesses that back us</h2>
-    <div class="list" id="bizList"></div>
+    <p class="hint" style="margin-top:22px">Partner organizations. Tap a section to see who's in it, then reach out to them directly.</p>
+    <div class="drops">
+      <details class="drop" name="partners" id="dSupport"><summary><span class="drop-title">Counseling and care</span><span class="drop-count" id="cSupport"></span><span class="chev" aria-hidden="true"></span></summary><div class="list" id="supportList"></div></details>
+      <details class="drop" name="partners" id="dNp"><summary><span class="drop-title">Pro-veteran nonprofits</span><span class="drop-count" id="cNp"></span><span class="chev" aria-hidden="true"></span></summary><div class="list" id="npList"></div></details>
+      <details class="drop" name="partners" id="dBiz"><summary><span class="drop-title">Businesses that back us</span><span class="drop-count" id="cBiz"></span><span class="chev" aria-hidden="true"></span></summary><div class="list" id="bizList"></div></details>
+    </div>
     <div class="panel admin" id="partnerAdmin" hidden>
       <h3 id="ptHead">Add a partner</h3>
       <label for="ptName">Name</label><input id="ptName" type="text">
@@ -1000,17 +1008,21 @@ function partnerRow(p){
       ${S.admin?`<button class="btn small ghost" data-edit-partner="${esc(p.id)}">Edit</button><button class="btn small danger" data-del-partner="${esc(p.id)}">Delete</button>`:""}
     </div></div></div>`;
 }
+// Only one partner section open at a time (backup for browsers without <details name>).
+document.querySelectorAll(".drop").forEach(d=>d.addEventListener("toggle",()=>{
+  if(d.open) document.querySelectorAll(".drop").forEach(o=>{ if(o!==d) o.open=false; });
+}));
 function renderSupport(){
   const sup=S.partners.filter(p=>p.category==="support"), np=S.partners.filter(p=>p.category==="nonprofit"), biz=S.partners.filter(p=>p.category==="business");
   // Empty sections are hidden from members; admins still see them so they know where things go.
-  const fill=(list, head, items, empty, extra)=>{
+  const fill=(list, box, count, items, empty)=>{
     const show = items.length || S.admin;
-    $(head).hidden = !show; $(list).hidden = !show; if(extra) $(extra).hidden = !show;
+    $(box).hidden = !show; $(count).textContent = items.length;
     $(list).innerHTML = items.length ? items.map(partnerRow).join("") : `<p class="empty-note">${empty}</p>`;
   };
-  fill("#supportList","#supportHead",sup,"Nothing here yet. Add one below.","#supportHint");
-  fill("#npList","#npHead",np,"Nothing here yet. Add one below.");
-  fill("#bizList","#bizHead",biz,"Nothing here yet. Add one below.");
+  fill("#supportList","#dSupport","#cSupport",sup,"Nothing here yet. Add one below.");
+  fill("#npList","#dNp","#cNp",np,"Nothing here yet. Add one below.");
+  fill("#bizList","#dBiz","#cBiz",biz,"Nothing here yet. Add one below.");
 }
 
 const DEFAULT_DONATE_URL = "https://www.camaraderietf.org/donate";
