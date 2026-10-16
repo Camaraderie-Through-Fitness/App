@@ -200,6 +200,13 @@ body.booting, body.out{padding-bottom:0}
 .myrsvps .when{flex:none;width:52px;text-align:center;font:700 1.1rem/1.1 var(--display)}
 .myrsvps .when span{display:block;font:600 .75rem var(--body);color:var(--muted)}
 .month-head{font:700 1.15rem var(--display);color:var(--muted);margin:22px 0 4px}
+.welcome{background:var(--green);color:var(--green-ink);border-radius:16px;padding:18px;margin:4px 0 12px}
+.welcome h3{margin-bottom:6px}
+.welcome p{margin:0}
+.profile-head{display:flex;align-items:center;gap:12px;margin:24px 0 8px}
+.profile-head h2{margin:0;flex:1}
+#profileBack{white-space:nowrap;flex:none}
+.profile-head.setup #profileBack{order:2}
 /* ---- Battle buddies ---- */
 nav.tabs button{position:relative}
 .badge{position:absolute;top:2px;left:calc(50% + 6px);box-shadow:0 0 0 2px var(--surface);min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:var(--alert);color:#fff;font:700 .72rem/18px var(--body)}
@@ -305,9 +312,13 @@ nav.tabs button{position:relative}
   </section>
 
   <section id="tab-profile" hidden>
-    <div style="display:flex;align-items:center;gap:12px;margin:24px 0 8px">
+    <div class="profile-head" id="profileHead">
       <button class="btn small ghost" id="profileBack">Back</button>
-      <h2 style="margin:0">Edit profile</h2>
+      <h2 style="margin:0" id="profileTitle">Edit profile</h2>
+    </div>
+    <div class="welcome" id="welcomeNote" hidden>
+      <h3>Welcome to CTF</h3>
+      <p>Take a minute to set up your profile so other members know who you are. Tell us if you're a veteran or supporter and add a photo. Everything else is optional.</p>
     </div>
     <div class="panel" id="profilePanel">
       <div class="photo-row">
@@ -547,10 +558,25 @@ function showTab(name){
   if(name!=="profile" && name!=="person") lastTab=name;
   window.scrollTo(0,0);
 }
-function openProfile(){
+let welcoming=false;
+function openProfile(welcome){
+  welcoming=!!welcome;
+  $("#welcomeNote").hidden=!welcoming;
+  $("#profileTitle").textContent = welcoming ? "Set up your profile" : "Edit profile";
+  $("#profileBack").textContent = welcoming ? "Skip for now" : "Back";
+  $("#profileHead").classList.toggle("setup", welcoming);
   const mine=S.members[uid()];
   if(mine) fillProfile({...mine, ...(S.priv[uid()]||{})}); else showPhoto();
   showTab("profile");
+}
+// Anyone who hasn't said whether they're a veteran or supporter gets the profile
+// setup every time they open the app. "Skip for now" only skips this visit.
+function markWelcomed(){ welcoming=false; }
+let welcomeShown=false;
+function maybeWelcome(){
+  if(welcomeShown || !S.user || !S.myPrivLoaded) return;
+  const mine=S.members[uid()]; if(!mine || mine.status) return;
+  welcomeShown=true; openProfile(true);
 }
 document.querySelectorAll("nav.tabs button").forEach(b=>b.addEventListener("click",()=>{
   lastTab=b.dataset.tab;
@@ -788,6 +814,7 @@ function renderMembers(){
   if(mine && S.myPrivLoaded && !renderMembers.filled){ renderMembers.filled=true;
     fillProfile({...mine, ...(S.priv[uid()]||{})}); }
   else if(!mine && S.user && !pPhoto && !$("#pPhotoPrev").textContent) showPhoto();
+  maybeWelcome();
 }
 
 function ago(ms){
@@ -1009,7 +1036,7 @@ $("#shareCopy").addEventListener("click", async ()=>{
     toast("Press and hold the link to copy it.");
   }
 });
-$("#profileBack").addEventListener("click", ()=>showTab(lastTab));
+$("#profileBack").addEventListener("click", ()=>{ if(welcoming) markWelcomed(); showTab(lastTab); });
 $("#personBack").addEventListener("click", ()=>{ personId=null; showTab(lastTab); });
 $("#signOutBtn").addEventListener("click", async ()=>{ await signOut(auth); closeAuth(); toast("Signed out."); });
 
@@ -1195,6 +1222,7 @@ function cleanLink(v, hosts){
 $("#pSave").addEventListener("click", async ()=>{
   if(needSignIn()) return;
   const status=$("#pStatus").value, mil=MILITARY.includes(status);
+  if(welcoming && !status){ toast("Pick whether you're a veteran, service member, family, or supporter."); $("#pStatus").focus(); return; }
   const linkedin=cleanLink($("#pLinkedin").value,["linkedin.com"]);
   const facebook=cleanLink($("#pFacebook").value,["facebook.com","fb.com"]);
   const instagram=cleanLink($("#pInstagram").value,["instagram.com"]);
@@ -1226,7 +1254,7 @@ $("#pSave").addEventListener("click", async ()=>{
     b.set(doc(fs,"members",uid()), pub);
     syncContact($("#pRemind").checked);
     await b.commit();
-    toast("Profile saved."); showTab(lastTab);
+    toast(welcoming ? "You're all set. Welcome to CTF." : "Profile saved."); if(welcoming) markWelcomed(); showTab(lastTab);
   }catch(e){ writeFailed(e); }
 });
 
@@ -1552,7 +1580,7 @@ function subscribeMembers(){
 }
 
 onAuthStateChanged(auth, async u=>{
-  ensured=false; ensuring=false; S.contact=null;
+  ensured=false; ensuring=false; S.contact=null; welcomeShown=false; welcoming=false;
   S.user=u; S.admin=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.myPrivLoaded=false; S.salutes={}; S.comments={}; S.photos={}; sPhotoDraft=undefined;
   clearSubs();
   renderMembers.filled=false; renderStories.filled=false;
