@@ -348,12 +348,14 @@ nav.tabs button{position:relative}
     <h2>Counseling and care</h2>
     <p class="hint">Partner organizations. Reach out to them directly.</p>
     <div class="list" id="supportList"></div>
+    <h2>Pro-veteran nonprofits</h2>
+    <div class="list" id="npList"></div>
     <h2>Businesses that back us</h2>
     <div class="list" id="bizList"></div>
     <div class="panel admin" id="partnerAdmin" hidden>
       <h3 id="ptHead">Add a partner</h3>
       <label for="ptName">Name</label><input id="ptName" type="text">
-      <label for="ptCat">Type</label><select id="ptCat"><option value="support">Counseling or care</option><option value="business">Supporting business</option></select>
+      <label for="ptCat">Type</label><select id="ptCat"><option value="support">Counseling or care</option><option value="nonprofit">Pro-veteran nonprofit</option><option value="business">Supporting business</option></select>
       <label for="ptOffer">What they offer veterans</label><textarea id="ptOffer"></textarea>
       <label for="ptContact">Phone or email</label><input id="ptContact" type="text">
       <label for="ptWeb">Website</label><input id="ptWeb" type="url" placeholder="https://">
@@ -732,7 +734,8 @@ function partnerRow(p){
     </div></div></div>`;
 }
 function renderSupport(){
-  const sup=S.partners.filter(p=>p.category==="support"), biz=S.partners.filter(p=>p.category==="business");
+  const sup=S.partners.filter(p=>p.category==="support"), np=S.partners.filter(p=>p.category==="nonprofit"), biz=S.partners.filter(p=>p.category==="business");
+  $("#npList").innerHTML = np.length ? np.map(partnerRow).join("") : `<p class="empty-note">Pro-veteran nonprofits will be listed here.</p>`;
   $("#supportList").innerHTML = sup.length ? sup.map(partnerRow).join("") : `<p class="empty-note">Partner organizations will be listed here.</p>`;
   $("#bizList").innerHTML = biz.length ? biz.map(partnerRow).join("") : `<p class="empty-note">Supporting businesses will be listed here.</p>`;
 }
