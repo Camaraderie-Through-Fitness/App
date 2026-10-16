@@ -212,6 +212,13 @@ body.booting, body.out{padding-bottom:0}
 .ios-note{background:var(--brass-soft);color:var(--ink);border-radius:12px;padding:12px 14px;font-size:.93rem;margin-bottom:14px}
 .dir-search{margin:0 0 10px}
 .dir-search input{width:100%;min-height:44px;padding:10px 14px;border:1.5px solid var(--line);border-radius:99px;background:var(--surface);font:inherit;color:inherit}
+.going-row{display:flex;align-items:center;gap:10px;margin-top:6px}
+.faces{display:flex}
+.faces > span{margin-left:-6px}
+.faces > span:first-child{margin-left:0}
+.face{width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid var(--bg);background:var(--brass-soft);display:grid;place-items:center;font:700 .78rem var(--display);color:var(--ink)}
+.faces.on-dark .face{border-color:var(--green)}
+.face.more{background:var(--line);color:var(--ink);font-size:.72rem}
 /* ---- Battle buddies ---- */
 nav.tabs button{position:relative}
 .badge{position:absolute;top:2px;left:calc(50% + 6px);box-shadow:0 0 0 2px var(--surface);min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:var(--alert);color:#fff;font:700 .72rem/18px var(--body)}
@@ -557,6 +564,16 @@ function parseDate(s){ const [y,m,d]=String(s||"").split("-").map(Number); retur
 function fmtTime(t){ if(!t) return "Time TBD"; const [h,m]=t.split(":").map(Number); return ((h%12)||12)+":"+String(m).padStart(2,"0")+" "+(h>=12?"PM":"AM"); }
 function upcoming(){ const today=new Date(); today.setHours(0,0,0,0); return S.events.filter(e=>{const d=parseDate(e.date); return d && d>=today;}).sort((a,b)=>(a.date+(a.time||"")).localeCompare(b.date+(b.time||""))); }
 function goingIds(id){ return Object.keys(S.rsvps).filter(u=>S.rsvps[u].events && S.rsvps[u].events[id]); }
+// Small photo row of who's going, for everyone. Shows people who are listed in the
+// directory (or your buddies); anyone who chose to stay hidden is just counted.
+function facesGoing(id, onDark){
+  const ids=goingIds(id); if(!ids.length) return "";
+  const shown=ids.filter(u=>S.members[u] && (S.members[u].listed!==false || u===uid() || buddyState(u)==="buddy"))
+    .sort((a,b)=>(a===uid()?-1:b===uid()?1:0)||(buddyState(b)==="buddy")-(buddyState(a)==="buddy"));
+  const MAX=6, faces=shown.slice(0,MAX), extra=ids.length-faces.length;
+  return `<div class="faces${onDark?" on-dark":""}" aria-label="${ids.length} going">${faces.map(u=>
+    `<span class="tap" data-person="${esc(u)}" title="${esc(S.members[u].name||"Member")}">${avatarHTML(S.members[u],"face")}</span>`).join("")}${extra>0?`<span class="face more">+${extra}</span>`:""}</div>`;
+}
 function whoGoing(id, onDark){
   if(!S.admin) return "";
   const ids=goingIds(id);
@@ -627,7 +644,7 @@ function eventRow(e){
       <div class="date"><b>${d.getDate()}</b><span>${MON[d.getMonth()]}</span></div>
       <div class="body"><h3>${esc(e.title)}</h3><div class="meta">${DOW[d.getDay()]}, ${esc(fmtTime(e.time))} · ${esc(e.location||"Location TBD")}</div>
       ${e.description?`<p class="meta" style="margin-top:4px">${esc(e.description)}</p>`:""}
-      <div class="meta">${n} going</div>${whoGoing(e.id)}
+      <div class="going-row">${facesGoing(e.id)}<span class="meta">${n} going</span></div>${whoGoing(e.id)}
       <div class="actions">${rsvpButton(e,"small ghost")}<button class="btn small ghost" data-cal="${esc(e.id)}">Add to calendar</button>${dirBtn(e)}${S.admin?`<button class="btn small ghost" data-edit-event="${esc(e.id)}">Edit</button><button class="btn small danger" data-del-event="${esc(e.id)}">Delete</button>`:""}</div></div></div>`;
 }
 // Old welcome card retired: the full "Set up your profile" page (maybeWelcome) now
@@ -661,7 +678,7 @@ function renderWorkouts(){
     m.className="muster";
     m.innerHTML=`<div class="when"><div class="day">${d.getDate()}</div><div class="mon">${DOW[d.getDay()]}<br>${MON[d.getMonth()]}</div></div>
       <h1>${esc(e.title)}</h1><div class="meta">${esc(fmtTime(e.time))} at ${esc(e.location||"location TBD")}</div>
-      <div class="count">${n} going</div>${whoGoing(e.id,true)}
+      <div class="going-row count">${facesGoing(e.id,true)}<span>${n} going</span></div>${whoGoing(e.id,true)}
       ${e.description?`<p class="meta" style="margin-top:8px">${esc(e.description)}</p>`:""}
       ${rsvpButton(e,"")} <button class="btn small ghost" style="margin-top:16px;color:inherit;border-color:currentColor" data-cal="${esc(e.id)}">Add to calendar</button> ${dirBtn(e,'style="margin-top:16px;color:inherit;border-color:currentColor"')}
       ${S.admin?` <button class="btn small ghost" style="margin-top:16px;color:inherit;border-color:currentColor" data-edit-event="${esc(e.id)}">Edit</button> <button class="btn small danger" style="margin-top:16px;color:inherit;border-color:currentColor" data-del-event="${esc(e.id)}">Delete</button>`:""}`;
