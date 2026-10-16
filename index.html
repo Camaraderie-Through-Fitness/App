@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="CTF">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#3E4A2E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -167,7 +167,10 @@ body.booting #boot{display:grid}
 body.out #gate{display:block}
 body.booting .wrap, body.booting nav.tabs, body.out .wrap, body.out nav.tabs{display:none}
 body.booting, body.out{padding-bottom:0}
-#boot{min-height:100vh;place-items:center;background:#1E2419}
+#boot{position:fixed;inset:0;z-index:35;place-items:center;background:#1E2419}
+body.booting{overflow:hidden}
+/* Solid strip behind the iPhone status bar (clock/battery) when installed to the home screen */
+#sbar{position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);background:#1E2419;z-index:40;pointer-events:none}
 #boot img{width:120px;height:120px;border-radius:50%;opacity:.9}
 #gate{min-height:100vh;background:#1E2419;color:#E9ECE2;padding:40px 16px calc(32px + env(safe-area-inset-bottom,0px))}
 .gate-inner{max-width:420px;margin:0 auto}
@@ -265,6 +268,7 @@ nav.tabs button{position:relative}
 </head>
 <body class="booting">
 <div id="ptr" aria-hidden="true"><img src="logo.png" alt=""></div>
+<div id="sbar" aria-hidden="true"></div>
 <div id="boot" aria-label="Loading"><img src="logo.png" alt=""></div>
 
 <section id="gate">
