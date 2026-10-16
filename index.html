@@ -360,7 +360,7 @@ function render(){
   $("#acctBtn").textContent = S.user ? myName().split(" ")[0] : "";
   renderWorkouts(); renderMembers(); renderStories(); renderSupport(); renderGive();
   ["#eventAdmin","#partnerAdmin","#giveAdmin"].forEach(s=>$(s).hidden=!S.admin);
-  $("#seedWrap").hidden = !(S.admin && S.ready && SITE_EVENTS.some(([id,d])=>d.date>=todayStr() && !S.events.some(e=>e.id===id)));
+  $("#seedWrap").hidden = !(S.admin && S.ready && SITE_EVENTS.some(([id,d])=>d.date>=todayStr() && needsSync(id,d)));
 }
 
 function rsvpButton(e, cls){
@@ -658,13 +658,17 @@ const DIAZ_DESC="Boxing fundamentals, cardio-intensive.";
 const HYROX_DESC="HYROX training with GHF.";
 const SITE_EVENTS = [
   ["hyrox-2026-11",{title:"CTF/GHF HYROX Training",date:"2026-11-05",time:"13:00",location:GHF,description:HYROX_DESC}],
-  ["tailgate-2026",{title:"BRCC x CTF Tailgate",date:"2026-11-07",time:"",location:"UF vs. Oklahoma",description:"Military Appreciation Game. CTF's biggest fundraiser of the year."}],
-  ["boxing-2026-11",{title:"CTF @ Diaz Boxing Club",date:"2026-11-12",time:"",location:DIAZ,description:DIAZ_DESC}],
+  ["tailgate-2026",{title:"BRCC x CTF Tailgate",date:"2026-11-07",time:"11:00",location:"UF vs. Oklahoma",description:"Military Appreciation Game. CTF's biggest fundraiser of the year."}],
+  ["boxing-2026-11",{title:"CTF @ Diaz Boxing Club",date:"2026-11-12",time:"17:00",location:DIAZ,description:DIAZ_DESC}],
   ["ghf-2026-11",{title:"CTF @ GHF: Veteran Family",date:"2026-11-19",time:"07:00",location:GHF,description:GHF_DESC}],
   ["hyrox-2026-12",{title:"CTF/GHF HYROX Training",date:"2026-12-03",time:"13:00",location:GHF,description:HYROX_DESC}],
-  ["boxing-2026-12",{title:"CTF @ Diaz Boxing Club",date:"2026-12-10",time:"",location:DIAZ,description:DIAZ_DESC}],
+  ["boxing-2026-12",{title:"CTF @ Diaz Boxing Club",date:"2026-12-10",time:"17:00",location:DIAZ,description:DIAZ_DESC}],
   ["ghf-2026-12",{title:"CTF @ GHF",date:"2026-12-17",time:"07:00",location:GHF,description:GHF_DESC}]
 ];
+function needsSync(id,d){
+  const cur=S.events.find(e=>e.id===id);
+  return !cur || Object.keys(d).some(k=>d[k] && !cur[k]);
+}
 function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 
 $("#seedBtn").addEventListener("click", async ()=>{
@@ -674,7 +678,7 @@ $("#seedBtn").addEventListener("click", async ()=>{
     if(d.date < todayStr()) continue;
     const cur = S.events.find(e=>e.id===id);
     if(!cur){ b.set(doc(fs,"events",id), d); added++; }
-    else {
+    else if(needsSync(id,d)){ added++;
       // Keep anything already filled in; only fill blanks.
       const merged = {...d}; for(const k of Object.keys(d)) if(cur[k]) merged[k]=cur[k];
       b.set(doc(fs,"events",id), merged);
@@ -689,7 +693,7 @@ $("#seedBtn").addEventListener("click", async ()=>{
      ["bigfish",{name:"Big Fish Realty",category:"business",offer:"",contact:"",website:""}]
     ].forEach(([id,d])=>b.set(doc(fs,"partners",id),d));
   }
-  try{ await b.commit(); toast(added ? `Added ${added} event${added===1?"":"s"}.` : "Events already up to date."); }catch(e){ writeFailed(e); }
+  try{ await b.commit(); toast(added ? `Updated ${added} event${added===1?"":"s"}.` : "Events already up to date."); }catch(e){ writeFailed(e); }
 });
 
 // ---------- Membership date editor ----------
