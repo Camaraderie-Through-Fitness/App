@@ -200,9 +200,9 @@ body.booting, body.out{padding-bottom:0}
 .myrsvps .when{flex:none;width:52px;text-align:center;font:700 1.1rem/1.1 var(--display)}
 .myrsvps .when span{display:block;font:600 .75rem var(--body);color:var(--muted)}
 .month-head{font:700 1.15rem var(--display);color:var(--muted);margin:22px 0 4px}
-.welcome{background:var(--green);color:var(--green-ink);border-radius:16px;padding:18px;margin:4px 0 12px}
-.welcome h3{margin-bottom:6px}
-.welcome p{margin:0}
+.setup-note{background:var(--green);color:var(--green-ink);border-radius:16px;padding:18px;margin:4px 0 12px}
+.setup-note h3{margin-bottom:6px}
+.setup-note p{margin:0}
 .profile-head{display:flex;align-items:center;gap:12px;margin:24px 0 8px}
 .profile-head h2{margin:0;flex:1}
 #profileBack{white-space:nowrap;flex:none}
@@ -318,7 +318,7 @@ nav.tabs button{position:relative}
       <button class="btn small ghost" id="profileBack">Back</button>
       <h2 style="margin:0" id="profileTitle">Edit profile</h2>
     </div>
-    <div class="welcome" id="welcomeNote" hidden>
+    <div class="setup-note" id="welcomeNote" hidden>
       <h3>Welcome to CTF</h3>
       <p>Take a minute to set up your profile so other members know who you are. Tell us if you're a veteran or supporter and add a photo. Everything else is optional.</p>
     </div>
@@ -625,15 +625,9 @@ function eventRow(e){
       <div class="meta">${n} going</div>${whoGoing(e.id)}
       <div class="actions">${rsvpButton(e,"small ghost")}<button class="btn small ghost" data-cal="${esc(e.id)}">Add to calendar</button>${dirBtn(e)}${S.admin?`<button class="btn small ghost" data-edit-event="${esc(e.id)}">Edit</button><button class="btn small danger" data-del-event="${esc(e.id)}">Delete</button>`:""}</div></div></div>`;
 }
-function renderWelcome(){
-  const me=S.members[uid()]||{};
-  let hide=false; try{ hide = localStorage.getItem("ctfWelcomeHide")===uid(); }catch{}
-  if(!S.user || me.status || hide || !S.members[uid()]){ $("#welcome").innerHTML=""; return; }
-  const first=(myName().split(" ")[0])||"there";
-  $("#welcome").innerHTML=`<div class="welcome"><h3>Welcome to CTF, ${esc(first)}.</h3>
-    <p>Take a minute to fill in your profile so other members know who you are. Then RSVP to a workout below.</p>
-    <div class="actions"><button class="btn small" data-welcome="profile">Finish my profile</button><button class="btn small ghost" data-welcome="hide">Not now</button></div></div>`;
-}
+// Old welcome card retired: the full "Set up your profile" page (maybeWelcome) now
+// shows every visit until a status is picked.
+function renderWelcome(){ $("#welcome").innerHTML=""; }
 function renderMyRsvps(){
   // One compact box: your next RSVP, with the rest tucked behind a toggle.
   const mine = upcoming().filter(e=>amGoing(e.id));
