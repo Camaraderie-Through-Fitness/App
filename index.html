@@ -382,7 +382,8 @@ nav.tabs button{position:relative}
     <div class="panel admin" id="giveAdmin" hidden>
       <h3>Donation link</h3>
       <p class="hint">Paste the link from your donation platform (Zeffy, Givebutter, Donorbox).</p>
-      <label for="gUrl">Link</label><input id="gUrl" type="url" placeholder="https://">
+      <label for="gUrl">Link</label><input id="gUrl" type="url" placeholder="https://www.camaraderietf.org/donate">
+      <p class="hint">Leave blank to use the donate page on camaraderietf.org.</p>
       <label for="gMember">Membership payment link ($22/year)</label><input id="gMember" type="url" placeholder="https://">
       <p class="hint">Can be the same platform. Set it up as a $22 membership or ticket.</p>
       <p style="margin-top:14px"><button class="btn" id="gSave">Save links</button></p>
@@ -750,8 +751,9 @@ function renderSupport(){
   $("#bizList").innerHTML = biz.length ? biz.map(partnerRow).join("") : `<p class="empty-note">Supporting businesses will be listed here.</p>`;
 }
 
+const DEFAULT_DONATE_URL = "https://www.camaraderietf.org/donate";
 function renderGive(){
-  const url = safeUrl(S.config.donateUrl);
+  const url = safeUrl(S.config.donateUrl) || DEFAULT_DONATE_URL;
   $("#giveAction").innerHTML = url ? `<a class="btn" href="${esc(url)}" target="_blank" rel="noopener">Donate to CTF</a>`
     : `<span class="hint">Online giving opens soon.</span>`;
   if(S.admin && document.activeElement !== $("#gUrl")) $("#gUrl").value = S.config.donateUrl || "";
