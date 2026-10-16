@@ -187,7 +187,7 @@ body.booting, body.out{padding-bottom:0}
     <div class="muster" id="muster"></div>
     <h2>Upcoming</h2>
     <div class="list" id="eventList"></div>
-    <p id="seedWrap" hidden style="margin-top:14px"><button class="btn ghost" id="seedBtn">Add upcoming events from camaraderietf.org</button></p>
+    <p id="seedWrap" hidden style="margin-top:14px"><button class="btn ghost" id="seedBtn">Load starter partners</button></p>
     <div class="panel admin" id="eventAdmin" hidden>
       <h3 id="evHead">Add a workout</h3>
       <label for="evTitle">Name</label><input id="evTitle" type="text" placeholder="Trail ruck, San Felasco">
@@ -360,7 +360,7 @@ function render(){
   $("#acctBtn").textContent = S.user ? myName().split(" ")[0] : "";
   renderWorkouts(); renderMembers(); renderStories(); renderSupport(); renderGive();
   ["#eventAdmin","#partnerAdmin","#giveAdmin"].forEach(s=>$(s).hidden=!S.admin);
-  $("#seedWrap").hidden = !(S.admin && S.ready && SITE_EVENTS.some(([id,d])=>d.date>=todayStr() && needsSync(id,d)));
+  $("#seedWrap").hidden = !(S.admin && S.ready && S.partners.length===0);
 }
 
 function rsvpButton(e, cls){
@@ -370,7 +370,7 @@ function rsvpButton(e, cls){
 
 function renderWorkouts(){
   const list = upcoming(); const m = $("#muster");
-  if(S.loadError){ m.className="muster empty"; m.innerHTML=`<h1>Couldn't load workouts</h1><p class="meta">Check your connection and refresh.</p>`; $("#eventList").innerHTML=""; return; }
+  if(S.loadError && !S.events.length){ m.className="muster empty"; m.innerHTML=`<h1>Couldn't load workouts</h1><p class="meta">Check your connection and refresh.</p>`; $("#eventList").innerHTML=""; return; }
   if(!S.ready){ m.className="muster empty"; m.innerHTML=`<h1>Loading workouts</h1>`; $("#eventList").innerHTML=""; return; }
   if(!list.length){
     m.className="muster empty";
@@ -578,7 +578,14 @@ document.addEventListener("click", async ev=>{
     return; }
   if(t.dataset.decline && confirm("Decline this person? Their profile will be deleted.")){ try{ await deleteDoc(doc(fs,"members",t.dataset.decline)); toast("Declined."); }catch(e){ writeFailed(e); } return; }
   if(t.dataset.revoke && confirm("Remove this person's member access?")){ try{ await deleteDoc(doc(fs,"approved",t.dataset.revoke)); toast("Access removed."); }catch(e){ writeFailed(e); } return; }
-  if(t.dataset.delEvent && confirm("Delete this workout?")){ try{ await deleteDoc(doc(fs,"events",t.dataset.delEvent)); }catch(e){ writeFailed(e); } }
+  if(t.dataset.delEvent && confirm("Delete this workout?")){
+    const id=t.dataset.delEvent;
+    try{
+      if(SCHEDULE_IDS.has(id)) await setDoc(doc(fs,"events",id), {deleted:true});
+      else await deleteDoc(doc(fs,"events",id));
+      toast("Workout deleted.");
+    }catch(e){ writeFailed(e); }
+  }
   if(t.dataset.delPartner && confirm("Delete this partner?")){ try{ await deleteDoc(doc(fs,"partners",t.dataset.delPartner)); }catch(e){ writeFailed(e); } }
   if(t.dataset.delStory && confirm("Remove this story?")){ try{ await deleteDoc(doc(fs,"stories",t.dataset.delStory)); }catch(e){ writeFailed(e); } }
 });
@@ -650,50 +657,40 @@ $("#gSave").addEventListener("click", async ()=>{
   try{ await setDoc(doc(fs,"config","site"), {...S.config, donateUrl:u, memberUrl:m}); toast("Links saved."); }catch(e){ writeFailed(e); }
 });
 
-// Upcoming events copied from camaraderietf.org/events (2026 schedule).
-// Fixed IDs so loading twice never creates duplicates.
+// ---------- 2026 workout schedule (built in) ----------
+// Shows for everyone with no setup. Admin edits save to the database under the
+// same ID and override these; admin deletes hide them.
 const GHF="Gainesville Health & Fitness", DIAZ="Diaz Boxing Club";
 const GHF_DESC="45-min HIIT workout led by a personal trainer, followed by a 15-min Zonk social with coffee.";
 const DIAZ_DESC="Boxing fundamentals, cardio-intensive.";
 const HYROX_DESC="HYROX training with GHF.";
-const SITE_EVENTS = [
-  ["hyrox-2026-11",{title:"CTF/GHF HYROX Training",date:"2026-11-05",time:"13:00",location:GHF,description:HYROX_DESC}],
-  ["tailgate-2026",{title:"BRCC x CTF Tailgate",date:"2026-11-07",time:"11:00",location:"UF vs. Oklahoma",description:"Military Appreciation Game. CTF's biggest fundraiser of the year."}],
-  ["boxing-2026-11",{title:"CTF @ Diaz Boxing Club",date:"2026-11-12",time:"17:00",location:DIAZ,description:DIAZ_DESC}],
-  ["ghf-2026-11",{title:"CTF @ GHF: Veteran Family",date:"2026-11-19",time:"07:00",location:GHF,description:GHF_DESC}],
-  ["hyrox-2026-12",{title:"CTF/GHF HYROX Training",date:"2026-12-03",time:"13:00",location:GHF,description:HYROX_DESC}],
-  ["boxing-2026-12",{title:"CTF @ Diaz Boxing Club",date:"2026-12-10",time:"17:00",location:DIAZ,description:DIAZ_DESC}],
-  ["ghf-2026-12",{title:"CTF @ GHF",date:"2026-12-17",time:"07:00",location:GHF,description:GHF_DESC}]
+const SCHEDULE = [
+  {id:"hyrox-2026-11",title:"CTF/GHF HYROX Training",date:"2026-11-05",time:"13:00",location:GHF,description:HYROX_DESC},
+  {id:"tailgate-2026",title:"BRCC x CTF Tailgate",date:"2026-11-07",time:"11:00",location:"UF vs. Oklahoma",description:"Military Appreciation Game. CTF's biggest fundraiser of the year."},
+  {id:"boxing-2026-11",title:"CTF @ Diaz Boxing Club",date:"2026-11-12",time:"17:00",location:DIAZ,description:DIAZ_DESC},
+  {id:"ghf-2026-11",title:"CTF @ GHF: Veteran Family",date:"2026-11-19",time:"07:00",location:GHF,description:GHF_DESC},
+  {id:"hyrox-2026-12",title:"CTF/GHF HYROX Training",date:"2026-12-03",time:"13:00",location:GHF,description:HYROX_DESC},
+  {id:"boxing-2026-12",title:"CTF @ Diaz Boxing Club",date:"2026-12-10",time:"17:00",location:DIAZ,description:DIAZ_DESC},
+  {id:"ghf-2026-12",title:"CTF @ GHF",date:"2026-12-17",time:"07:00",location:GHF,description:GHF_DESC}
 ];
-function needsSync(id,d){
-  const cur=S.events.find(e=>e.id===id);
-  return !cur || Object.keys(d).some(k=>d[k] && !cur[k]);
+const SCHEDULE_IDS = new Set(SCHEDULE.map(e=>e.id));
+function mergeEvents(dbDocs){
+  const byId = new Map(SCHEDULE.map(e=>[e.id,{...e}]));
+  dbDocs.forEach(e=>byId.set(e.id, {...(byId.get(e.id)||{}), ...e}));
+  return [...byId.values()].filter(e=>!e.deleted);
 }
-function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+S.events = mergeEvents([]); S.ready = true;
 
 $("#seedBtn").addEventListener("click", async ()=>{
   const b = writeBatch(fs);
-  let added=0;
-  for(const [id,d] of SITE_EVENTS){
-    if(d.date < todayStr()) continue;
-    const cur = S.events.find(e=>e.id===id);
-    if(!cur){ b.set(doc(fs,"events",id), d); added++; }
-    else if(needsSync(id,d)){ added++;
-      // Keep anything already filled in; only fill blanks.
-      const merged = {...d}; for(const k of Object.keys(d)) if(cur[k]) merged[k]=cur[k];
-      b.set(doc(fs,"events",id), merged);
-    }
-  }
-  if(S.partners.length===0){
-    [["atlas",{name:"Atlas Clinics (PriVet Care)",category:"support",offer:"Veteran wellness care.",contact:"",website:""}],
-     ["ghf",{name:GHF,category:"business",offer:"Home gym for CTF's monthly workouts.",contact:"",website:""}],
-     ["brcc",{name:"Black Rifle Coffee Company",category:"business",offer:"CTF event sponsor providing free drinks.",contact:"",website:""}],
-     ["diaz",{name:DIAZ,category:"business",offer:"Hosts CTF's monthly boxing sessions.",contact:"",website:""}],
-     ["dutch",{name:"Dutch Bros",category:"business",offer:"",contact:"",website:""}],
-     ["bigfish",{name:"Big Fish Realty",category:"business",offer:"",contact:"",website:""}]
-    ].forEach(([id,d])=>b.set(doc(fs,"partners",id),d));
-  }
-  try{ await b.commit(); toast(added ? `Updated ${added} event${added===1?"":"s"}.` : "Events already up to date."); }catch(e){ writeFailed(e); }
+  [["atlas",{name:"Atlas Clinics (PriVet Care)",category:"support",offer:"Veteran wellness care.",contact:"",website:""}],
+   ["ghf",{name:GHF,category:"business",offer:"Home gym for CTF's monthly workouts.",contact:"",website:""}],
+   ["brcc",{name:"Black Rifle Coffee Company",category:"business",offer:"CTF event sponsor providing free drinks.",contact:"",website:""}],
+   ["diaz",{name:DIAZ,category:"business",offer:"Hosts CTF's monthly boxing sessions.",contact:"",website:""}],
+   ["dutch",{name:"Dutch Bros",category:"business",offer:"",contact:"",website:""}],
+   ["bigfish",{name:"Big Fish Realty",category:"business",offer:"",contact:"",website:""}]
+  ].forEach(([id,d])=>b.set(doc(fs,"partners",id),d));
+  try{ await b.commit(); toast("Partners loaded."); }catch(e){ writeFailed(e); }
 });
 
 // ---------- Membership date editor ----------
@@ -746,7 +743,7 @@ function addToCalendar(id){
 
 // ---------- Data ----------
 function loadFail(e){ console.error(e); S.loadError=true; render(); }
-onSnapshot(collection(fs,"events"), s=>{ S.events=s.docs.map(d=>({id:d.id, ...d.data()})); S.ready=true; S.loadError=false; render(); }, loadFail);
+onSnapshot(collection(fs,"events"), s=>{ S.events=mergeEvents(s.docs.map(d=>({id:d.id, ...d.data()}))); S.ready=true; S.loadError=false; render(); }, loadFail);
 onSnapshot(collection(fs,"rsvps"), s=>{ S.rsvps=toMap(s); render(); }, e=>console.error(e));
 onSnapshot(collection(fs,"stories"), s=>{ S.stories=toMap(s); render(); }, e=>console.error(e));
 onSnapshot(collection(fs,"partners"), s=>{ S.partners=s.docs.map(d=>({id:d.id, ...d.data()})); render(); }, e=>console.error(e));
