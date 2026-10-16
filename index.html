@@ -1553,8 +1553,9 @@ const BUILTIN_PARTNERS = [
   {id:"vet-centers", name:"VA Vet Centers", category:"support",
    offer:"Free, confidential counseling for combat veterans, service members (including Guard and Reserve), and their families, no matter your discharge status. Call any time, 24/7, to talk with a fellow veteran or find the Vet Center nearest you.",
    contact:"877-927-8387", website:"https://www.vetcenter.va.gov"},
-  {id:"atlas", name:"Atlas Clinics (PriVet Care)", category:"support",
-   offer:"Veteran wellness care.", contact:"", website:""},
+  {id:"atlas", name:"Atlas Clinics (PriVet Care)", category:"nonprofit",
+   offer:"A pending 501(c)(3) that funds advanced wellness and recovery care for veterans at no cost to them: upper cervical (atlas) corrections, spinal decompression, PEMF, and hyperbaric oxygen therapy (HBOT). Apply online. PriVet Care verifies veteran status, then Dr. Dan Hulsey assesses you and recommends treatment.",
+   contact:"", website:"https://privetcare.org"},
   {id:"hooks-of-hope", name:"Hooks of Hope", category:"nonprofit",
    offer:"Free fishing retreats, clinical counseling (PTSD, Operator Syndrome, transition), regenerative medical care, and faith-based mentorship for veterans and service members. Based in Vero Beach, FL.",
    contact:"(888) 209-7698", website:"https://hooksofhope.org"},
@@ -1565,7 +1566,11 @@ const BUILTIN_PARTNERS = [
 const BUILTIN_PARTNER_IDS = new Set(BUILTIN_PARTNERS.map(p=>p.id));
 function mergePartners(dbDocs){
   const byId=new Map(BUILTIN_PARTNERS.map(p=>[p.id,{...p}]));
-  dbDocs.forEach(p=>byId.set(p.id,{...(byId.get(p.id)||{}), ...p}));
+  dbDocs.forEach(p=>{
+    // Ignore the old placeholder Atlas entry from "Load partners" so the updated built-in shows.
+    if(p.id==="atlas" && !p.deleted && p.offer==="Veteran wellness care." && !p.website) return;
+    byId.set(p.id,{...(byId.get(p.id)||{}), ...p});
+  });
   return [...byId.values()].filter(p=>!p.deleted);
 }
 S.partners = mergePartners([]);
@@ -1578,8 +1583,7 @@ S.events = mergeEvents([]); S.ready = true;
 
 $("#seedBtn").addEventListener("click", async ()=>{
   const b = writeBatch(fs);
-  [["atlas",{name:"Atlas Clinics (PriVet Care)",category:"support",offer:"Veteran wellness care.",contact:"",website:""}],
-   ["ghf",{name:GHF,category:"business",offer:"Home gym for CTF's monthly workouts.",contact:"",website:""}],
+  [["ghf",{name:GHF,category:"business",offer:"Home gym for CTF's monthly workouts.",contact:"",website:""}],
    ["brcc",{name:"Black Rifle Coffee Company",category:"business",offer:"CTF event sponsor providing free drinks.",contact:"",website:""}],
    ["diaz",{name:DIAZ,category:"business",offer:"Hosts CTF's monthly boxing sessions.",contact:"",website:""}],
    ["dutch",{name:"Dutch Bros",category:"business",offer:"",contact:"",website:""}],
