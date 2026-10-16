@@ -182,7 +182,7 @@ body.booting{overflow:hidden}
 .gate-tabs button{border:0;background:none;min-height:40px;border-radius:9px;font-weight:700;color:var(--muted);cursor:pointer}
 .gate-tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
 .gate-card .btn{width:100%}
-#googleBtn{background:transparent;color:var(--green)}
+#googleBtn{background:var(--green);color:var(--green-ink)}
 .gate-card .err:empty{min-height:0;margin:0}
 .gate-free{margin-top:18px;font-size:.92rem;color:#C9CFBE;text-align:center}
 .gate-crisis{margin-top:22px;text-align:center;font-size:.92rem;color:#E9ECE2}
@@ -228,6 +228,7 @@ body.booting{overflow:hidden}
 .profile-head h2{margin:0;flex:1}
 #profileBack{white-space:nowrap;flex:none}
 .profile-head.setup #profileBack{order:2}
+.first-note{border:2px solid var(--brass);border-radius:12px;padding:12px 14px;font-size:.95rem;margin-bottom:12px}
 .ios-note{background:var(--brass-soft);color:var(--ink);border-radius:12px;padding:12px 14px;font-size:.93rem;margin-bottom:14px}
 .dir-search{margin:0 0 10px}
 .dir-search input{width:100%;min-height:44px;padding:10px 14px;border:1.5px solid var(--line);border-radius:99px;background:var(--surface);font:inherit;color:inherit}
@@ -281,13 +282,14 @@ nav.tabs button{position:relative}
         <button role="tab" id="modeIn" aria-selected="true">Sign in</button>
         <button role="tab" id="modeUp" aria-selected="false">Create account</button>
       </div>
-      <div class="ios-note" id="iosNote" hidden><b>Opened from your home screen?</b> Sign in with email below. Google sign-in doesn't always work in home-screen apps on iPhone. Made your account with Google? Enter your Gmail address and tap <b>Forgot password?</b> to set a password.</div>
+      <div class="first-note" id="firstNote"><b>First time here?</b> Tap <b>Continue with Google</b> to create your account. It's the quickest, most reliable way in.</div>
       <button class="btn" id="googleBtn">Continue with Google</button>
-      <div class="or">or use email</div>
+      <div class="ios-note" id="iosNote" hidden style="margin:12px 0 0"><b>Google not opening?</b> That can happen in the home-screen app on iPhone. Use email below instead. Already made your account with Google? Enter your Gmail address and tap <b>Forgot password?</b> to set a password.</div>
+      <div class="or" id="orText">or use email</div>
       <div id="nameWrap" hidden><label for="aName">Your name</label><input id="aName" type="text" autocomplete="name"></div>
       <label for="aEmail">Email</label><input id="aEmail" type="email" autocomplete="email">
       <label for="aPass">Password</label><input id="aPass" type="password" autocomplete="current-password">
-      <p style="margin-top:16px"><button class="btn" id="emailIn">Sign in</button><button class="btn" id="emailUp" hidden>Create account</button></p>
+      <p style="margin-top:16px"><button class="btn" id="emailIn">Sign in</button><button class="btn ghost" id="emailUp" hidden>Create account with email</button></p>
       <p id="resetWrap" style="text-align:center;margin:10px 0 0"><button class="btn small ghost" id="resetBtn" style="border:0;width:auto">Forgot password?</button></p>
       <div class="err" id="authErr" role="alert"></div>
     </div>
@@ -1064,6 +1066,10 @@ function setMode(m){
   mode=m;
   $("#modeIn").setAttribute("aria-selected", m==="in"); $("#modeUp").setAttribute("aria-selected", m==="up");
   $("#nameWrap").hidden = m!=="up"; $("#emailIn").hidden = m!=="in"; $("#emailUp").hidden = m!=="up";
+  $("#firstNote").innerHTML = m==="up"
+    ? "<b>Use Google to create your account.</b> Tap <b>Continue with Google</b> below. It's the quickest, most reliable way in. Email sign-up is a backup."
+    : "<b>First time here?</b> Tap <b>Continue with Google</b> to create your account. It's the quickest, most reliable way in.";
+  $("#orText").textContent = m==="up" ? "or create one with email" : "or use email";
   $("#resetWrap").hidden = m!=="in";
   $("#aPass").setAttribute("autocomplete", m==="up" ? "new-password" : "current-password");
   $("#authErr").textContent="";

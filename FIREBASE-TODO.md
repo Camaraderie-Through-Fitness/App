@@ -13,6 +13,10 @@ full app review that includes Firebase changes.
       the `admins` collection in Firestore → Data.
 
 ## Pending setup
+- [ ] **Email sign-up failed for a new member** (Oct 16; he used Google instead).
+      Check Authentication → Sign-in method → Email/Password is enabled, check
+      Authentication → Users for a half-made account, and try a test sign-up to
+      see the exact error. The login page now steers first-timers to Google.
 - [ ] Publish the latest rules (`firestore-rules.txt`) if not already done.
 - [ ] Set up the reminder email script (`reminders/`), per the steps in chat.
 - [ ] Zeffy donation form (on hold): finish account, send embed link.
