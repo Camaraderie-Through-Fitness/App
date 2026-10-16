@@ -86,7 +86,7 @@ function listDocs(collection) {
   let token = '';
   do {
     const url = BASE + '/' + collection + '?pageSize=300' + (token ? '&pageToken=' + encodeURIComponent(token) : '');
-    const res = UrlFetchApp.fetch(url, { headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() }, muteHttpExceptions: true });
+    const res = UrlFetchApp.fetch(url, { headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken(), 'X-Goog-User-Project': PROJECT_ID }, muteHttpExceptions: true });
     if (res.getResponseCode() !== 200) throw new Error('Could not read ' + collection + ' (' + res.getResponseCode() + '): ' + res.getContentText());
     const json = JSON.parse(res.getContentText());
     (json.documents || []).forEach(function (d) {
