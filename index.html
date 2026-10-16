@@ -187,7 +187,7 @@ body.booting, body.out{padding-bottom:0}
     <div class="muster" id="muster"></div>
     <h2>Upcoming</h2>
     <div class="list" id="eventList"></div>
-    <p id="seedWrap" hidden style="margin-top:14px"><button class="btn ghost" id="seedBtn">Load starter workouts and partners</button></p>
+    <p id="seedWrap" hidden style="margin-top:14px"><button class="btn ghost" id="seedBtn">Add upcoming events from camaraderietf.org</button></p>
     <div class="panel admin" id="eventAdmin" hidden>
       <h3 id="evHead">Add a workout</h3>
       <label for="evTitle">Name</label><input id="evTitle" type="text" placeholder="Trail ruck, San Felasco">
@@ -360,7 +360,7 @@ function render(){
   $("#acctBtn").textContent = S.user ? myName().split(" ")[0] : "";
   renderWorkouts(); renderMembers(); renderStories(); renderSupport(); renderGive();
   ["#eventAdmin","#partnerAdmin","#giveAdmin"].forEach(s=>$(s).hidden=!S.admin);
-  $("#seedWrap").hidden = !(S.admin && S.ready && S.events.length===0 && S.partners.length===0);
+  $("#seedWrap").hidden = !(S.admin && S.ready && SITE_EVENTS.some(([id,d])=>d.date>=todayStr() && !S.events.some(e=>e.id===id)));
 }
 
 function rsvpButton(e, cls){
@@ -650,27 +650,46 @@ $("#gSave").addEventListener("click", async ()=>{
   try{ await setDoc(doc(fs,"config","site"), {...S.config, donateUrl:u, memberUrl:m}); toast("Links saved."); }catch(e){ writeFailed(e); }
 });
 
-// One-time starter data for admins. Times are blank on purpose: fill them in from the app.
+// Upcoming events copied from camaraderietf.org/events (2026 schedule).
+// Fixed IDs so loading twice never creates duplicates.
+const GHF="Gainesville Health & Fitness", DIAZ="Diaz Boxing Club";
+const GHF_DESC="45-min HIIT workout led by a personal trainer, followed by a 15-min Zonk social with coffee.";
+const DIAZ_DESC="Boxing fundamentals, cardio-intensive.";
+const HYROX_DESC="HYROX training with GHF.";
+const SITE_EVENTS = [
+  ["hyrox-2026-11",{title:"CTF/GHF HYROX Training",date:"2026-11-05",time:"13:00",location:GHF,description:HYROX_DESC}],
+  ["tailgate-2026",{title:"BRCC x CTF Tailgate",date:"2026-11-07",time:"",location:"UF vs. Oklahoma",description:"Military Appreciation Game. CTF's biggest fundraiser of the year."}],
+  ["boxing-2026-11",{title:"CTF @ Diaz Boxing Club",date:"2026-11-12",time:"",location:DIAZ,description:DIAZ_DESC}],
+  ["ghf-2026-11",{title:"CTF @ GHF: Veteran Family",date:"2026-11-19",time:"07:00",location:GHF,description:GHF_DESC}],
+  ["hyrox-2026-12",{title:"CTF/GHF HYROX Training",date:"2026-12-03",time:"13:00",location:GHF,description:HYROX_DESC}],
+  ["boxing-2026-12",{title:"CTF @ Diaz Boxing Club",date:"2026-12-10",time:"",location:DIAZ,description:DIAZ_DESC}],
+  ["ghf-2026-12",{title:"CTF @ GHF",date:"2026-12-17",time:"07:00",location:GHF,description:GHF_DESC}]
+];
+function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+
 $("#seedBtn").addEventListener("click", async ()=>{
   const b = writeBatch(fs);
-  const ev = [
-    ["hyrox-2026-11",{title:"HYROX Training",date:"2026-11-05",time:"",location:"Gainesville Health & Fitness",description:"Monthly HYROX session, first Thursday of the month."}],
-    ["tailgate-2026",{title:"Military Appreciation Tailgate",date:"2026-11-07",time:"",location:"UF vs. Oklahoma",description:"CTF's biggest fundraiser of the year."}],
-    ["boxing-2026-11",{title:"Boxing at Diaz Boxing Club",date:"2026-11-12",time:"",location:"Diaz Boxing Club",description:"Monthly boxing session, second Thursday of the month."}],
-    ["hyrox-2026-12",{title:"HYROX Training",date:"2026-12-03",time:"",location:"Gainesville Health & Fitness",description:"Monthly HYROX session, first Thursday of the month."}],
-    ["boxing-2026-12",{title:"Boxing at Diaz Boxing Club",date:"2026-12-10",time:"",location:"Diaz Boxing Club",description:"Monthly boxing session, second Thursday of the month."}]
-  ];
-  const pt = [
-    ["atlas",{name:"Atlas Clinics (PriVet Care)",category:"support",offer:"Veteran wellness care.",contact:"",website:""}],
-    ["ghf",{name:"Gainesville Health & Fitness",category:"business",offer:"Home gym for CTF's monthly HYROX workouts.",contact:"",website:""}],
-    ["brcc",{name:"Black Rifle Coffee Company",category:"business",offer:"CTF event sponsor providing free drinks.",contact:"",website:""}],
-    ["diaz",{name:"Diaz Boxing Club",category:"business",offer:"Hosts CTF's monthly boxing sessions.",contact:"",website:""}],
-    ["dutch",{name:"Dutch Bros",category:"business",offer:"",contact:"",website:""}],
-    ["bigfish",{name:"Big Fish Realty",category:"business",offer:"",contact:"",website:""}]
-  ];
-  ev.forEach(([id,d])=>b.set(doc(fs,"events",id),d));
-  pt.forEach(([id,d])=>b.set(doc(fs,"partners",id),d));
-  try{ await b.commit(); toast("Starter data loaded."); }catch(e){ writeFailed(e); }
+  let added=0;
+  for(const [id,d] of SITE_EVENTS){
+    if(d.date < todayStr()) continue;
+    const cur = S.events.find(e=>e.id===id);
+    if(!cur){ b.set(doc(fs,"events",id), d); added++; }
+    else {
+      // Keep anything already filled in; only fill blanks.
+      const merged = {...d}; for(const k of Object.keys(d)) if(cur[k]) merged[k]=cur[k];
+      b.set(doc(fs,"events",id), merged);
+    }
+  }
+  if(S.partners.length===0){
+    [["atlas",{name:"Atlas Clinics (PriVet Care)",category:"support",offer:"Veteran wellness care.",contact:"",website:""}],
+     ["ghf",{name:GHF,category:"business",offer:"Home gym for CTF's monthly workouts.",contact:"",website:""}],
+     ["brcc",{name:"Black Rifle Coffee Company",category:"business",offer:"CTF event sponsor providing free drinks.",contact:"",website:""}],
+     ["diaz",{name:DIAZ,category:"business",offer:"Hosts CTF's monthly boxing sessions.",contact:"",website:""}],
+     ["dutch",{name:"Dutch Bros",category:"business",offer:"",contact:"",website:""}],
+     ["bigfish",{name:"Big Fish Realty",category:"business",offer:"",contact:"",website:""}]
+    ].forEach(([id,d])=>b.set(doc(fs,"partners",id),d));
+  }
+  try{ await b.commit(); toast(added ? `Added ${added} event${added===1?"":"s"}.` : "Events already up to date."); }catch(e){ writeFailed(e); }
 });
 
 // ---------- Membership date editor ----------
