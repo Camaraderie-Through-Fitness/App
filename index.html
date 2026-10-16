@@ -92,6 +92,19 @@ blockquote{margin:0;font-size:1.08rem;line-height:1.6}
 .story{padding:18px 0;border-bottom:1px solid var(--line)}
 .story .by{margin-top:10px;color:var(--muted);font-size:.93rem;display:flex;gap:10px;align-items:center}
 .story .by img{width:28px;height:28px;border-radius:50%}
+.story-acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 14px;border-radius:99px;border:2px solid var(--line);background:var(--surface);color:var(--ink);font-weight:600;cursor:pointer}
+.pill[aria-pressed="true"]{border-color:var(--brass);background:var(--brass-soft)}
+.pill .emo{font-size:1.15rem;line-height:1}
+.comments{margin-top:12px;border-left:3px solid var(--line);padding-left:12px}
+.cmt{display:flex;gap:10px;padding:8px 0}
+.cmt .acct-av{flex:none}
+.cmt .who{font-weight:600;font-size:.93rem}
+.cmt .when{color:var(--muted);font-weight:400;font-size:.85rem}
+.cmt p{margin:2px 0 0;font-size:.97rem;white-space:pre-wrap;overflow-wrap:anywhere}
+.cmt .x{background:none;border:0;color:var(--muted);font-size:.85rem;cursor:pointer;padding:0;margin-top:2px}
+.cmt-form{display:flex;gap:8px;margin-top:8px;align-items:flex-end}
+.cmt-form textarea{min-height:44px;height:44px;flex:1}
 
 label{display:block;font-weight:600;font-size:.95rem;margin:12px 0 4px}
 input[type=text],input[type=url],input[type=number],input[type=date],input[type=time],select,textarea{width:100%;min-height:44px;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg)}
@@ -305,7 +318,7 @@ nav.tabs button{position:relative}
   <!-- STORIES -->
   <section id="tab-stories" hidden>
     <h2>Stories</h2>
-    <p class="hint">What CTF has meant to the people in it. Stories are public.</p>
+    <p class="hint">What CTF has meant to the people in it. Everyone signed in can read stories.</p>
     <div id="storyList"></div>
     <div class="panel">
       <h3 id="storyHead">Share your story</h3>
@@ -413,7 +426,7 @@ nav.tabs button{position:relative}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, doc, onSnapshot, setDoc, addDoc, deleteDoc, getDoc, writeBatch, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, doc, onSnapshot, setDoc, addDoc, deleteDoc, getDoc, writeBatch, updateDoc, query, where, collectionGroup } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDNCS79D0OQeMqCbBWDKwGaq4BsHZjY1Kw",
@@ -436,6 +449,7 @@ const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const S = { events:[], rsvps:{}, members:{}, stories:{}, partners:[], config:{}, approvedIds:{}, user:null, admin:false, approved:false, ready:false, loadError:false };
 let editingEvent = null, editingPartner = null;
 S.priv={}; S.buddies={}; S.myPrivLoaded=false;
+S.salutes={}; S.comments={}; S.openCmts=new Set(); S.cmtDrafts={};
 const paywallOn = () => S.config.paywall === true;
 const computeApproved = mine => S.admin || !paywallOn() || isActive(mine);
 S.dir = (()=>{ try{ return localStorage.getItem("ctfDir")==="mil" ? "mil" : "all"; }catch{ return "all"; } })();
@@ -633,13 +647,39 @@ function renderMembers(){
   else if(!mine && S.user && !pPhoto && !$("#pPhotoPrev").textContent) showPhoto();
 }
 
+function ago(ms){
+  const m=Math.round((Date.now()-ms)/60000);
+  if(m<1) return "just now"; if(m<60) return m+"m"; const h=Math.round(m/60); if(h<24) return h+"h";
+  const d=Math.round(h/24); if(d<7) return d+"d"; return fmtDay(ms);
+}
+function commentHTML(sid,c){
+  const who=S.members[c.uid]||{name:c.name}; const canDel = c.uid===uid() || sid===uid() || S.admin;
+  return `<div class="cmt">${avatarHTML({...who,name:who.name||c.name},"acct-av")}
+    <div style="min-width:0"><div class="who">${esc(c.name||who.name||"Member")} <span class="when">· ${esc(ago(c.at||0))}</span></div>
+    <p>${esc(c.text)}</p>${canDel?`<button class="x" data-cmt-del="${esc(sid)}|${esc(c.id)}">Delete</button>`:""}</div></div>`;
+}
 function renderStories(){
+  // keep a half-typed comment and its focus across live updates
+  const act=document.activeElement, focusSid = act && act.dataset ? act.dataset.cmtInput : null;
   const ids = Object.keys(S.stories).filter(id=>S.stories[id].text).sort((a,b)=>(S.stories[b].updatedAt||0)-(S.stories[a].updatedAt||0));
-  $("#storyList").innerHTML = ids.length ? ids.map(id=>{const s=S.stories[id]; return `<div class="story">
+  $("#storyList").innerHTML = ids.length ? ids.map(id=>{
+    const s=S.stories[id], sal=S.salutes[id]||new Set(), mine=sal.has(uid()), cm=(S.comments[id]||[]), open=S.openCmts.has(id);
+    return `<div class="story">
       <blockquote>${esc(s.text)}</blockquote>
       <div class="by"><span>${esc(s.name||"A member")}${s.branch?", "+esc(s.branch):""}</span>
-      ${S.admin && id!==uid()?`<button class="btn small danger" data-del-story="${esc(id)}">Remove</button>`:""}</div></div>`;}).join("")
+      ${S.admin && id!==uid()?`<button class="btn small danger" data-del-story="${esc(id)}">Remove</button>`:""}</div>
+      <div class="story-acts">
+        <button class="pill" data-salute="${esc(id)}" aria-pressed="${mine}" aria-label="${mine?"Remove salute":"Salute this story"}"><span class="emo" aria-hidden="true">🫡</span>${mine?"Saluted":"Salute"}${sal.size?` · ${sal.size}`:""}</button>
+        <button class="pill" data-cmt-toggle="${esc(id)}" aria-expanded="${open}"><span class="emo" aria-hidden="true">💬</span>${cm.length?`${cm.length} comment${cm.length===1?"":"s"}`:"Comment"}</button>
+      </div>
+      ${open?`<div class="comments">
+        ${cm.length?cm.map(c=>commentHTML(id,c)).join(""):`<p class="hint" style="margin:6px 0">No comments yet.</p>`}
+        <div class="cmt-form"><textarea data-cmt-input="${esc(id)}" maxlength="500" placeholder="Write a comment" aria-label="Write a comment">${esc(S.cmtDrafts[id]||"")}</textarea>
+        <button class="btn small" data-cmt-post="${esc(id)}">Post</button></div>
+      </div>`:""}
+    </div>`;}).join("")
     : `<p class="empty-note">No stories yet. Yours could be the first.</p>`;
+  if(focusSid){ const el=document.querySelector(`[data-cmt-input="${CSS.escape(focusSid)}"]`); if(el){ el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }
   const mine = S.stories[uid()];
   $("#storyHead").textContent = mine ? "Edit your story" : "Share your story";
   $("#sSave").textContent = mine ? "Update story" : "Post story";
@@ -743,6 +783,8 @@ $("#resetBtn").addEventListener("click", async ()=>{
 });
 $("#editProfileBtn").addEventListener("click", ()=>{ closeAuth(); openProfile(); });
 
+document.addEventListener("input", e=>{ const sid=e.target.dataset && e.target.dataset.cmtInput; if(sid) S.cmtDrafts[sid]=e.target.value; });
+
 // ---------- Invite / share ----------
 const APP_URL = "https://app.camaraderietf.org/";
 const SHARE_TEXT = "Join me on the Camaraderie Through Fitness app: workouts, RSVPs, and other veterans. Signing up is free.\n\n"
@@ -783,6 +825,31 @@ document.addEventListener("click", async ev=>{
     t.disabled=true;
     try{ await setDoc(doc(fs,"rsvps",uid()), {events:cur}); toast(cur[id]?"You're on the list.":"RSVP canceled."); }
     catch(e){ writeFailed(e); } finally{ t.disabled=false; }
+  }
+  if(t.dataset.salute){
+    const sid=t.dataset.salute, ref=doc(fs,"stories",sid,"salutes",uid());
+    if(!S.approved){ toast("Saluting is for members. See the Members tab to join."); return; }
+    const had=(S.salutes[sid]||new Set()).has(uid());
+    try{ if(had) await deleteDoc(ref); else await setDoc(ref,{at:Date.now()}); }catch(e){ writeFailed(e); }
+    return;
+  }
+  if(t.dataset.cmtToggle){ const sid=t.dataset.cmtToggle; S.openCmts.has(sid)?S.openCmts.delete(sid):S.openCmts.add(sid); renderStories();
+    if(S.openCmts.has(sid)){ const el=document.querySelector(`[data-cmt-input="${CSS.escape(sid)}"]`); el && el.focus(); } return; }
+  if(t.dataset.cmtPost){
+    const sid=t.dataset.cmtPost, el=document.querySelector(`[data-cmt-input="${CSS.escape(sid)}"]`);
+    const text=(el?el.value:"").trim().slice(0,500);
+    if(!text){ toast("Write a comment first."); return; }
+    if(!S.approved){ toast("Commenting is for members. See the Members tab to join."); return; }
+    t.disabled=true;
+    try{ await addDoc(collection(fs,"stories",sid,"comments"), {uid:uid(), name:myName(), text, at:Date.now()}); S.cmtDrafts[sid]=""; if(el) el.value=""; }
+    catch(e){ writeFailed(e); }
+    t.disabled=false; return;
+  }
+  if(t.dataset.cmtDel){
+    const [sid,cid]=t.dataset.cmtDel.split("|");
+    if(!confirm("Delete this comment?")) return;
+    try{ await deleteDoc(doc(fs,"stories",sid,"comments",cid)); }catch(e){ writeFailed(e); }
+    return;
   }
   if(t.dataset.bbReq){
     const id=t.dataset.bbReq, me=uid(); t.disabled=true;
@@ -1143,6 +1210,13 @@ function subscribeMembers(){
     S.approved = computeApproved(d.exists()?d.data():undefined);
     if(S.approved !== was) subscribeMembers(); else render();
   }, e=>console.error(e)));
+  subs.push(onSnapshot(collectionGroup(fs,"salutes"), s=>{
+    const m={}; s.docs.forEach(d=>{ const sid=d.ref.parent.parent.id; (m[sid]=m[sid]||new Set()).add(d.id); }); S.salutes=m; renderStories();
+  }, e=>console.error(e)));
+  subs.push(onSnapshot(collectionGroup(fs,"comments"), s=>{
+    const m={}; s.docs.forEach(d=>{ const sid=d.ref.parent.parent.id; (m[sid]=m[sid]||[]).push({id:d.id, ...d.data()}); });
+    Object.values(m).forEach(a=>a.sort((x,y)=>(x.at||0)-(y.at||0))); S.comments=m; renderStories();
+  }, e=>console.error(e)));
   if(S.admin){
     subs.push(onSnapshot(collection(fs,"private"), s=>{ S.priv=toMap(s); S.myPrivLoaded=true; migrateMine(); render(); }, e=>{ console.error(e); S.myPrivLoaded=true; }));
   } else watchPriv(u.uid);
@@ -1156,7 +1230,7 @@ function subscribeMembers(){
 }
 
 onAuthStateChanged(auth, async u=>{
-  S.user=u; S.admin=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.myPrivLoaded=false;
+  S.user=u; S.admin=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.myPrivLoaded=false; S.salutes={}; S.comments={};
   clearSubs();
   renderMembers.filled=false; renderStories.filled=false;
   resetEventForm(); resetPartnerForm();
