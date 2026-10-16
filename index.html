@@ -148,6 +148,9 @@ body.booting, body.out{padding-bottom:0}
 .gate-crisis{margin-top:22px;text-align:center;font-size:.92rem;color:#E9ECE2}
 .gate-crisis a{color:#E9ECE2;font-weight:700}
 
+.qr{margin:14px 0 0;text-align:center}
+.qr img{width:200px;height:200px;border-radius:12px;border:1px solid var(--line);image-rendering:pixelated;background:#fff}
+.qr figcaption{font-size:.9rem;color:var(--muted);margin-top:6px}
 .uid-box{margin-top:18px;font-size:.85rem;color:var(--muted)}
 .uid-box summary{cursor:pointer;width:max-content}
 .uid-box .mono{margin-top:8px}
@@ -381,6 +384,10 @@ body.booting, body.out{padding-bottom:0}
   <h3>Invite a veteran</h3>
   <p class="hint">Send this link. Signing up is free.</p>
   <div class="mono" id="shareUrl" style="margin-top:10px"></div>
+  <figure class="qr">
+    <img src="qr.png" alt="QR code for the CTF app" width="200" height="200">
+    <figcaption>Have them scan this with their phone camera. <a href="qr.png" download="CTF-app-QR.png">Save QR code</a></figcaption>
+  </figure>
   <p style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
     <button class="btn" id="shareNative" hidden>Share link</button>
     <button class="btn ghost" id="shareCopy">Copy link</button>
