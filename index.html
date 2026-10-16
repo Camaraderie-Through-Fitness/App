@@ -673,6 +673,24 @@ const SCHEDULE = [
   {id:"boxing-2026-12",title:"CTF @ Diaz Boxing Club",date:"2026-12-10",time:"17:00",location:DIAZ,description:DIAZ_DESC},
   {id:"ghf-2026-12",title:"CTF @ GHF",date:"2026-12-17",time:"07:00",location:GHF,description:GHF_DESC}
 ];
+// From Jan 2027 on, the monthly pattern repeats on its own:
+// 1st Thursday HYROX 1:00 PM, 2nd Thursday Diaz 5:00 PM, 3rd Thursday GHF 7:00 AM.
+// Generated 12 months ahead so the calendar never runs dry.
+function nthThursday(y,m,n){ const d=new Date(y,m,1); const first=1+((4-d.getDay()+7)%7); return new Date(y,m,first+7*(n-1)); }
+function ymd(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+(function addMonthly(){
+  const now=new Date(); let y=Math.max(2027, now.getFullYear()), m= y>now.getFullYear()?0:now.getMonth();
+  let endY=now.getFullYear()+1, endM=now.getMonth();
+  if(endY<2027 || (endY===2027 && endM<11)){ endY=2027; endM=11; } // always show all of 2027
+  while(y<endY || (y===endY && m<=endM)){
+    const key=y+"-"+String(m+1).padStart(2,"0");
+    SCHEDULE.push(
+      {id:"hyrox-"+key, title:"CTF/GHF HYROX Training", date:ymd(nthThursday(y,m,1)), time:"13:00", location:GHF, description:HYROX_DESC},
+      {id:"boxing-"+key, title:"CTF @ Diaz Boxing Club", date:ymd(nthThursday(y,m,2)), time:"17:00", location:DIAZ, description:DIAZ_DESC},
+      {id:"ghf-"+key, title:"CTF @ GHF", date:ymd(nthThursday(y,m,3)), time:"07:00", location:GHF, description:GHF_DESC});
+    if(++m>11){ m=0; y++; }
+  }
+})();
 const SCHEDULE_IDS = new Set(SCHEDULE.map(e=>e.id));
 function mergeEvents(dbDocs){
   const byId = new Map(SCHEDULE.map(e=>[e.id,{...e}]));
