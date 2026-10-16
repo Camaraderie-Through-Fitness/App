@@ -92,6 +92,8 @@ blockquote{margin:0;font-size:1.08rem;line-height:1.6}
 .story{padding:18px 0;border-bottom:1px solid var(--line)}
 .story .by{margin-top:10px;color:var(--muted);font-size:.93rem;display:flex;gap:10px;align-items:center}
 .story .by img{width:28px;height:28px;border-radius:50%}
+.story-head{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+.story-author{font-weight:700;font-size:1.02rem}
 .story-photo{display:block;width:100%;max-height:420px;object-fit:cover;border-radius:12px;margin-bottom:12px;background:var(--line)}
 .photo-wrap{position:relative}
 .photo-flag{position:absolute;left:10px;top:10px;background:rgba(0,0,0,.72);color:#fff;font-size:.82rem;font-weight:600;padding:4px 10px;border-radius:99px}
@@ -844,11 +846,21 @@ function renderStories(){
     const ph=S.photos[id];
     const showPh = ph && ph.photo && (ph.status==="approved" || id===uid() || S.admin) && /^data:image\/jpeg;base64,/.test(ph.photo);
     const flag = ph && ph.status!=="approved" ? (ph.status==="rejected" ? "Photo not approved" : "Waiting for admin approval") : "";
+    const au = S.members[id] ? {...S.members[id]} : {};
+    const auName = au.name || s.name || "A member";
+    const auSub = [statusOf(au), (au.branch||s.branch) && (au.branch||s.branch)!=="Family / supporter" ? (au.branch||s.branch) : ""].filter(Boolean).join(" · ");
+    const canOpen = !!S.members[id];
     return `<div class="story">
+      <div class="story-head">
+        <span${canOpen?` class="tap" data-person="${esc(id)}" role="button" aria-label="Open ${esc(auName)}'s page"`:""}>${avatarHTML({...au,name:auName},"avatar-md")}</span>
+        <div style="min-width:0;flex:1">
+          <div class="story-author${canOpen?" tap":""}"${canOpen?` data-person="${esc(id)}" tabindex="0"`:""}>${esc(auName)}${id===uid()?" (you)":""}${buddyState(id)==="buddy"?` <span class="tag bb-tag">Battle buddy</span>`:""}</div>
+          ${auSub?`<div class="meta">${esc(auSub)}</div>`:""}
+        </div>
+        ${S.admin && id!==uid()?`<button class="btn small danger" data-del-story="${esc(id)}">Remove</button>`:""}
+      </div>
       ${showPh?`<div class="photo-wrap"><img class="story-photo" src="${ph.photo}" alt="Photo shared with this story" loading="lazy">${flag?`<span class="photo-flag">${flag}</span>`:""}</div>`:""}
       <blockquote>${esc(s.text)}</blockquote>
-      <div class="by"><span>${esc(s.name||"A member")}${s.branch?", "+esc(s.branch):""}</span>
-      ${S.admin && id!==uid()?`<button class="btn small danger" data-del-story="${esc(id)}">Remove</button>`:""}</div>
       <div class="story-acts">
         <button class="pill" data-salute="${esc(id)}" aria-pressed="${mine}" aria-label="${mine?"Remove salute":"Salute this story"}"><span class="emo" aria-hidden="true">🫡</span>${mine?"Saluted":"Salute"}${sal.size?` · ${sal.size}`:""}</button>
         <button class="pill" data-cmt-toggle="${esc(id)}" aria-expanded="${open}"><span class="emo" aria-hidden="true">💬</span>${cm.length?`${cm.length} comment${cm.length===1?"":"s"}`:"Comment"}</button>
