@@ -1212,7 +1212,10 @@ const SCHEDULE_IDS = new Set(SCHEDULE.map(e=>e.id));
 const BUILTIN_PARTNERS = [
   {id:"hooks-of-hope", name:"Hooks of Hope", category:"nonprofit",
    offer:"Free fishing retreats, clinical counseling (PTSD, Operator Syndrome, transition), regenerative medical care, and faith-based mentorship for veterans and service members. Based in Vero Beach, FL.",
-   contact:"(888) 209-7698", website:"https://hooksofhope.org"}
+   contact:"(888) 209-7698", website:"https://hooksofhope.org"},
+  {id:"hard-target-solutions", name:"Hard Target Solutions", category:"business",
+   offer:"Emergency preparedness and self-defense training: handgun, rifle, and shotgun courses, trauma first aid, CPR/AED, and Stop the Bleed, plus security consulting for schools, businesses, and churches.",
+   contact:"", website:"https://hardtarget.org"}
 ];
 const BUILTIN_PARTNER_IDS = new Set(BUILTIN_PARTNERS.map(p=>p.id));
 function mergePartners(dbDocs){
