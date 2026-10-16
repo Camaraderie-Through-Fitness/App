@@ -854,10 +854,14 @@ document.addEventListener("input", e=>{ const sid=e.target.dataset && e.target.d
 
 // ---------- Invite / share ----------
 const APP_URL = "https://app.camaraderietf.org/";
-const SHARE_TEXT = "Join me on the Camaraderie Through Fitness app: workouts, RSVPs, and other veterans. Signing up is free.\n\n"
-  + "Add it to your home screen:\n"
-  + "iPhone: open in Safari, tap Share, then Add to Home Screen.\n"
-  + "Android: open in Chrome, tap the 3-dot menu, then Add to Home screen.";
+// Link sits inside the message (not as a separate share field) so every app,
+// including ones that drop extra text, keeps the full instructions.
+const SHARE_TEXT = "Join me on the Camaraderie Through Fitness app: workouts, RSVPs, and a community of veterans and supporters. Signing up is free.\n\n"
+  + APP_URL + "\n\n"
+  + "Add it to your home screen so it works like an app:\n\n"
+  + "iPhone or iPad: open the link in Safari, tap the Share button (square with an arrow), then Add to Home Screen.\n\n"
+  + "Android: open the link in Chrome, tap the \u22EE menu at the top right, then Add to Home screen or Install app.\n\n"
+  + "It opens full screen with the CTF badge, just like an app.";
 const shareDlg=$("#shareDlg");
 $("#inviteBtn").addEventListener("click", ()=>{
   closeAuth();
@@ -867,11 +871,11 @@ $("#inviteBtn").addEventListener("click", ()=>{
 });
 $("#shareClose").addEventListener("click", ()=>shareDlg.close());
 $("#shareNative").addEventListener("click", async ()=>{
-  try{ await navigator.share({ title:"Camaraderie Through Fitness", text:SHARE_TEXT, url:APP_URL }); }
+  try{ await navigator.share({ title:"Camaraderie Through Fitness", text:SHARE_TEXT }); }
   catch(e){ if(e && e.name!=="AbortError") toast("Couldn't open sharing. Use Copy link instead."); }
 });
 $("#shareCopy").addEventListener("click", async ()=>{
-  const msg = SHARE_TEXT + "\n\n" + APP_URL;
+  const msg = SHARE_TEXT;
   try{ await navigator.clipboard.writeText(msg); toast("Link and instructions copied. Paste them in a text."); }
   catch{
     const r=document.createRange(); r.selectNodeContents($("#shareUrl"));
