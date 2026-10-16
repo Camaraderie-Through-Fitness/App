@@ -154,6 +154,12 @@ body.booting, body.out{padding-bottom:0}
 .uid-box{margin-top:18px;font-size:.85rem;color:var(--muted)}
 .uid-box summary{cursor:pointer;width:max-content}
 .uid-box .mono{margin-top:8px}
+/* ---- Battle buddies ---- */
+nav.tabs button{position:relative}
+.badge{position:absolute;top:4px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:var(--alert);color:#fff;font:700 .72rem/18px var(--body)}
+.bb-tag{background:var(--green);color:var(--green-ink)}
+.locked{font-size:.88rem;color:var(--muted);margin-top:6px}
+.privacy-note{background:var(--bg);border-radius:12px;padding:12px 14px;font-size:.93rem;margin:12px 0 4px}
 /* ---- Profiles ---- */
 .filter{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 10px}
 .filter button{border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:99px;min-height:38px;padding:0 14px;font-weight:600;cursor:pointer}
@@ -233,7 +239,8 @@ body.booting, body.out{padding-bottom:0}
       <p class="hint" id="paywallState" style="margin:8px 0 0"></p>
     </div>
     <div id="approvalNote"></div>
-    <div class="filter" id="dirFilter" role="group" aria-label="Filter members" hidden><button data-dir="all" aria-pressed="true">Everyone</button><button data-dir="mil" aria-pressed="false">Veterans &amp; military</button></div>
+    <div class="filter" id="dirFilter" role="group" aria-label="Filter members" hidden><button data-dir="all" aria-pressed="true">Everyone</button><button data-dir="mil" aria-pressed="false">Veterans &amp; military</button><button data-dir="bb" aria-pressed="false">Battle buddies</button></div>
+    <div id="bbRequests"></div>
     <div id="pendingWrap" class="panel admin" hidden><h3>Waiting on payment</h3><p class="hint">Check your payment platform, then tap Activate 1 year.</p><div class="list" id="pendingList" style="border-top:0"></div><div id="renewWrap"></div></div>
     <div class="list" id="memberList"></div>
   </section>
@@ -253,14 +260,16 @@ body.booting, body.out{padding-bottom:0}
         </div>
       </div>
 
+      <div class="privacy-note">All members see your <b>name, photo, and whether you're a veteran or supporter</b> (plus branch). Everything else is only for your <b>battle buddies</b>.</div>
       <label for="pStatus">I am a</label>
       <select id="pStatus"><option value="">Choose</option><option>Veteran</option><option>Active duty</option><option>Guard / Reserve</option><option>Military family</option><option>Supporter</option></select>
 
       <div id="svcGroup" class="form-group" hidden>
         <h4>Service</h4>
-        <label for="pBranch">Branch</label>
+        <label for="pBranch">Branch <span class="hint">(all members see this)</span></label>
         <select id="pBranch"><option value="">Choose</option><option>Army</option><option>Marine Corps</option><option>Navy</option><option>Air Force</option><option>Space Force</option><option>Coast Guard</option></select>
         <div class="two">
+          <p class="hint" style="grid-column:1/-1;margin:10px 0 0">Below here: battle buddies only.</p>
           <div><label for="pRank">Rank</label><input id="pRank" type="text" placeholder="SSG" maxlength="40"></div>
           <div><label for="pMos" id="pMosLabel">MOS</label><input id="pMos" type="text" placeholder="11B Infantry" maxlength="60"></div>
         </div>
@@ -269,23 +278,22 @@ body.booting, body.out{padding-bottom:0}
           <div><label for="pStart">Years served: from</label><input id="pStart" type="number" inputmode="numeric" min="1940" max="2100" placeholder="2012"></div>
           <div><label for="pEnd">to</label><input id="pEnd" type="number" inputmode="numeric" min="1940" max="2100" placeholder="Present"></div>
         </div>
-        <label class="check"><input type="checkbox" id="pSvcPrivate"> Only show my rank, MOS, unit, and years to other veterans and service members</label>
       </div>
 
       <div class="form-group">
-        <h4>About</h4>
+        <h4>About <span class="hint">· battle buddies only</span></h4>
         <label for="pAbout">A little about you</label><textarea id="pAbout" placeholder="What you're training for, what you're looking for" maxlength="600"></textarea>
       </div>
 
       <div class="form-group">
-        <h4>Links</h4>
+        <h4>Links <span class="hint">· battle buddies only</span></h4>
         <label for="pLinkedin">LinkedIn</label><input id="pLinkedin" type="url" placeholder="linkedin.com/in/yourname">
         <label for="pFacebook">Facebook</label><input id="pFacebook" type="url" placeholder="facebook.com/yourname">
         <label for="pInstagram">Instagram</label><input id="pInstagram" type="url" placeholder="instagram.com/yourname">
       </div>
 
       <div class="form-group">
-        <h4>Contact</h4>
+        <h4>Contact <span class="hint">· battle buddies only</span></h4>
         <label for="pReach">Best way to reach you</label><input id="pReach" type="text" placeholder="Phone or email" maxlength="120">
         <p class="hint">Only members see the member list.</p>
         <label class="check"><input type="checkbox" id="pListed"> Show me in the member list</label>
@@ -350,7 +358,7 @@ body.booting, body.out{padding-bottom:0}
 
 <nav class="tabs" aria-label="Sections"><div class="inner">
   <button data-tab="workouts" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12"/></svg>Workouts</button>
-  <button data-tab="members"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.5c2.5 0 4.3 1.6 5 4.5"/></svg>Members</button>
+  <button data-tab="members"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.5c2.5 0 4.3 1.6 5 4.5"/></svg>Members<span class="badge" id="bbBadge" hidden></span></button>
   <button data-tab="stories"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg>Stories</button>
   <button data-tab="support"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Support</button>
   <button data-tab="give"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18M16.5 7.5c0-1.7-2-3-4.5-3s-4.5 1.3-4.5 3 2 2.6 4.5 3 4.5 1.4 4.5 3.3-2 3.2-4.5 3.2-4.5-1.3-4.5-3"/></svg>Give</button>
@@ -405,7 +413,7 @@ body.booting, body.out{padding-bottom:0}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, doc, onSnapshot, setDoc, addDoc, deleteDoc, getDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, doc, onSnapshot, setDoc, addDoc, deleteDoc, getDoc, writeBatch, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDNCS79D0OQeMqCbBWDKwGaq4BsHZjY1Kw",
@@ -427,6 +435,7 @@ const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
 const S = { events:[], rsvps:{}, members:{}, stories:{}, partners:[], config:{}, approvedIds:{}, user:null, admin:false, approved:false, ready:false, loadError:false };
 let editingEvent = null, editingPartner = null;
+S.priv={}; S.buddies={}; S.myPrivLoaded=false;
 const paywallOn = () => S.config.paywall === true;
 const computeApproved = mine => S.admin || !paywallOn() || isActive(mine);
 S.dir = (()=>{ try{ return localStorage.getItem("ctfDir")==="mil" ? "mil" : "all"; }catch{ return "all"; } })();
@@ -458,7 +467,7 @@ function showTab(name){
 }
 function openProfile(){
   const mine=S.members[uid()];
-  if(mine) fillProfile(mine); else showPhoto();
+  if(mine) fillProfile({...mine, ...(S.priv[uid()]||{})}); else showPhoto();
   showTab("profile");
 }
 document.querySelectorAll("nav.tabs button").forEach(b=>b.addEventListener("click",()=>{
@@ -518,33 +527,59 @@ function avatarHTML(m, cls){
     : `<div class="${cls}" aria-hidden="true">${esc(initials(m.name))}</div>`;
 }
 function statusOf(m){ return m.status || (m.branch==="Family / supporter" ? "Supporter" : (m.branch ? "Veteran" : "")); }
-function viewerIsMilitary(){ return S.admin || MILITARY.includes(statusOf(S.members[uid()]||{})); }
+const PUBLIC_KEYS=["name","status","branch","photo","listed"];
+const PRIVATE_KEYS=["rank","mos","unit","startYear","endYear","about","reach","linkedin","facebook","instagram"];
+function pairId(a,b){ return a<b ? a+"_"+b : b+"_"+a; }
+function buddyState(id){
+  if(id===uid()) return "self";
+  const d=S.buddies[pairId(uid(),id)]; if(!d) return "none";
+  if(d.status==="accepted") return "buddy";
+  return d.from===uid() ? "sent" : "incoming";
+}
+function canSeeFull(id){ const st=buddyState(id); return st==="self" || st==="buddy" || S.admin; }
+function fullProfile(id){
+  const m=S.members[id]||{}; const pub={}; PUBLIC_KEYS.forEach(k=>{ if(m[k]!==undefined) pub[k]=m[k]; });
+  return canSeeFull(id) ? {...pub, ...(S.priv[id]||{})} : pub;
+}
+function bbButtons(id){
+  switch(buddyState(id)){
+    case "none": return `<button class="btn small" data-bb-req="${esc(id)}">Request battle buddy</button>`;
+    case "sent": return `<span class="meta">Request sent</span><button class="btn small ghost" data-bb-del="${esc(id)}" data-bb-why="cancel">Cancel</button>`;
+    case "incoming": return `<button class="btn small" data-bb-acc="${esc(id)}">Accept battle buddy</button><button class="btn small ghost" data-bb-del="${esc(id)}" data-bb-why="decline">Decline</button>`;
+    case "buddy": return `<button class="btn small ghost" data-bb-del="${esc(id)}" data-bb-why="remove">Remove buddy</button>`;
+    default: return "";
+  }
+}
 function years(m){ if(!m.startYear) return ""; return m.startYear + "–" + (m.endYear || "present"); }
-function memberRow(id, m, extra){
-  const status = m.status || (m.branch==="Family / supporter" ? "Supporter" : (m.branch ? "Veteran" : ""));
+function memberRow(id, _m, extra){
+  const m=fullProfile(id), full=canSeeFull(id), st=buddyState(id);
+  const status = statusOf(m);
   const mil = MILITARY.includes(status);
-  const hideSvc = mil && m.svcVetsOnly && id!==uid() && !viewerIsMilitary();
-  const svc = (mil && !hideSvc) ? [m.mos, m.unit || m.service, years(m)].filter(Boolean).map(esc).join(" · ") : "";
-  const links = [["LinkedIn",m.linkedin],["Facebook",m.facebook],["Instagram",m.instagram]]
+  const svc = (mil && full) ? [m.mos, m.unit || m.service, years(m)].filter(Boolean).map(esc).join(" · ") : "";
+  const links = full ? [["LinkedIn",m.linkedin],["Facebook",m.facebook],["Instagram",m.instagram]]
     .map(([l,u])=>[l,safeUrl(u)]).filter(([,u])=>u)
-    .map(([l,u])=>`<a class="btn small ghost" href="${esc(u)}" target="_blank" rel="noopener">${l}</a>`).join("");
+    .map(([l,u])=>`<a class="btn small ghost" href="${esc(u)}" target="_blank" rel="noopener">${l}</a>`).join("") : "";
+  const actions = [bbButtons(id), extra].filter(Boolean).join("");
   return `<div class="row"><div class="member-head" style="flex:1">
     ${avatarHTML(m,"avatar-md")}
     <div class="body">
-      <h3>${mil && m.rank && !hideSvc ? esc(m.rank)+" " : ""}${esc(m.name||"Member")}${id===uid()?" (you)":""}</h3>
-      <div>${status?`<span class="tag">${esc(status)}</span>`:""}${mil && m.branch && m.branch!=="Family / supporter"?`<span class="tag">${esc(m.branch)}</span>`:""}</div>
-      ${svc?`<div class="svc">${svc}</div>`:""}${hideSvc?`<div class="svc">Service details shared with veterans only</div>`:""}
-      ${m.about?`<p style="margin-top:6px">${esc(m.about)}</p>`:""}
+      <h3>${mil && full && m.rank ? esc(m.rank)+" " : ""}${esc(m.name||"Member")}${st==="self"?" (you)":""}</h3>
+      <div>${st==="buddy"?`<span class="tag bb-tag">Battle buddy</span>`:""}${status?`<span class="tag">${esc(status)}</span>`:""}${mil && m.branch && m.branch!=="Family / supporter"?`<span class="tag">${esc(m.branch)}</span>`:""}</div>
+      ${svc?`<div class="svc">${svc}</div>`:""}
+      ${full && m.about?`<p style="margin-top:6px">${esc(m.about)}</p>`:""}
       ${links?`<div class="links">${links}</div>`:""}
-      ${m.reach?`<p class="meta" style="margin-top:6px">Reach out: ${esc(m.reach)}</p>`:""}
-      ${extra?`<div class="actions">${extra}</div>`:""}
+      ${full && m.reach?`<p class="meta" style="margin-top:6px">Reach out: ${esc(m.reach)}</p>`:""}
+      ${!full?`<p class="locked">Connect as battle buddies to see their full profile.</p>`:""}
+      ${actions?`<div class="actions">${actions}</div>`:""}
     </div></div></div>`;
 }
 function renderMembers(){
   const note=$("#approvalNote");
   $("#pendingWrap").hidden = true;
   const payUrl = safeUrl(S.config.memberUrl);
-  $("#dirFilter").hidden = true;
+  $("#dirFilter").hidden = true; $("#bbRequests").innerHTML="";
+  { const n = S.user ? Object.values(S.buddies).filter(d=>d.status==="pending" && d.to===uid()).length : 0;
+    $("#bbBadge").hidden = !n; $("#bbBadge").textContent = n; }
   $("#paywallAdmin").hidden = !S.admin;
   if(S.admin){
     $("#paywallToggle").checked = paywallOn();
@@ -570,13 +605,16 @@ function renderMembers(){
     const ok = id => !paywallOn() || isActive(S.approvedIds[id]) || id===uid();
     $("#dirFilter").hidden = false;
     document.querySelectorAll("#dirFilter button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.dir===S.dir));
-    const ids = Object.keys(S.members).filter(id=>S.members[id].listed && ok(id) && (S.dir!=="mil" || MILITARY.includes(statusOf(S.members[id]))));
+    const incoming = Object.keys(S.members).filter(id=>buddyState(id)==="incoming");
+    $("#bbRequests").innerHTML = incoming.length ? `<div class="panel"><h3>Battle buddy requests</h3><div class="list" style="border-top:0">${incoming.map(id=>memberRow(id,S.members[id],"")).join("")}</div></div>` : "";
+    const inDir = id => S.dir==="mil" ? MILITARY.includes(statusOf(S.members[id])) : S.dir==="bb" ? buddyState(id)==="buddy" : true;
+    const ids = Object.keys(S.members).filter(id=>(S.members[id].listed || buddyState(id)==="buddy") && ok(id) && inDir(id) && buddyState(id)!=="incoming");
     $("#memberList").innerHTML = ids.length ? ids.map(id=>{
         const a=S.approvedIds[id];
         const extra = S.admin && id!==uid() && paywallOn() ? `<span class="meta">Paid through ${a?fmtDay(activeUntil(a)):"—"}</span><button class="btn small ghost" data-approve="${esc(id)}">Add 1 year</button><button class="btn small ghost" data-setdate="${esc(id)}">Set date</button><button class="btn small danger" data-revoke="${esc(id)}">Remove access</button>` : "";
         return memberRow(id, S.members[id], extra);
       }).join("")
-      : `<p class="empty-note">${S.dir==="mil" ? "No veterans or service members listed yet." : "No one's listed yet. Tap your name at the top right to fill in your profile."}</p>`;
+      : `<p class="empty-note">${S.dir==="mil" ? "No veterans or service members listed yet." : S.dir==="bb" ? "No battle buddies yet. Send a request from someone's card." : "No one's listed yet. Tap your name at the top right to fill in your profile."}</p>`;
     if(S.admin && paywallOn()){
       const pend = Object.keys(S.members).filter(id=>id!==uid() && !isActive(S.approvedIds[id]));
       $("#pendingWrap").hidden = false;
@@ -590,8 +628,8 @@ function renderMembers(){
     }
   }
   const mine = S.members[uid()];
-  if(mine && !renderMembers.filled){ renderMembers.filled=true;
-    fillProfile(mine); }
+  if(mine && S.myPrivLoaded && !renderMembers.filled){ renderMembers.filled=true;
+    fillProfile({...mine, ...(S.priv[uid()]||{})}); }
   else if(!mine && S.user && !pPhoto && !$("#pPhotoPrev").textContent) showPhoto();
 }
 
@@ -746,6 +784,25 @@ document.addEventListener("click", async ev=>{
     try{ await setDoc(doc(fs,"rsvps",uid()), {events:cur}); toast(cur[id]?"You're on the list.":"RSVP canceled."); }
     catch(e){ writeFailed(e); } finally{ t.disabled=false; }
   }
+  if(t.dataset.bbReq){
+    const id=t.dataset.bbReq, me=uid(); t.disabled=true;
+    try{ await setDoc(doc(fs,"buddies",pairId(me,id)), {users:[me,id].sort(), from:me, to:id, status:"pending", createdAt:Date.now()}); toast("Battle buddy request sent."); }
+    catch(e){ writeFailed(e); t.disabled=false; }
+    return;
+  }
+  if(t.dataset.bbAcc){
+    const id=t.dataset.bbAcc; t.disabled=true;
+    try{ await updateDoc(doc(fs,"buddies",pairId(uid(),id)), {status:"accepted", acceptedAt:Date.now()}); toast("You're battle buddies now."); }
+    catch(e){ writeFailed(e); t.disabled=false; }
+    return;
+  }
+  if(t.dataset.bbDel){
+    const id=t.dataset.bbDel, why=t.dataset.bbWhy;
+    if(why==="remove" && !confirm("Remove this battle buddy? You'll both lose access to each other's full profile.")) return;
+    try{ await deleteDoc(doc(fs,"buddies",pairId(uid(),id))); toast(why==="cancel"?"Request canceled.":why==="decline"?"Request declined.":"Battle buddy removed."); }
+    catch(e){ writeFailed(e); }
+    return;
+  }
   if(t.dataset.dir){ S.dir=t.dataset.dir; try{ localStorage.setItem("ctfDir",S.dir); }catch{} renderMembers(); return; }
   if(t.dataset.setdate){ openDateDlg(t.dataset.setdate); return; }
   if(t.dataset.cal){ addToCalendar(t.dataset.cal); return; }
@@ -813,7 +870,7 @@ function fillProfile(m){
   $("#pStart").value=m.startYear||""; $("#pEnd").value=m.endYear||"";
   $("#pAbout").value=m.about||""; $("#pReach").value=m.reach||"";
   $("#pLinkedin").value=m.linkedin||""; $("#pFacebook").value=m.facebook||""; $("#pInstagram").value=m.instagram||"";
-  $("#pListed").checked=!!m.listed; $("#pSvcPrivate").checked=!!m.svcVetsOnly;
+  $("#pListed").checked=!!m.listed;
   pPhoto = m.photo||""; showPhoto(); toggleSvc(); mosLabel();
 }
 
@@ -865,18 +922,22 @@ $("#pSave").addEventListener("click", async ()=>{
   const yr=v=>{ const n=parseInt(v,10); return (n>=1940 && n<=2100) ? n : null; };
   const startYear=yr($("#pStart").value), endYear=yr($("#pEnd").value);
   if(startYear && endYear && endYear<startYear){ toast("The end year comes before the start year."); return; }
-  const data={
-    name:myName(), status, listed:$("#pListed").checked, photo:pPhoto,
-    branch: mil ? $("#pBranch").value : "",
+  const pub={ name:myName(), status, listed:$("#pListed").checked, photo:pPhoto, branch: mil ? $("#pBranch").value : "" };
+  const priv={
     rank: mil ? $("#pRank").value.trim().slice(0,40) : "",
     mos: mil ? $("#pMos").value.trim().slice(0,60) : "",
     unit: mil ? $("#pUnit").value.trim().slice(0,120) : "",
     startYear: mil ? startYear : null, endYear: mil ? endYear : null,
-    svcVetsOnly: mil && $("#pSvcPrivate").checked,
     about:$("#pAbout").value.trim().slice(0,600), reach:$("#pReach").value.trim().slice(0,120),
     linkedin, facebook, instagram
   };
-  try{ await setDoc(doc(fs,"members",uid()), data); toast("Profile saved."); showTab(lastTab); }catch(e){ writeFailed(e); }
+  try{
+    const b=writeBatch(fs);
+    b.set(doc(fs,"private",uid()), priv);
+    b.set(doc(fs,"members",uid()), pub);
+    await b.commit();
+    toast("Profile saved."); showTab(lastTab);
+  }catch(e){ writeFailed(e); }
 });
 
 $("#sSave").addEventListener("click", async ()=>{
@@ -1040,8 +1101,38 @@ onSnapshot(doc(fs,"config","site"), d=>{
   render();
 }, e=>console.error(e));
 
-let subs = [];
-function clearSubs(){ subs.forEach(u=>u()); subs=[]; }
+let subs = [], privSubs = {};
+function clearSubs(){ subs.forEach(u=>u()); subs=[]; Object.values(privSubs).forEach(u=>u()); privSubs={}; }
+function watchPriv(id){
+  if(privSubs[id]) return;
+  privSubs[id]=onSnapshot(doc(fs,"private",id), d=>{
+    if(d.exists()) S.priv[id]=d.data(); else delete S.priv[id];
+    if(id===uid()){ S.myPrivLoaded=true; migrateMine(); }
+    render();
+  }, e=>{ console.error(e); if(id===uid()){ S.myPrivLoaded=true; render(); } });
+}
+function syncBuddyPriv(){
+  if(S.admin) return; // admins watch the whole collection
+  const want=new Set([uid(), ...Object.values(S.buddies).filter(d=>d.status==="accepted").map(d=>d.users.find(x=>x!==uid()))]);
+  Object.keys(privSubs).forEach(id=>{ if(!want.has(id)){ privSubs[id](); delete privSubs[id]; delete S.priv[id]; } });
+  want.forEach(watchPriv);
+}
+// One-time move of private fields out of an older public profile.
+let migrating=false;
+async function migrateMine(){
+  const me=uid(), m=S.members[me];
+  if(migrating || !m || !S.myPrivLoaded) return;
+  const legacy=["service","svcVetsOnly",...PRIVATE_KEYS].filter(k=>m[k]!==undefined);
+  if(!legacy.length) return;
+  migrating=true;
+  const priv={...(S.priv[me]||{})};
+  PRIVATE_KEYS.forEach(k=>{ if(m[k]!==undefined && (priv[k]===undefined || priv[k]==="" || priv[k]===null)) priv[k]=m[k]; });
+  if(m.service && !priv.unit) priv.unit=m.service;
+  const pub={}; PUBLIC_KEYS.forEach(k=>{ if(m[k]!==undefined) pub[k]=m[k]; });
+  try{ const b=writeBatch(fs); b.set(doc(fs,"private",me), priv); b.set(doc(fs,"members",me), pub); await b.commit(); }
+  catch(e){ console.error("profile migration", e); }
+  migrating=false;
+}
 function subscribeMembers(){
   clearSubs();
   const u = S.user; if(!u) return;
@@ -1052,16 +1143,20 @@ function subscribeMembers(){
     S.approved = computeApproved(d.exists()?d.data():undefined);
     if(S.approved !== was) subscribeMembers(); else render();
   }, e=>console.error(e)));
+  if(S.admin){
+    subs.push(onSnapshot(collection(fs,"private"), s=>{ S.priv=toMap(s); S.myPrivLoaded=true; migrateMine(); render(); }, e=>{ console.error(e); S.myPrivLoaded=true; }));
+  } else watchPriv(u.uid);
   if(S.approved){
-    subs.push(onSnapshot(collection(fs,"members"), s=>{ S.members=toMap(s); render(); }, e=>console.error(e)));
+    subs.push(onSnapshot(collection(fs,"members"), s=>{ S.members=toMap(s); migrateMine(); render(); }, e=>console.error(e)));
     subs.push(onSnapshot(collection(fs,"approved"), s=>{ S.approvedIds=toMap(s); render(); }, e=>console.error(e)));
+    subs.push(onSnapshot(query(collection(fs,"buddies"), where("users","array-contains",u.uid)), s=>{ S.buddies=toMap(s); syncBuddyPriv(); render(); }, e=>console.error(e)));
   } else {
-    subs.push(onSnapshot(doc(fs,"members",u.uid), d=>{ S.members = d.exists() ? {[u.uid]:d.data()} : {}; render(); }, e=>console.error(e)));
+    subs.push(onSnapshot(doc(fs,"members",u.uid), d=>{ S.members = d.exists() ? {[u.uid]:d.data()} : {}; migrateMine(); render(); }, e=>console.error(e)));
   }
 }
 
 onAuthStateChanged(auth, async u=>{
-  S.user=u; S.admin=false; S.approved=false; S.members={}; S.approvedIds={};
+  S.user=u; S.admin=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.myPrivLoaded=false;
   clearSubs();
   renderMembers.filled=false; renderStories.filled=false;
   resetEventForm(); resetPartnerForm();
