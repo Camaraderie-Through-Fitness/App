@@ -114,7 +114,8 @@ section[hidden]{display:none}
 dialog{border:0;border-radius:16px;padding:20px;max-width:520px;width:calc(100% - 28px);background:var(--surface);color:var(--ink)}
 dialog::backdrop{background:rgba(0,0,0,.45)}
 .give-big{font:700 2.6rem/1 var(--display);margin:6px 0 10px}
-.acct{margin-left:auto;background:transparent;border:2px solid var(--line);border-radius:99px;min-height:40px;padding:0 14px;font-weight:600;cursor:pointer;color:var(--ink)}
+.acct{margin-left:auto;background:transparent;border:2px solid var(--line);border-radius:99px;min-height:40px;padding:0 14px 0 4px;font-weight:600;cursor:pointer;color:var(--ink);display:inline-flex;align-items:center;gap:8px}
+.acct-av{width:30px;height:30px;border-radius:50%;object-fit:cover;background:var(--brass-soft);display:grid;place-items:center;font:700 .8rem var(--display);color:var(--ink)}
 .or{display:flex;align-items:center;gap:10px;color:var(--muted);margin:16px 0 4px;font-size:.9rem}
 .or::before,.or::after{content:"";flex:1;border-top:1px solid var(--line)}
 .err{color:var(--alert);font-size:.93rem;margin-top:10px;min-height:1.2em}
@@ -147,6 +148,9 @@ body.booting, body.out{padding-bottom:0}
 .gate-crisis{margin-top:22px;text-align:center;font-size:.92rem;color:#E9ECE2}
 .gate-crisis a{color:#E9ECE2;font-weight:700}
 
+.uid-box{margin-top:18px;font-size:.85rem;color:var(--muted)}
+.uid-box summary{cursor:pointer;width:max-content}
+.uid-box .mono{margin-top:8px}
 /* ---- Profiles ---- */
 .filter{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 10px}
 .filter button{border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:99px;min-height:38px;padding:0 14px;font-weight:600;cursor:pointer}
@@ -229,8 +233,15 @@ body.booting, body.out{padding-bottom:0}
     <div class="filter" id="dirFilter" role="group" aria-label="Filter members" hidden><button data-dir="all" aria-pressed="true">Everyone</button><button data-dir="mil" aria-pressed="false">Veterans &amp; military</button></div>
     <div id="pendingWrap" class="panel admin" hidden><h3>Waiting on payment</h3><p class="hint">Check your payment platform, then tap Activate 1 year.</p><div class="list" id="pendingList" style="border-top:0"></div><div id="renewWrap"></div></div>
     <div class="list" id="memberList"></div>
+  </section>
+
+  <!-- PROFILE (opened from your name, top right) -->
+  <section id="tab-profile" hidden>
+    <div style="display:flex;align-items:center;gap:12px;margin:24px 0 8px">
+      <button class="btn small ghost" id="profileBack">Back</button>
+      <h2 style="margin:0">Edit profile</h2>
+    </div>
     <div class="panel" id="profilePanel">
-      <h3>Your profile</h3>
       <div class="photo-row">
         <div id="pPhotoPrev" class="avatar-lg" aria-hidden="true"></div>
         <div class="btns">
@@ -348,10 +359,12 @@ body.booting, body.out{padding-bottom:0}
     <h3 id="whoName">Signed in</h3>
     <p class="hint" id="whoEmail"></p>
     <p id="adminNote" class="hint"></p>
-    <label>Your user ID</label>
-    <div class="mono" id="whoId"></div>
-    <p class="hint" style="margin-top:6px">Only needed when setting up admins.</p>
-    <p style="margin-top:14px"><button class="btn danger" id="signOutBtn">Sign out</button></p>
+    <p style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="editProfileBtn">Edit profile</button><button class="btn danger" id="signOutBtn">Sign out</button></p>
+    <details class="uid-box">
+      <summary>Account ID</summary>
+      <div class="mono" id="whoId"></div>
+      <p class="hint" style="margin-top:6px">Only needed if a CTF admin asks for it.</p>
+    </details>
   </div>
 </dialog>
 
@@ -412,7 +425,20 @@ function amGoing(id){ const r=S.rsvps[uid()]; return !!(r && r.events && r.event
 function toMap(snap){ const o={}; snap.docs.forEach(d=>{ o[d.id]=d.data(); }); return o; }
 
 // ---------- Tabs ----------
+let lastTab="workouts";
+function showTab(name){
+  document.querySelectorAll("nav.tabs button").forEach(x=>{ if(x.dataset.tab===name) x.setAttribute("aria-current","page"); else x.removeAttribute("aria-current"); });
+  document.querySelectorAll("section[id^=tab-]").forEach(s=>s.hidden = s.id !== "tab-"+name);
+  if(name!=="profile") lastTab=name;
+  window.scrollTo(0,0);
+}
+function openProfile(){
+  const mine=S.members[uid()];
+  if(mine) fillProfile(mine); else showPhoto();
+  showTab("profile");
+}
 document.querySelectorAll("nav.tabs button").forEach(b=>b.addEventListener("click",()=>{
+  lastTab=b.dataset.tab;
   document.querySelectorAll("nav.tabs button").forEach(x=>x.removeAttribute("aria-current"));
   b.setAttribute("aria-current","page");
   document.querySelectorAll("section[id^=tab-]").forEach(s=>s.hidden = s.id !== "tab-"+b.dataset.tab);
@@ -421,7 +447,8 @@ document.querySelectorAll("nav.tabs button").forEach(b=>b.addEventListener("clic
 
 // ---------- Render ----------
 function render(){
-  $("#acctBtn").textContent = S.user ? myName().split(" ")[0] : "";
+  { const me=S.members[uid()]||{name:myName()};
+    $("#acctBtn").innerHTML = S.user ? `${avatarHTML({...me,name:me.name||myName()},"acct-av")}<span>${esc(myName().split(" ")[0])}</span>` : ""; }
   renderWorkouts(); renderMembers(); renderStories(); renderSupport(); renderGive();
   ["#eventAdmin","#partnerAdmin","#giveAdmin"].forEach(s=>$(s).hidden=!S.admin);
   $("#seedWrap").hidden = !(S.admin && S.ready && S.partners.length===0);
@@ -509,7 +536,7 @@ function renderMembers(){
     const expired = mine && !isActive(mine);
     note.innerHTML=`<div class="panel"><h3>${expired?"Your membership expired":"Become a member"}</h3>
       <p>Membership is $22 a year. It unlocks the veteran directory and sharing your story. Workouts, RSVPs, and support resources stay free.</p>
-      <p><b>1.</b> Save your profile below.<br><b>2.</b> Pay your membership${payUrl?"":" (link coming soon)"}, using the same name as your profile.<br><b>3.</b> A CTF admin activates your account, usually within a day or two.</p>
+      <p><b>1.</b> Tap your name at the top right, then Edit profile, and save it.<br><b>2.</b> Pay your membership${payUrl?"":" (link coming soon)"}, using the same name as your profile.<br><b>3.</b> A CTF admin activates your account, usually within a day or two.</p>
       ${payUrl?`<p style="margin-top:12px"><a class="btn" href="${esc(payUrl)}" target="_blank" rel="noopener">Pay $22 membership</a></p>`:""}
       <p class="hint" style="margin-top:10px">Can't swing the $22 right now? Talk to any CTF team member. No veteran gets turned away.</p></div>`;
     $("#memberList").innerHTML="";
@@ -525,7 +552,7 @@ function renderMembers(){
         const extra = S.admin && id!==uid() && paywallOn() ? `<span class="meta">Paid through ${a?fmtDay(activeUntil(a)):"—"}</span><button class="btn small ghost" data-approve="${esc(id)}">Add 1 year</button><button class="btn small ghost" data-setdate="${esc(id)}">Set date</button><button class="btn small danger" data-revoke="${esc(id)}">Remove access</button>` : "";
         return memberRow(id, S.members[id], extra);
       }).join("")
-      : `<p class="empty-note">${S.dir==="mil" ? "No veterans or service members listed yet." : "No one's listed yet. Fill in your profile below and be the first."}</p>`;
+      : `<p class="empty-note">${S.dir==="mil" ? "No veterans or service members listed yet." : "No one's listed yet. Tap your name at the top right to fill in your profile."}</p>`;
     if(S.admin && paywallOn()){
       const pend = Object.keys(S.members).filter(id=>id!==uid() && !isActive(S.approvedIds[id]));
       $("#pendingWrap").hidden = false;
@@ -652,6 +679,8 @@ $("#resetBtn").addEventListener("click", async ()=>{
   if(!email){ $("#authErr").textContent="Enter your email above first."; return; }
   try { await sendPasswordResetEmail(auth, email); $("#authErr").textContent="Reset link sent. Check your email."; } catch(e){ authFail(e); }
 });
+$("#editProfileBtn").addEventListener("click", ()=>{ closeAuth(); openProfile(); });
+$("#profileBack").addEventListener("click", ()=>showTab(lastTab));
 $("#signOutBtn").addEventListener("click", async ()=>{ await signOut(auth); closeAuth(); toast("Signed out."); });
 
 // ---------- Actions ----------
@@ -795,7 +824,7 @@ $("#pSave").addEventListener("click", async ()=>{
     about:$("#pAbout").value.trim().slice(0,600), reach:$("#pReach").value.trim().slice(0,120),
     linkedin, facebook, instagram
   };
-  try{ await setDoc(doc(fs,"members",uid()), data); toast("Profile saved."); }catch(e){ writeFailed(e); }
+  try{ await setDoc(doc(fs,"members",uid()), data); toast("Profile saved."); showTab(lastTab); }catch(e){ writeFailed(e); }
 });
 
 $("#sSave").addEventListener("click", async ()=>{
@@ -984,7 +1013,7 @@ onAuthStateChanged(auth, async u=>{
   clearSubs();
   renderMembers.filled=false; renderStories.filled=false;
   resetEventForm(); resetPartnerForm();
-  if(!u){ setView(); setMode("in"); $("#aPass").value=""; }
+  if(!u){ setView(); setMode("in"); $("#aPass").value=""; showTab("workouts"); }
   if(u){
     try{ S.admin = (await getDoc(doc(fs,"admins",u.uid))).exists(); }catch(e){ console.error(e); }
     try{ const d=await getDoc(doc(fs,"approved",u.uid)); S.approvedIds[u.uid]=d.exists()?d.data():undefined; S.approved = computeApproved(S.approvedIds[u.uid]); }catch(e){ console.error(e); S.approved = computeApproved(undefined); }
