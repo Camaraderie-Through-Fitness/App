@@ -184,7 +184,8 @@ body.booting, body.out{padding-bottom:0}
 .welcome{background:var(--brass-soft);border-radius:16px;padding:16px 18px;margin-top:14px}
 .welcome h3{margin-bottom:4px}
 .welcome .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.myrsvps{margin-top:14px}
+.myrsvps{margin-top:14px;padding:14px 16px}
+.myrsvps h3{font-size:1.1rem;margin-bottom:2px}
 .myrsvps .item{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
 .myrsvps .item:first-of-type{border-top:0}
 .myrsvps .when{flex:none;width:52px;text-align:center;font:700 1.1rem/1.1 var(--display)}
@@ -579,11 +580,19 @@ function renderWelcome(){
     <div class="actions"><button class="btn small" data-welcome="profile">Finish my profile</button><button class="btn small ghost" data-welcome="hide">Not now</button></div></div>`;
 }
 function renderMyRsvps(){
+  // One compact box: your next RSVP, with the rest tucked behind a toggle.
   const mine = upcoming().filter(e=>amGoing(e.id));
-  $("#myRsvps").innerHTML = mine.length ? `<div class="panel myrsvps"><h3>Your RSVPs</h3>${mine.map(e=>{const d=parseDate(e.date); return `<div class="item">
+  if(!mine.length){ $("#myRsvps").innerHTML=""; return; }
+  const item = e => { const d=parseDate(e.date); return `<div class="item">
       <div class="when">${d.getDate()}<span>${MON[d.getMonth()]}</span></div>
       <div style="flex:1;min-width:0"><b>${esc(e.title)}</b><div class="meta">${DOW[d.getDay()]}, ${esc(fmtTime(e.time))}</div></div>
-      ${dirBtn(e)}</div>`;}).join("")}</div>` : "";
+      ${dirBtn(e)}</div>`; };
+  const [next, ...more] = mine;
+  $("#myRsvps").innerHTML = `<div class="panel myrsvps"><h3>Your next RSVP</h3>${item(next)}
+    ${more.length ? (S.showMyRsvps
+      ? more.map(item).join("") + `<button class="btn small ghost" data-myrsvps="1" style="margin-top:8px">Show less</button>`
+      : `<button class="btn small ghost" data-myrsvps="1" style="margin-top:8px">+ ${more.length} more RSVP${more.length===1?"":"s"}</button>`) : ""}
+  </div>`;
 }
 function renderWorkouts(){
   renderWelcome(); renderMyRsvps();
@@ -972,6 +981,7 @@ document.addEventListener("click", async ev=>{
     else { try{ localStorage.setItem("ctfWelcomeHide", uid()); }catch{} renderWelcome(); }
     return;
   }
+  if(t.dataset.myrsvps){ S.showMyRsvps=!S.showMyRsvps; renderMyRsvps(); return; }
   if(t.id==="moreBtn"){ S.showAllEvents=!S.showAllEvents; renderWorkouts(); return; }
   if(t.dataset.salute){
     const sid=t.dataset.salute, ref=doc(fs,"stories",sid,"salutes",uid());
