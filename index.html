@@ -172,6 +172,12 @@ body.booting, body.out{padding-bottom:0}
 .uid-box{margin-top:18px;font-size:.85rem;color:var(--muted)}
 .uid-box summary{cursor:pointer;width:max-content}
 .uid-box .mono{margin-top:8px}
+/* ---- Pull to refresh (home-screen app only; browsers have their own) ---- */
+#ptr{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) - 56px);width:44px;height:44px;margin-left:-22px;border-radius:50%;background:var(--surface);box-shadow:0 2px 10px rgba(0,0,0,.18);display:grid;place-items:center;z-index:30;pointer-events:none;opacity:0}
+#ptr img{width:34px;height:34px;border-radius:50%}
+#ptr.spin img{animation:ptrspin .8s linear infinite}
+@keyframes ptrspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){#ptr.spin img{animation:none}}
 /* ---- Battle buddies ---- */
 nav.tabs button{position:relative}
 .badge{position:absolute;top:4px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:var(--alert);color:#fff;font:700 .72rem/18px var(--body)}
@@ -198,6 +204,7 @@ nav.tabs button{position:relative}
 </style>
 </head>
 <body class="booting">
+<div id="ptr" aria-hidden="true"><img src="logo.png" alt=""></div>
 <div id="boot" aria-label="Loading"><img src="logo.png" alt=""></div>
 
 <section id="gate">
@@ -825,6 +832,25 @@ $("#resetBtn").addEventListener("click", async ()=>{
 $("#editProfileBtn").addEventListener("click", ()=>{ closeAuth(); openProfile(); });
 
 document.addEventListener("input", e=>{ const sid=e.target.dataset && e.target.dataset.cmtInput; if(sid) S.cmtDrafts[sid]=e.target.value; });
+
+// ---------- Pull to refresh ----------
+// Home-screen apps have no browser refresh, so pulling down at the top reloads.
+(function(){
+  const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  if(!standalone) return;
+  const el=$("#ptr"), img=el.querySelector("img"), MAX=110, TRIGGER=75;
+  let startY=null, dy=0, busy=false;
+  const blocked = () => busy || document.querySelector("dialog[open]") || !document.body.classList.contains("in");
+  const place = d => { const y=Math.min(d,MAX); el.style.transform=`translateY(${y}px)`; el.style.opacity=Math.min(1,d/TRIGGER); img.style.transform=`rotate(${d*3}deg)`; };
+  window.addEventListener("touchstart", e=>{ if(blocked() || window.scrollY>0 || e.touches.length!==1){ startY=null; return; } startY=e.touches[0].clientY; dy=0; el.style.transition="none"; }, {passive:true});
+  window.addEventListener("touchmove", e=>{ if(startY===null) return; dy=(e.touches[0].clientY-startY)*0.5; if(dy<=0 || window.scrollY>0){ place(0); return; } place(dy); }, {passive:true});
+  window.addEventListener("touchend", ()=>{
+    if(startY===null) return; startY=null;
+    el.style.transition="transform .2s, opacity .2s";
+    if(dy>=TRIGGER){ busy=true; place(TRIGGER); img.style.transform=""; el.classList.add("spin"); setTimeout(()=>location.reload(), 350); }
+    else place(0);
+  }, {passive:true});
+})();
 
 // ---------- Invite / share ----------
 const APP_URL = "https://app.camaraderietf.org/";
