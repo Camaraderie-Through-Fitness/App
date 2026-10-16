@@ -471,6 +471,17 @@ nav.tabs button{position:relative}
   <p style="margin-top:14px"><button class="btn" id="dateSave">Save date</button></p>
 </dialog>
 
+<dialog id="resetDlg">
+  <h3>Confirm your email</h3>
+  <p style="margin-top:8px">We'll send a password reset link to:</p>
+  <p class="mono" id="resetEmail" style="font-size:1rem"></p>
+  <p class="hint">Make sure it's spelled right. The link only goes to this address.</p>
+  <p style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn" id="resetSend">Send reset link</button>
+    <button class="btn ghost" id="resetEdit">Change email</button>
+  </p>
+</dialog>
+
 <dialog id="shareDlg">
   <button class="dlg-close" id="shareClose" aria-label="Close">×</button>
   <h3>Build the community</h3>
@@ -983,10 +994,22 @@ $("#emailUp").addEventListener("click", async ()=>{
     closeAuth(); render(); toast("Welcome to CTF, " + name.split(" ")[0] + ".");
   } catch(e){ authFail(e); }
 });
-$("#resetBtn").addEventListener("click", async ()=>{
+const resetDlg=$("#resetDlg");
+$("#resetBtn").addEventListener("click", ()=>{
   const email=$("#aEmail").value.trim();
-  if(!email){ $("#authErr").textContent="Enter your email above first."; return; }
-  try { await sendPasswordResetEmail(auth, email); $("#authErr").textContent="Reset link sent. Check your email."; } catch(e){ authFail(e); }
+  if(!email){ $("#authErr").textContent="Enter your email above first, then tap Forgot password?"; $("#aEmail").focus(); return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ $("#authErr").textContent="That email doesn't look right. Check it and try again."; $("#aEmail").focus(); return; }
+  $("#authErr").textContent="";
+  $("#resetEmail").textContent=email;
+  if(typeof resetDlg.showModal==="function") resetDlg.showModal(); else resetDlg.setAttribute("open","");
+});
+$("#resetEdit").addEventListener("click", ()=>{ resetDlg.close(); $("#aEmail").focus(); $("#aEmail").select(); });
+$("#resetSend").addEventListener("click", async ()=>{
+  const email=$("#resetEmail").textContent, btn=$("#resetSend");
+  btn.disabled=true;
+  try{ await sendPasswordResetEmail(auth, email); resetDlg.close(); $("#authErr").textContent=`Reset link sent to ${email}. Check your inbox and spam folder.`; }
+  catch(e){ resetDlg.close(); authFail(e); }
+  btn.disabled=false;
 });
 $("#editProfileBtn").addEventListener("click", ()=>{ closeAuth(); openProfile(); });
 
