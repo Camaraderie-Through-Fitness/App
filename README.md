@@ -1,7 +1,7 @@
 # CTF Community App
 
-App for Camaraderie Through Fitness, a 501(c)(3) serving veterans in North Central Florida.
+App for Camaraderie Through Fitness, a 501(c)(3) serving veterans through group fitness, peer connection, and community.
 
-Planned features: workout RSVPs, veteran member directory, testimonials, counseling partner directory, supporting businesses, and donations.
+Features: sign-in, workout calendar and RSVPs, add-to-calendar reminders, $22/year membership for the veteran directory and stories, counseling partner directory, supporting businesses, and donations.
 
-Status: prototype. Layout and screens are done. Data storage and logins still need a backend.
+Built as a single page (index.html) on Firebase (login and database), hosted with GitHub Pages.
