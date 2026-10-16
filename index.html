@@ -219,6 +219,8 @@ body.booting, body.out{padding-bottom:0}
 .face{width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid var(--bg);background:var(--brass-soft);display:grid;place-items:center;font:700 .78rem var(--display);color:var(--ink)}
 .faces.on-dark .face{border-color:var(--green)}
 .face.more{background:var(--line);color:var(--ink);font-size:.72rem}
+.linkish{background:none;border:0;padding:0;font:inherit;font-size:.88rem;cursor:pointer;text-decoration:underline}
+.danger-text{color:var(--alert)}
 /* ---- Battle buddies ---- */
 nav.tabs button{position:relative}
 .badge{position:absolute;top:2px;left:calc(50% + 6px);box-shadow:0 0 0 2px var(--surface);min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:var(--alert);color:#fff;font:700 .72rem/18px var(--body)}
@@ -472,6 +474,7 @@ nav.tabs button{position:relative}
       <div class="mono" id="whoId"></div>
       <p class="hint" style="margin-top:6px">Only needed if a CTF admin asks for it.</p>
     </details>
+    <p style="margin-top:10px"><button class="linkish danger-text" id="delAcctBtn">Delete my account</button></p>
   </div>
 </dialog>
 
@@ -481,6 +484,19 @@ nav.tabs button{position:relative}
   <p class="hint" id="dateWho"></p>
   <label for="dateInput">Active through</label><input id="dateInput" type="date">
   <p style="margin-top:14px"><button class="btn" id="dateSave">Save date</button></p>
+</dialog>
+
+<dialog id="delDlg">
+  <h3>Delete your account?</h3>
+  <p style="margin-top:8px">This permanently removes your profile, photo, RSVPs, story, comments, salutes, and battle buddy connections. It can't be undone.</p>
+  <div id="delPwWrap" hidden><label for="delPw">Enter your password to confirm</label><input id="delPw" type="password" autocomplete="current-password"></div>
+  <p class="hint" id="delGoogleNote" hidden>You'll be asked to sign in with Google once more to confirm.</p>
+  <label for="delConfirm">Type <b>DELETE</b> to confirm</label><input id="delConfirm" type="text" autocomplete="off" autocapitalize="characters">
+  <div class="err" id="delErr" role="alert"></div>
+  <p style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn danger" id="delGo">Delete my account</button>
+    <button class="btn ghost" id="delCancel">Keep my account</button>
+  </p>
 </dialog>
 
 <dialog id="resetDlg">
@@ -519,7 +535,7 @@ nav.tabs button{position:relative}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, updateProfile, deleteUser, reauthenticateWithCredential, reauthenticateWithPopup, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, doc, onSnapshot, setDoc, addDoc, deleteDoc, getDoc, writeBatch, updateDoc, query, where, collectionGroup } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -1118,6 +1134,54 @@ $("#shareCopy").addEventListener("click", async ()=>{
 $("#profileBack").addEventListener("click", ()=>{ if(welcoming) markWelcomed(); showTab(lastTab); });
 $("#personBack").addEventListener("click", ()=>{ personId=null; showTab(lastTab); });
 $("#signOutBtn").addEventListener("click", async ()=>{ await signOut(auth); closeAuth(); toast("Signed out."); });
+
+// ---------- Delete account ----------
+const delDlg=$("#delDlg");
+const usesPassword = () => !!(S.user && S.user.providerData.some(p=>p.providerId==="password"));
+$("#delAcctBtn").addEventListener("click", ()=>{
+  closeAuth();
+  $("#delPwWrap").hidden = !usesPassword(); $("#delGoogleNote").hidden = usesPassword();
+  $("#delPw").value=""; $("#delConfirm").value=""; $("#delErr").textContent="";
+  if(typeof delDlg.showModal==="function") delDlg.showModal(); else delDlg.setAttribute("open","");
+});
+$("#delCancel").addEventListener("click", ()=>delDlg.close());
+$("#delGo").addEventListener("click", async ()=>{
+  const err=$("#delErr"), btn=$("#delGo");
+  if($("#delConfirm").value.trim().toUpperCase()!=="DELETE"){ err.textContent="Type DELETE to confirm."; return; }
+  const u=S.user, me=u.uid;
+  btn.disabled=true; err.textContent="Confirming it's you…";
+  let phase="confirm";
+  try{
+    // 1. Confirm identity first, so we never wipe data and then fail to remove the login.
+    if(usesPassword()){
+      const pw=$("#delPw").value; if(!pw){ err.textContent="Enter your password."; btn.disabled=false; return; }
+      await reauthenticateWithCredential(u, EmailAuthProvider.credential(u.email, pw));
+    } else {
+      await reauthenticateWithPopup(u, new GoogleAuthProvider());
+    }
+    err.textContent="Deleting your data…"; phase="data";
+    // 2. Remove everything this person owns. Missing items are fine.
+    const del = ref => deleteDoc(ref).catch(e=>console.warn("skip", ref.path, e.code));
+    const jobs=[ "members","private","contacts","rsvps","stories","storyPhotos" ].map(c=>del(doc(fs,c,me)));
+    Object.entries(S.buddies||{}).forEach(([pid])=>jobs.push(del(doc(fs,"buddies",pid))));
+    Object.entries(S.salutes||{}).forEach(([sid,set])=>{ if(set.has(me)) jobs.push(del(doc(fs,"stories",sid,"salutes",me))); });
+    Object.entries(S.comments||{}).forEach(([sid,list])=>list.forEach(c=>{ if(c.uid===me || sid===me) jobs.push(del(doc(fs,"stories",sid,"comments",c.id))); }));
+    await Promise.all(jobs);
+    phase="login";
+    // 3. Remove the login itself.
+    await deleteUser(u);
+    try{ Object.keys(localStorage).filter(k=>k.startsWith("ctf")).forEach(k=>localStorage.removeItem(k)); }catch{}
+    delDlg.close(); toast("Your account has been deleted.");
+  }catch(e){
+    console.error(e);
+    err.textContent = (e.code==="auth/wrong-password"||e.code==="auth/invalid-credential") ? "That password isn't right."
+      : (e.code==="auth/popup-closed-by-user"||e.code==="auth/cancelled-popup-request") ? "Google confirmation was closed. Try again."
+      : e.code==="auth/requires-recent-login" ? "For security, sign out, sign back in, then try again."
+      : phase==="login" ? "Your profile and data were removed, but the login itself couldn't be deleted (" + (e.code||e.message) + "). Contact CTF and we'll finish it."
+      : "Couldn't delete your account (" + (e.code||e.message) + "). Try again or contact CTF.";
+  }
+  btn.disabled=false;
+});
 
 // ---------- Actions ----------
 document.addEventListener("click", async ev=>{
