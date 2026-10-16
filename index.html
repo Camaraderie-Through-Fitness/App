@@ -225,6 +225,7 @@ body.booting, body.out{padding-bottom:0}
 .danger-text{color:var(--alert)}
 /* ---- Battle buddies ---- */
 nav.tabs button{position:relative}
+.dot{position:absolute;top:4px;left:calc(50% + 8px);width:11px;height:11px;border-radius:99px;background:var(--alert);box-shadow:0 0 0 2px var(--surface)}
 .badge{position:absolute;top:2px;left:calc(50% + 6px);box-shadow:0 0 0 2px var(--surface);min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:var(--alert);color:#fff;font:700 .72rem/18px var(--body)}
 .bb-tag{background:var(--green);color:var(--green-ink)}
 .locked{font-size:.88rem;color:var(--muted);margin-top:6px}
@@ -459,7 +460,7 @@ nav.tabs button{position:relative}
 <nav class="tabs" aria-label="Sections"><div class="inner">
   <button data-tab="workouts" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12"/></svg>Workouts</button>
   <button data-tab="members"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.5c2.5 0 4.3 1.6 5 4.5"/></svg>Members<span class="badge" id="bbBadge" hidden></span></button>
-  <button data-tab="stories"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg>Stories<span class="badge" id="photoBadge" hidden></span></button>
+  <button data-tab="stories"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg>Stories<span class="badge" id="photoBadge" hidden></span><span class="dot" id="storyDot" hidden aria-label="New activity on your story"></span></button>
   <button data-tab="support"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Support</button>
   <button data-tab="give"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18M16.5 7.5c0-1.7-2-3-4.5-3s-4.5 1.3-4.5 3 2 2.6 4.5 3 4.5 1.4 4.5 3.3-2 3.2-4.5 3.2-4.5-1.3-4.5-3"/></svg>Give</button>
 </div></nav>
@@ -653,6 +654,23 @@ document.querySelectorAll("nav.tabs button").forEach(b=>b.addEventListener("clic
   document.querySelectorAll("section[id^=tab-]").forEach(s=>s.hidden = s.id !== "tab-"+b.dataset.tab);
   window.scrollTo(0,0);
 }));
+
+// ---------- Activity dot on Stories (salutes/comments on your story) ----------
+function storyActivity(){
+  const me=uid(); if(!me) return 0;
+  let t=0;
+  Object.entries((S.saluteAt||{})[me]||{}).forEach(([u,at])=>{ if(u!==me && at>t) t=at; });
+  ((S.comments||{})[me]||[]).forEach(c=>{ if(c.uid!==me && (c.at||0)>t) t=c.at||0; });
+  return t;
+}
+function storySeen(){ try{ return +localStorage.getItem("ctfStorySeen_"+uid())||0; }catch{ return 0; } }
+function updateStoryDot(){
+  const dot=$("#storyDot"); if(!dot) return;
+  const act=storyActivity();
+  if(act && !$("#tab-stories").hidden){ try{ localStorage.setItem("ctfStorySeen_"+uid(), String(act)); }catch{} }
+  dot.hidden = !(act > storySeen()) || !$("#photoBadge").hidden;
+}
+document.querySelector('nav.tabs button[data-tab="stories"]').addEventListener("click", ()=>setTimeout(updateStoryDot,0));
 
 // ---------- Render ----------
 function render(){
@@ -939,6 +957,7 @@ function renderStories(){
   // admin approval queue
   const pending = Object.keys(S.photos).filter(id=>S.photos[id].status==="pending" && S.stories[id]);
   $("#photoBadge").hidden = !(S.admin && pending.length); $("#photoBadge").textContent = pending.length;
+  updateStoryDot();
   $("#photoQueue").hidden = !(S.admin && pending.length);
   if(S.admin && pending.length){
     $("#photoQueue").innerHTML = `<h3>Photos waiting for approval</h3>` + pending.map(id=>{
@@ -1715,7 +1734,7 @@ function subscribeMembers(){
     if(S.approved !== was) subscribeMembers(); else render();
   }, e=>console.error(e)));
   subs.push(onSnapshot(collectionGroup(fs,"salutes"), s=>{
-    const m={}; s.docs.forEach(d=>{ const sid=d.ref.parent.parent.id; (m[sid]=m[sid]||new Set()).add(d.id); }); S.salutes=m; renderStories();
+    const m={}, at={}; s.docs.forEach(d=>{ const sid=d.ref.parent.parent.id; (m[sid]=m[sid]||new Set()).add(d.id); (at[sid]=at[sid]||{})[d.id]=(d.data()||{}).at||0; }); S.salutes=m; S.saluteAt=at; renderStories();
   }, e=>console.error(e)));
   subs.push(onSnapshot(collectionGroup(fs,"comments"), s=>{
     const m={}; s.docs.forEach(d=>{ const sid=d.ref.parent.parent.id; (m[sid]=m[sid]||[]).push({id:d.id, ...d.data()}); });
