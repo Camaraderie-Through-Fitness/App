@@ -885,12 +885,28 @@ function renderStories(){
   if(mine && !renderStories.filled){ renderStories.filled=true; $("#sText").value=mine.text||""; }
 }
 
+// Turn phone numbers and emails in a partner's contact text into tap-to-call / tap-to-email buttons.
+const PHONE_RE=/(\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}/g, EMAIL_RE=/[^\s@,;<>()]+@[^\s@,;<>()]+\.[a-z]{2,}/gi;
+function contactBits(text){
+  text=String(text||"");
+  const phones=(text.match(PHONE_RE)||[]).map(t=>t.trim()), emails=text.match(EMAIL_RE)||[];
+  let rest=text; [...phones,...emails].forEach(x=>{ rest=rest.replace(x," "); });
+  rest=rest.replace(/[\s,;|\/·-]+/g," ").trim();
+  const tel=n=>{ const d=n.replace(/\D/g,""); return d.length===10 ? "+1"+d : (d.length===11&&d[0]==="1" ? "+"+d : d); };
+  return {
+    note: rest,
+    buttons: phones.map(ph=>`<a class="btn small" href="tel:${esc(tel(ph))}">Call ${esc(ph)}</a>`).join("")
+      + emails.map(em=>`<a class="btn small ghost" href="mailto:${esc(em)}">Email</a>`).join("")
+  };
+}
 function partnerRow(p){
   const url = safeUrl(p.website);
+  const c = contactBits(p.contact);
   return `<div class="row"><div class="body"><h3>${esc(p.name)}</h3>
     ${p.offer?`<p style="margin-top:4px">${esc(p.offer)}</p>`:""}
+    ${c.note?`<p class="meta" style="margin-top:4px">Contact: ${esc(c.note)}</p>`:""}
     <div class="actions">
-      ${p.contact?`<span class="meta">${esc(p.contact)}</span>`:""}
+      ${c.buttons}
       ${url?`<a class="btn small ghost" href="${esc(url)}" target="_blank" rel="noopener">Visit website</a>`:""}
       ${S.admin?`<button class="btn small ghost" data-edit-partner="${esc(p.id)}">Edit</button><button class="btn small danger" data-del-partner="${esc(p.id)}">Delete</button>`:""}
     </div></div></div>`;
