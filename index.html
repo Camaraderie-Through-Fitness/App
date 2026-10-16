@@ -210,6 +210,8 @@ body.booting, body.out{padding-bottom:0}
 #profileBack{white-space:nowrap;flex:none}
 .profile-head.setup #profileBack{order:2}
 .ios-note{background:var(--brass-soft);color:var(--ink);border-radius:12px;padding:12px 14px;font-size:.93rem;margin-bottom:14px}
+.dir-search{margin:0 0 10px}
+.dir-search input{width:100%;min-height:44px;padding:10px 14px;border:1.5px solid var(--line);border-radius:99px;background:var(--surface);font:inherit;color:inherit}
 /* ---- Battle buddies ---- */
 nav.tabs button{position:relative}
 .badge{position:absolute;top:2px;left:calc(50% + 6px);box-shadow:0 0 0 2px var(--surface);min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:var(--alert);color:#fff;font:700 .72rem/18px var(--body)}
@@ -302,6 +304,7 @@ nav.tabs button{position:relative}
     </div>
     <div id="approvalNote"></div>
     <div class="filter" id="dirFilter" role="group" aria-label="Filter members" hidden><button data-dir="all" aria-pressed="true">Everyone</button><button data-dir="mil" aria-pressed="false">Veterans &amp; military</button><button data-dir="bb" aria-pressed="false">Battle buddies</button></div>
+    <div class="dir-search" id="dirSearchWrap" hidden><input id="dirSearch" type="search" placeholder="Search by name, branch, or unit" aria-label="Search members" autocomplete="off"></div>
     <div id="bbRequests"></div>
     <div id="pendingWrap" class="panel admin" hidden><h3>Waiting on payment</h3><p class="hint">Check your payment platform, then tap Activate 1 year.</p><div class="list" id="pendingList" style="border-top:0"></div><div id="renewWrap"></div></div>
     <div class="list" id="memberList"></div>
@@ -768,7 +771,7 @@ function renderMembers(){
   const note=$("#approvalNote");
   $("#pendingWrap").hidden = true;
   const payUrl = safeUrl(S.config.memberUrl);
-  $("#dirFilter").hidden = true; $("#bbRequests").innerHTML="";
+  $("#dirFilter").hidden = true; $("#dirSearchWrap").hidden = true; $("#bbRequests").innerHTML="";
   { const n = S.user ? Object.values(S.buddies).filter(d=>d.status==="pending" && d.to===uid()).length : 0;
     $("#bbBadge").hidden = !n; $("#bbBadge").textContent = n; }
   $("#paywallAdmin").hidden = !S.admin;
@@ -794,19 +797,24 @@ function renderMembers(){
     const mine = S.approvedIds[uid()];
     note.innerHTML = (!S.admin && mine && paywallOn()) ? `<p class="hint">Membership active through ${fmtDay(activeUntil(mine))}.</p>` : "";
     const ok = id => !paywallOn() || isActive(S.approvedIds[id]) || id===uid();
-    $("#dirFilter").hidden = false;
+    $("#dirFilter").hidden = false; $("#dirSearchWrap").hidden = false;
     if(S.admin) note.innerHTML += `<p class="hint">Admin view: you see all ${Object.keys(S.members).length} accounts, including people who chose to stay hidden.</p>`;
     document.querySelectorAll("#dirFilter button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.dir===S.dir));
     const incoming = Object.keys(S.members).filter(id=>buddyState(id)==="incoming");
     $("#bbRequests").innerHTML = incoming.length ? `<div class="panel"><h3>Battle buddy requests</h3><div class="list" style="border-top:0">${incoming.map(id=>memberRow(id,S.members[id],"")).join("")}</div></div>` : "";
     const inDir = id => S.dir==="mil" ? MILITARY.includes(statusOf(S.members[id])) : S.dir==="bb" ? buddyState(id)==="buddy" : true;
-    const ids = Object.keys(S.members).filter(id=>(S.members[id].listed || buddyState(id)==="buddy" || S.admin) && ok(id) && inDir(id) && buddyState(id)!=="incoming");
+    // Search covers what this viewer can see: name, status, branch, plus rank/MOS/unit for buddies.
+    const q = ($("#dirSearch").value||"").trim().toLowerCase();
+    const matches = id => { if(!q) return true; const m=fullProfile(id);
+      return [m.name,statusOf(m),m.branch,m.rank,m.mos,m.unit].filter(Boolean).join(" ").toLowerCase().includes(q); };
+    const ids = Object.keys(S.members).filter(id=>(S.members[id].listed || buddyState(id)==="buddy" || S.admin) && ok(id) && inDir(id) && buddyState(id)!=="incoming" && matches(id))
+      .sort((a,b)=> (a===uid()?-1:b===uid()?1:0) || String(S.members[a].name||"").localeCompare(String(S.members[b].name||"")));
     $("#memberList").innerHTML = ids.length ? ids.map(id=>{
         const a=S.approvedIds[id];
         const extra = S.admin && id!==uid() && paywallOn() ? `<span class="meta">Paid through ${a?fmtDay(activeUntil(a)):"—"}</span><button class="btn small ghost" data-approve="${esc(id)}">Add 1 year</button><button class="btn small ghost" data-setdate="${esc(id)}">Set date</button><button class="btn small danger" data-revoke="${esc(id)}">Remove access</button>` : "";
         return memberRow(id, S.members[id], extra);
       }).join("")
-      : `<p class="empty-note">${S.dir==="mil" ? "No veterans or service members listed yet." : S.dir==="bb" ? "No battle buddies yet. Send a request from someone's card." : "No one's listed yet. Tap your name at the top right to fill in your profile."}</p>`;
+      : `<p class="empty-note">${q ? `No one matches "${esc(q)}".` : S.dir==="mil" ? "No veterans or service members listed yet." : S.dir==="bb" ? "No battle buddies yet. Send a request from someone's card." : "No one's listed yet. Tap your name at the top right to fill in your profile."}</p>`;
     if(S.admin && paywallOn()){
       const pend = Object.keys(S.members).filter(id=>id!==uid() && !isActive(S.approvedIds[id]));
       $("#pendingWrap").hidden = false;
@@ -1037,6 +1045,8 @@ $("#editProfileBtn").addEventListener("click", ()=>{ closeAuth(); openProfile();
 
 document.addEventListener("keydown", e=>{ if(e.key==="Enter" && e.target.dataset && e.target.dataset.person) openPerson(e.target.dataset.person); });
 document.addEventListener("input", e=>{ const sid=e.target.dataset && e.target.dataset.cmtInput; if(sid) S.cmtDrafts[sid]=e.target.value; });
+
+$("#dirSearch").addEventListener("input", ()=>renderMembers());
 
 // ---------- Pull to refresh ----------
 // Home-screen apps have no browser refresh, so pulling down at the top reloads.
