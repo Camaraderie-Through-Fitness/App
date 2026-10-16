@@ -589,11 +589,13 @@ function memberRow(id, _m, extra){
     .map(([l,u])=>[l,safeUrl(u)]).filter(([,u])=>u)
     .map(([l,u])=>`<a class="btn small ghost" href="${esc(u)}" target="_blank" rel="noopener">${l}</a>`).join("") : "";
   const actions = [bbButtons(id), extra].filter(Boolean).join("");
+  const hiddenTag = S.admin && !m.listed && st!=="self" ? `<span class="tag" style="background:var(--line)">Hidden from list</span>` : "";
+  const noProfile = S.admin && !status && st!=="self" ? `<span class="tag" style="background:var(--line)">Profile not filled in</span>` : "";
   return `<div class="row"><div class="member-head" style="flex:1">
     ${avatarHTML(m,"avatar-md")}
     <div class="body">
       <h3>${mil && full && m.rank ? esc(m.rank)+" " : ""}${esc(m.name||"Member")}${st==="self"?" (you)":""}</h3>
-      <div>${st==="buddy"?`<span class="tag bb-tag">Battle buddy</span>`:""}${status?`<span class="tag">${esc(status)}</span>`:""}${mil && m.branch && m.branch!=="Family / supporter"?`<span class="tag">${esc(m.branch)}</span>`:""}</div>
+      <div>${hiddenTag}${noProfile}${st==="buddy"?`<span class="tag bb-tag">Battle buddy</span>`:""}${status?`<span class="tag">${esc(status)}</span>`:""}${mil && m.branch && m.branch!=="Family / supporter"?`<span class="tag">${esc(m.branch)}</span>`:""}</div>
       ${svc?`<div class="svc">${svc}</div>`:""}
       ${full && m.about?`<p style="margin-top:6px">${esc(m.about)}</p>`:""}
       ${links?`<div class="links">${links}</div>`:""}
@@ -633,11 +635,12 @@ function renderMembers(){
     note.innerHTML = (!S.admin && mine && paywallOn()) ? `<p class="hint">Membership active through ${fmtDay(activeUntil(mine))}.</p>` : "";
     const ok = id => !paywallOn() || isActive(S.approvedIds[id]) || id===uid();
     $("#dirFilter").hidden = false;
+    if(S.admin) note.innerHTML += `<p class="hint">Admin view: you see all ${Object.keys(S.members).length} accounts, including people who chose to stay hidden.</p>`;
     document.querySelectorAll("#dirFilter button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.dir===S.dir));
     const incoming = Object.keys(S.members).filter(id=>buddyState(id)==="incoming");
     $("#bbRequests").innerHTML = incoming.length ? `<div class="panel"><h3>Battle buddy requests</h3><div class="list" style="border-top:0">${incoming.map(id=>memberRow(id,S.members[id],"")).join("")}</div></div>` : "";
     const inDir = id => S.dir==="mil" ? MILITARY.includes(statusOf(S.members[id])) : S.dir==="bb" ? buddyState(id)==="buddy" : true;
-    const ids = Object.keys(S.members).filter(id=>(S.members[id].listed || buddyState(id)==="buddy") && ok(id) && inDir(id) && buddyState(id)!=="incoming");
+    const ids = Object.keys(S.members).filter(id=>(S.members[id].listed || buddyState(id)==="buddy" || S.admin) && ok(id) && inDir(id) && buddyState(id)!=="incoming");
     $("#memberList").innerHTML = ids.length ? ids.map(id=>{
         const a=S.approvedIds[id];
         const extra = S.admin && id!==uid() && paywallOn() ? `<span class="meta">Paid through ${a?fmtDay(activeUntil(a)):"—"}</span><button class="btn small ghost" data-approve="${esc(id)}">Add 1 year</button><button class="btn small ghost" data-setdate="${esc(id)}">Set date</button><button class="btn small danger" data-revoke="${esc(id)}">Remove access</button>` : "";
@@ -810,6 +813,7 @@ $("#emailUp").addEventListener("click", async ()=>{
   try {
     const cred = await createUserWithEmailAndPassword(auth, $("#aEmail").value.trim(), $("#aPass").value);
     await updateProfile(cred.user, { displayName: name });
+    setTimeout(()=>ensureMine(true), 1500);
     closeAuth(); render(); toast("Welcome to CTF, " + name.split(" ")[0] + ".");
   } catch(e){ authFail(e); }
 });
@@ -978,7 +982,7 @@ function fillProfile(m){
   $("#pStart").value=m.startYear||""; $("#pEnd").value=m.endYear||"";
   $("#pAbout").value=m.about||""; $("#pReach").value=m.reach||"";
   $("#pLinkedin").value=m.linkedin||""; $("#pFacebook").value=m.facebook||""; $("#pInstagram").value=m.instagram||"";
-  $("#pListed").checked=!!m.listed;
+  $("#pListed").checked = m.listed!==false;
   pPhoto = m.photo||""; showPhoto(); toggleSvc(); mosLabel();
 }
 
@@ -1272,6 +1276,24 @@ function syncBuddyPriv(){
 }
 // One-time move of private fields out of an older public profile.
 let migrating=false;
+// Everyone who signs in gets a basic card (name only, listed) so they show up
+// without having to open Edit profile first. Runs once per sign-in.
+let ensuring=false, ensured=false;
+async function ensureMine(fixName){
+  const me=uid(); if(!me || ensuring) return;
+  const m=S.members[me];
+  if(m && !(fixName && m.name!==myName())) { ensured=true; return; }
+  if(!m && ensured) return;
+  ensuring=true;
+  if(!m){ // double-check with the server so a cold cache never overwrites a real profile
+    try{ const d=await getDoc(doc(fs,"members",me)); if(d.exists()){ ensured=true; ensuring=false; return; } }
+    catch(e){ console.error(e); ensuring=false; return; }
+  }
+  const pub = m ? {...Object.fromEntries(PUBLIC_KEYS.filter(k=>m[k]!==undefined).map(k=>[k,m[k]])), name:myName()}
+                : {name:myName(), status:"", branch:"", photo:"", listed:true};
+  try{ await setDoc(doc(fs,"members",me), pub); ensured=true; }catch(e){ console.error("ensureMine", e); }
+  ensuring=false;
+}
 async function migrateMine(){
   const me=uid(), m=S.members[me];
   if(migrating || !m || !S.myPrivLoaded) return;
@@ -1315,15 +1337,16 @@ function subscribeMembers(){
     subs.push(onSnapshot(collection(fs,"private"), s=>{ S.priv=toMap(s); S.myPrivLoaded=true; migrateMine(); render(); }, e=>{ console.error(e); S.myPrivLoaded=true; }));
   } else watchPriv(u.uid);
   if(S.approved){
-    subs.push(onSnapshot(collection(fs,"members"), s=>{ S.members=toMap(s); migrateMine(); render(); }, e=>console.error(e)));
+    subs.push(onSnapshot(collection(fs,"members"), s=>{ S.members=toMap(s); migrateMine(); ensureMine(); render(); }, e=>console.error(e)));
     subs.push(onSnapshot(collection(fs,"approved"), s=>{ S.approvedIds=toMap(s); render(); }, e=>console.error(e)));
     subs.push(onSnapshot(query(collection(fs,"buddies"), where("users","array-contains",u.uid)), s=>{ S.buddies=toMap(s); syncBuddyPriv(); render(); }, e=>console.error(e)));
   } else {
-    subs.push(onSnapshot(doc(fs,"members",u.uid), d=>{ S.members = d.exists() ? {[u.uid]:d.data()} : {}; migrateMine(); render(); }, e=>console.error(e)));
+    subs.push(onSnapshot(doc(fs,"members",u.uid), d=>{ S.members = d.exists() ? {[u.uid]:d.data()} : {}; migrateMine(); ensureMine(); render(); }, e=>console.error(e)));
   }
 }
 
 onAuthStateChanged(auth, async u=>{
+  ensured=false; ensuring=false;
   S.user=u; S.admin=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.myPrivLoaded=false; S.salutes={}; S.comments={}; S.photos={}; sPhotoDraft=undefined;
   clearSubs();
   renderMembers.filled=false; renderStories.filled=false;
