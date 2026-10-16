@@ -94,7 +94,7 @@ blockquote{margin:0;font-size:1.08rem;line-height:1.6}
 .story .by img{width:28px;height:28px;border-radius:50%}
 
 label{display:block;font-weight:600;font-size:.95rem;margin:12px 0 4px}
-input[type=text],input[type=url],input[type=date],input[type=time],select,textarea{width:100%;min-height:44px;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg)}
+input[type=text],input[type=url],input[type=number],input[type=date],input[type=time],select,textarea{width:100%;min-height:44px;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg)}
 textarea{min-height:110px;resize:vertical}
 .check{display:flex;gap:10px;align-items:center;font-weight:400;margin-top:14px}
 .check input{width:20px;height:20px}
@@ -146,6 +146,21 @@ body.booting, body.out{padding-bottom:0}
 .gate-free{margin-top:18px;font-size:.92rem;color:#C9CFBE;text-align:center}
 .gate-crisis{margin-top:22px;text-align:center;font-size:.92rem;color:#E9ECE2}
 .gate-crisis a{color:#E9ECE2;font-weight:700}
+
+/* ---- Profiles ---- */
+.avatar-lg{width:96px;height:96px;border-radius:50%;object-fit:cover;background:var(--line);flex:none;display:grid;place-items:center;font:700 2rem var(--display);color:var(--muted)}
+.avatar-md{width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none;background:var(--brass-soft);display:grid;place-items:center;font:700 1.3rem var(--display);color:var(--ink)}
+.photo-row{display:flex;gap:16px;align-items:center;margin:8px 0 4px}
+.photo-row .btns{display:flex;gap:8px;flex-wrap:wrap}
+.file-btn{position:relative;overflow:hidden}
+.file-btn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.form-group{border-top:1px solid var(--line);margin-top:18px;padding-top:6px}
+.form-group > h4{font:600 1.1rem var(--display);margin:10px 0 0;color:var(--muted)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+.member-head{display:flex;gap:12px;align-items:flex-start}
+.member-head .body{min-width:0}
+.svc{color:var(--muted);font-size:.93rem;margin-top:2px}
+.links{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 </style>
 </head>
 <body class="booting">
@@ -201,21 +216,58 @@ body.booting, body.out{padding-bottom:0}
 
   <!-- MEMBERS -->
   <section id="tab-members" hidden>
-    <h2>Veterans near you</h2>
+    <h2>Members</h2>
     <p class="hint">Members choose whether to show up here.</p>
     <div id="approvalNote"></div>
     <div id="pendingWrap" class="panel admin" hidden><h3>Waiting on payment</h3><p class="hint">Check your payment platform, then tap Activate 1 year.</p><div class="list" id="pendingList" style="border-top:0"></div><div id="renewWrap"></div></div>
     <div class="list" id="memberList"></div>
     <div class="panel" id="profilePanel">
       <h3>Your profile</h3>
-      <label for="pBranch">Branch</label>
-      <select id="pBranch"><option value="">Choose</option><option>Army</option><option>Marine Corps</option><option>Navy</option><option>Air Force</option><option>Space Force</option><option>Coast Guard</option><option>Family / supporter</option></select>
-      <label for="pService">Service (unit, years, or era)</label><input id="pService" type="text" placeholder="82nd Airborne, 2008–2014">
-      <label for="pAbout">A little about you</label><textarea id="pAbout" placeholder="What you're training for, what you're looking for"></textarea>
-      <label for="pReach">Best way to reach you</label><input id="pReach" type="text" placeholder="Phone, email, or Instagram">
-      <p class="hint">Only signed-in members see the member list.</p>
-      <label class="check"><input type="checkbox" id="pListed"> Show me in the member list</label>
-      <p style="margin-top:14px"><button class="btn" id="pSave">Save profile</button></p>
+      <div class="photo-row">
+        <div id="pPhotoPrev" class="avatar-lg" aria-hidden="true"></div>
+        <div class="btns">
+          <span class="btn small ghost file-btn">Upload photo<input id="pPhotoFile" type="file" accept="image/*" aria-label="Upload profile photo"></span>
+          <button class="btn small ghost" id="pPhotoRemove" hidden>Remove</button>
+        </div>
+      </div>
+
+      <label for="pStatus">I am a</label>
+      <select id="pStatus"><option value="">Choose</option><option>Veteran</option><option>Active duty</option><option>Guard / Reserve</option><option>Military family</option><option>Supporter</option></select>
+
+      <div id="svcGroup" class="form-group" hidden>
+        <h4>Service</h4>
+        <label for="pBranch">Branch</label>
+        <select id="pBranch"><option value="">Choose</option><option>Army</option><option>Marine Corps</option><option>Navy</option><option>Air Force</option><option>Space Force</option><option>Coast Guard</option></select>
+        <div class="two">
+          <div><label for="pRank">Rank</label><input id="pRank" type="text" placeholder="SSG" maxlength="40"></div>
+          <div><label for="pMos" id="pMosLabel">MOS</label><input id="pMos" type="text" placeholder="11B Infantry" maxlength="60"></div>
+        </div>
+        <label for="pUnit">Unit</label><input id="pUnit" type="text" placeholder="3rd Ranger Battalion" maxlength="120">
+        <div class="two">
+          <div><label for="pStart">Years served: from</label><input id="pStart" type="number" inputmode="numeric" min="1940" max="2100" placeholder="2012"></div>
+          <div><label for="pEnd">to</label><input id="pEnd" type="number" inputmode="numeric" min="1940" max="2100" placeholder="Present"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <h4>About</h4>
+        <label for="pAbout">A little about you</label><textarea id="pAbout" placeholder="What you're training for, what you're looking for" maxlength="600"></textarea>
+      </div>
+
+      <div class="form-group">
+        <h4>Links</h4>
+        <label for="pLinkedin">LinkedIn</label><input id="pLinkedin" type="url" placeholder="linkedin.com/in/yourname">
+        <label for="pFacebook">Facebook</label><input id="pFacebook" type="url" placeholder="facebook.com/yourname">
+        <label for="pInstagram">Instagram</label><input id="pInstagram" type="url" placeholder="instagram.com/yourname">
+      </div>
+
+      <div class="form-group">
+        <h4>Contact</h4>
+        <label for="pReach">Best way to reach you</label><input id="pReach" type="text" placeholder="Phone or email" maxlength="120">
+        <p class="hint">Only members see the member list.</p>
+        <label class="check"><input type="checkbox" id="pListed"> Show me in the member list</label>
+      </div>
+      <p style="margin-top:16px"><button class="btn" id="pSave">Save profile</button></p>
     </div>
   </section>
 
@@ -395,13 +447,32 @@ function renderWorkouts(){
     : `<p class="empty-note">Nothing else scheduled yet.</p>`;
 }
 
+const MILITARY = ["Veteran","Active duty","Guard / Reserve"];
+function initials(n){ return String(n||"?").trim().split(/\s+/).slice(0,2).map(w=>w[0]||"").join("").toUpperCase()||"?"; }
+function avatarHTML(m, cls){
+  return m.photo && /^data:image\/(jpeg|png|webp);base64,/.test(m.photo)
+    ? `<img class="${cls}" src="${m.photo}" alt="">`
+    : `<div class="${cls}" aria-hidden="true">${esc(initials(m.name))}</div>`;
+}
+function years(m){ if(!m.startYear) return ""; return m.startYear + "–" + (m.endYear || "present"); }
 function memberRow(id, m, extra){
-  return `<div class="row"><div class="body">
-    <h3>${esc(m.name||"Member")}${id===uid()?" (you)":""}</h3>
-    <div>${m.branch?`<span class="tag">${esc(m.branch)}</span>`:""}<span class="meta">${esc(m.service||"")}</span></div>
-    ${m.about?`<p style="margin-top:6px">${esc(m.about)}</p>`:""}
-    ${m.reach?`<p class="meta">Reach out: ${esc(m.reach)}</p>`:""}
-    ${extra?`<div class="actions">${extra}</div>`:""}</div></div>`;
+  const status = m.status || (m.branch==="Family / supporter" ? "Supporter" : (m.branch ? "Veteran" : ""));
+  const mil = MILITARY.includes(status);
+  const svc = mil ? [m.mos, m.unit || m.service, years(m)].filter(Boolean).map(esc).join(" · ") : "";
+  const links = [["LinkedIn",m.linkedin],["Facebook",m.facebook],["Instagram",m.instagram]]
+    .map(([l,u])=>[l,safeUrl(u)]).filter(([,u])=>u)
+    .map(([l,u])=>`<a class="btn small ghost" href="${esc(u)}" target="_blank" rel="noopener">${l}</a>`).join("");
+  return `<div class="row"><div class="member-head" style="flex:1">
+    ${avatarHTML(m,"avatar-md")}
+    <div class="body">
+      <h3>${mil && m.rank ? esc(m.rank)+" " : ""}${esc(m.name||"Member")}${id===uid()?" (you)":""}</h3>
+      <div>${status?`<span class="tag">${esc(status)}</span>`:""}${mil && m.branch && m.branch!=="Family / supporter"?`<span class="tag">${esc(m.branch)}</span>`:""}</div>
+      ${svc?`<div class="svc">${svc}</div>`:""}
+      ${m.about?`<p style="margin-top:6px">${esc(m.about)}</p>`:""}
+      ${links?`<div class="links">${links}</div>`:""}
+      ${m.reach?`<p class="meta" style="margin-top:6px">Reach out: ${esc(m.reach)}</p>`:""}
+      ${extra?`<div class="actions">${extra}</div>`:""}
+    </div></div></div>`;
 }
 function renderMembers(){
   const note=$("#approvalNote");
@@ -444,7 +515,8 @@ function renderMembers(){
   }
   const mine = S.members[uid()];
   if(mine && !renderMembers.filled){ renderMembers.filled=true;
-    $("#pBranch").value=mine.branch||""; $("#pService").value=mine.service||""; $("#pAbout").value=mine.about||""; $("#pReach").value=mine.reach||""; $("#pListed").checked=!!mine.listed; }
+    fillProfile(mine); }
+  else if(!mine && S.user && !pPhoto && !$("#pPhotoPrev").textContent) showPhoto();
 }
 
 function renderStories(){
@@ -611,9 +683,91 @@ $("#evSave").addEventListener("click", async ()=>{
   } catch(e){ writeFailed(e); }
 });
 
+// ---------- Profile form ----------
+let pPhoto = "";
+function showPhoto(){
+  const prev=$("#pPhotoPrev");
+  if(pPhoto){ prev.outerHTML=`<img id="pPhotoPrev" class="avatar-lg" src="${pPhoto}" alt="Your photo">`; }
+  else { prev.outerHTML=`<div id="pPhotoPrev" class="avatar-lg" aria-hidden="true">${esc(initials(myName()))}</div>`; }
+  $("#pPhotoRemove").hidden = !pPhoto;
+}
+function mosLabel(){
+  const b=$("#pBranch").value;
+  $("#pMosLabel").textContent = (b==="Navy"||b==="Coast Guard") ? "Rating" : (b==="Air Force"||b==="Space Force") ? "AFSC" : "MOS";
+}
+function toggleSvc(){ $("#svcGroup").hidden = !MILITARY.includes($("#pStatus").value); }
+$("#pStatus").addEventListener("change", toggleSvc);
+$("#pBranch").addEventListener("change", mosLabel);
+function fillProfile(m){
+  const status = m.status || (m.branch==="Family / supporter" ? "Supporter" : (m.branch ? "Veteran" : ""));
+  $("#pStatus").value=status;
+  $("#pBranch").value = m.branch==="Family / supporter" ? "" : (m.branch||"");
+  $("#pRank").value=m.rank||""; $("#pMos").value=m.mos||""; $("#pUnit").value=m.unit||m.service||"";
+  $("#pStart").value=m.startYear||""; $("#pEnd").value=m.endYear||"";
+  $("#pAbout").value=m.about||""; $("#pReach").value=m.reach||"";
+  $("#pLinkedin").value=m.linkedin||""; $("#pFacebook").value=m.facebook||""; $("#pInstagram").value=m.instagram||"";
+  $("#pListed").checked=!!m.listed;
+  pPhoto = m.photo||""; showPhoto(); toggleSvc(); mosLabel();
+}
+
+// Shrink to a 320px square JPEG so it fits in the profile record (no paid storage needed).
+function resizePhoto(file){
+  return new Promise((resolve,reject)=>{
+    const img=new Image(), url=URL.createObjectURL(file);
+    img.onload=()=>{
+      const n=Math.min(img.width,img.height), size=320, c=document.createElement("canvas");
+      c.width=c.height=size;
+      c.getContext("2d").drawImage(img,(img.width-n)/2,(img.height-n)/2,n,n,0,0,size,size);
+      URL.revokeObjectURL(url);
+      let q=0.82, out=c.toDataURL("image/jpeg",q);
+      while(out.length>120000 && q>0.4){ q-=0.1; out=c.toDataURL("image/jpeg",q); }
+      resolve(out);
+    };
+    img.onerror=()=>{ URL.revokeObjectURL(url); reject(new Error("bad image")); };
+    img.src=url;
+  });
+}
+$("#pPhotoFile").addEventListener("change", async e=>{
+  const f=e.target.files && e.target.files[0]; if(!f) return;
+  try{ pPhoto = await resizePhoto(f); showPhoto(); toast("Photo ready. Tap Save profile to keep it."); }
+  catch{ toast("That file didn't work. Try a JPG or PNG."); }
+  e.target.value="";
+});
+$("#pPhotoRemove").addEventListener("click", ()=>{ pPhoto=""; showPhoto(); });
+
+// Accept "linkedin.com/in/x" or a full URL; must be on the right site.
+function cleanLink(v, hosts){
+  v=String(v||"").trim(); if(!v) return "";
+  if(!/^https?:\/\//i.test(v)) v="https://"+v.replace(/^\/+/,"");
+  try{
+    const u=new URL(v); const h=u.hostname.toLowerCase().replace(/^www\.|^m\./,"");
+    if(u.protocol!=="https:" && u.protocol!=="http:") return null;
+    return hosts.some(x=>h===x||h.endsWith("."+x)) ? u.href : null;
+  }catch{ return null; }
+}
+
 $("#pSave").addEventListener("click", async ()=>{
   if(needSignIn()) return;
-  const data={name:myName(), branch:$("#pBranch").value, service:$("#pService").value.trim().slice(0,120), about:$("#pAbout").value.trim().slice(0,600), reach:$("#pReach").value.trim().slice(0,120), listed:$("#pListed").checked};
+  const status=$("#pStatus").value, mil=MILITARY.includes(status);
+  const linkedin=cleanLink($("#pLinkedin").value,["linkedin.com"]);
+  const facebook=cleanLink($("#pFacebook").value,["facebook.com","fb.com"]);
+  const instagram=cleanLink($("#pInstagram").value,["instagram.com"]);
+  if(linkedin===null){ toast("The LinkedIn link needs to be a linkedin.com address."); return; }
+  if(facebook===null){ toast("The Facebook link needs to be a facebook.com address."); return; }
+  if(instagram===null){ toast("The Instagram link needs to be an instagram.com address."); return; }
+  const yr=v=>{ const n=parseInt(v,10); return (n>=1940 && n<=2100) ? n : null; };
+  const startYear=yr($("#pStart").value), endYear=yr($("#pEnd").value);
+  if(startYear && endYear && endYear<startYear){ toast("The end year comes before the start year."); return; }
+  const data={
+    name:myName(), status, listed:$("#pListed").checked, photo:pPhoto,
+    branch: mil ? $("#pBranch").value : "",
+    rank: mil ? $("#pRank").value.trim().slice(0,40) : "",
+    mos: mil ? $("#pMos").value.trim().slice(0,60) : "",
+    unit: mil ? $("#pUnit").value.trim().slice(0,120) : "",
+    startYear: mil ? startYear : null, endYear: mil ? endYear : null,
+    about:$("#pAbout").value.trim().slice(0,600), reach:$("#pReach").value.trim().slice(0,120),
+    linkedin, facebook, instagram
+  };
   try{ await setDoc(doc(fs,"members",uid()), data); toast("Profile saved."); }catch(e){ writeFailed(e); }
 });
 
