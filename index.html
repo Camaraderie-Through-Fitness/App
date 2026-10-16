@@ -70,6 +70,8 @@ header.top .sub{color:var(--muted);font-size:.9rem;line-height:1.2}
 .btn.ghost{background:transparent;color:var(--green)}
 .btn.small{min-height:36px;padding:0 12px;font-size:.92rem;border-radius:9px}
 .btn.danger{background:transparent;border-color:var(--alert);color:var(--alert)}
+.btn.going-badge{background:var(--green);color:var(--green-ink);border-color:var(--green);cursor:default}
+.muster .btn.going-badge{background:transparent;color:var(--green-ink);border-color:currentColor}
 .btn[disabled]{opacity:.5;cursor:not-allowed}
 
 .list{display:flex;flex-direction:column;border-top:1px solid var(--line)}
@@ -661,9 +663,9 @@ function render(){
   $("#seedWrap").hidden = !(S.admin && S.ready && S.partners.every(p=>BUILTIN_PARTNER_IDS.has(p.id)));
 }
 
-function rsvpButton(e, cls){
-  const on = amGoing(e.id);
-  return `<button class="btn ${cls} ${on?"on":""}" data-rsvp="${esc(e.id)}">${on?"You're going · Cancel":"RSVP"}</button>`;
+function rsvpButton(e, cls, cantStyle){
+  if(!amGoing(e.id)) return `<button class="btn ${cls}" data-rsvp="${esc(e.id)}" data-act="in">RSVP</button>`;
+  return `<span class="btn ${cls} going-badge" role="status">Going ✓</span> <button class="btn small ghost" ${cantStyle||""} data-rsvp="${esc(e.id)}" data-act="out">Can't make it</button>`;
 }
 
 const IS_APPLE = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
@@ -711,7 +713,7 @@ function renderWorkouts(){
       <h1>${esc(e.title)}</h1><div class="meta">${esc(fmtTime(e.time))} at ${esc(e.location||"location TBD")}</div>
       <div class="going-row count">${facesGoing(e.id,true)}<span>${n} going</span></div>${whoGoing(e.id,true)}
       ${e.description?`<p class="meta" style="margin-top:8px">${esc(e.description)}</p>`:""}
-      ${rsvpButton(e,"")} <button class="btn small ghost" style="margin-top:16px;color:inherit;border-color:currentColor" data-cal="${esc(e.id)}">Add to calendar</button> ${dirBtn(e,'style="margin-top:16px;color:inherit;border-color:currentColor"')}
+      ${rsvpButton(e,"",'style="margin-top:16px;color:inherit;border-color:currentColor"')} <button class="btn small ghost" style="margin-top:16px;color:inherit;border-color:currentColor" data-cal="${esc(e.id)}">Add to calendar</button> ${dirBtn(e,'style="margin-top:16px;color:inherit;border-color:currentColor"')}
       ${S.admin?` <button class="btn small ghost" style="margin-top:16px;color:inherit;border-color:currentColor" data-edit-event="${esc(e.id)}">Edit</button> <button class="btn small danger" style="margin-top:16px;color:inherit;border-color:currentColor" data-del-event="${esc(e.id)}">Delete</button>`:""}`;
   }
   const rest = list.slice(1);
@@ -1207,9 +1209,11 @@ document.addEventListener("click", async ev=>{
     if(needSignIn()) return;
     const id=t.dataset.rsvp, cur={...((S.rsvps[uid()]||{}).events||{})};
     const ev=S.events.find(x=>x.id===id)||{};
-    if(cur[id]) delete cur[id]; else cur[id]={title:ev.title||"", date:ev.date||"", time:ev.time||"", location:ev.location||"", at:Date.now()};
+    const act=t.dataset.act || (cur[id]?"out":"in");
+    if(act==="out"){ if(!cur[id]) return; delete cur[id]; }
+    else { if(cur[id]) return; cur[id]={title:ev.title||"", date:ev.date||"", time:ev.time||"", location:ev.location||"", at:Date.now()}; }
     t.disabled=true;
-    try{ await setDoc(doc(fs,"rsvps",uid()), {events:cur}); toast(cur[id]?"You're on the list.":"RSVP canceled."); }
+    try{ await setDoc(doc(fs,"rsvps",uid()), {events:cur}); toast(cur[id]?"You're on the list.":"Got it. You're off the list for this one."); }
     catch(e){ writeFailed(e); } finally{ t.disabled=false; }
   }
   if(t.dataset.welcome){
