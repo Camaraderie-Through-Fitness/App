@@ -513,7 +513,7 @@ function render(){
     $("#acctBtn").innerHTML = S.user ? `${avatarHTML({...me,name:me.name||myName()},"acct-av")}<span>${esc(myName().split(" ")[0])}</span>` : ""; }
   renderWorkouts(); renderMembers(); renderStories(); renderSupport(); renderGive();
   ["#eventAdmin","#partnerAdmin","#giveAdmin"].forEach(s=>$(s).hidden=!S.admin);
-  $("#seedWrap").hidden = !(S.admin && S.ready && S.partners.length===0);
+  $("#seedWrap").hidden = !(S.admin && S.ready && S.partners.every(p=>BUILTIN_PARTNER_IDS.has(p.id)));
 }
 
 function rsvpButton(e, cls){
@@ -926,7 +926,8 @@ document.addEventListener("click", async ev=>{
       toast("Workout deleted.");
     }catch(e){ writeFailed(e); }
   }
-  if(t.dataset.delPartner && confirm("Delete this partner?")){ try{ await deleteDoc(doc(fs,"partners",t.dataset.delPartner)); }catch(e){ writeFailed(e); } }
+  if(t.dataset.delPartner && confirm("Delete this partner?")){ const id=t.dataset.delPartner;
+    try{ if(BUILTIN_PARTNER_IDS.has(id)) await setDoc(doc(fs,"partners",id),{deleted:true}); else await deleteDoc(doc(fs,"partners",id)); }catch(e){ writeFailed(e); } }
   if(t.dataset.delStory && confirm("Remove this story?")){ try{ await deleteDoc(doc(fs,"stories",t.dataset.delStory)); deleteDoc(doc(fs,"storyPhotos",t.dataset.delStory)).catch(()=>{}); }catch(e){ writeFailed(e); } }
   if(t.dataset.photoOk){ try{ await updateDoc(doc(fs,"storyPhotos",t.dataset.photoOk), {status:"approved", reviewedAt:Date.now(), reviewedBy:uid()}); toast("Photo approved."); }catch(e){ writeFailed(e); } return; }
   if(t.dataset.photoNo){ if(!confirm("Reject this photo? The member will see it wasn't approved.")) return;
@@ -1153,6 +1154,20 @@ function ymd(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0
   }
 })();
 const SCHEDULE_IDS = new Set(SCHEDULE.map(e=>e.id));
+
+// Built-in partners: show with no setup. Admin edits override; admin deletes hide.
+const BUILTIN_PARTNERS = [
+  {id:"hooks-of-hope", name:"Hooks of Hope", category:"nonprofit",
+   offer:"Free fishing retreats, clinical counseling (PTSD, Operator Syndrome, transition), regenerative medical care, and faith-based mentorship for veterans and service members. Based in Vero Beach, FL.",
+   contact:"(888) 209-7698", website:"https://hooksofhope.org"}
+];
+const BUILTIN_PARTNER_IDS = new Set(BUILTIN_PARTNERS.map(p=>p.id));
+function mergePartners(dbDocs){
+  const byId=new Map(BUILTIN_PARTNERS.map(p=>[p.id,{...p}]));
+  dbDocs.forEach(p=>byId.set(p.id,{...(byId.get(p.id)||{}), ...p}));
+  return [...byId.values()].filter(p=>!p.deleted);
+}
+S.partners = mergePartners([]);
 function mergeEvents(dbDocs){
   const byId = new Map(SCHEDULE.map(e=>[e.id,{...e}]));
   dbDocs.forEach(e=>byId.set(e.id, {...(byId.get(e.id)||{}), ...e}));
@@ -1232,7 +1247,7 @@ function loadFail(e){ console.error(e); S.loadError=true; render(); }
 onSnapshot(collection(fs,"events"), s=>{ S.events=mergeEvents(s.docs.map(d=>({id:d.id, ...d.data()}))); S.ready=true; S.loadError=false; render(); }, loadFail);
 onSnapshot(collection(fs,"rsvps"), s=>{ S.rsvps=toMap(s); render(); }, e=>console.error(e));
 onSnapshot(collection(fs,"stories"), s=>{ S.stories=toMap(s); render(); }, e=>console.error(e));
-onSnapshot(collection(fs,"partners"), s=>{ S.partners=s.docs.map(d=>({id:d.id, ...d.data()})); render(); }, e=>console.error(e));
+onSnapshot(collection(fs,"partners"), s=>{ S.partners=mergePartners(s.docs.map(d=>({id:d.id, ...d.data()}))); render(); }, e=>console.error(e));
 onSnapshot(doc(fs,"config","site"), d=>{
   S.config=d.exists() ? d.data() : {};
   if(S.user){ const was=S.approved; S.approved=computeApproved(S.approvedIds[uid()]); if(was!==S.approved){ subscribeMembers(); return; } }
