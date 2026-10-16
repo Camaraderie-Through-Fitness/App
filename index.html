@@ -178,6 +178,9 @@ body.booting, body.out{padding-bottom:0}
 #ptr.spin img{animation:ptrspin .8s linear infinite}
 @keyframes ptrspin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){#ptr.spin img{animation:none}}
+.going{margin-top:6px;font-size:.93rem}
+.going summary{cursor:pointer;font-weight:600}
+.going ul{margin:6px 0 0;padding-left:20px}
 /* ---- Battle buddies ---- */
 nav.tabs button{position:relative}
 .badge{position:absolute;top:4px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:var(--alert);color:#fff;font:700 .72rem/18px var(--body)}
@@ -322,6 +325,8 @@ nav.tabs button{position:relative}
         <label for="pReach">Best way to reach you</label><input id="pReach" type="text" placeholder="Phone or email" maxlength="120">
         <p class="hint">Only members see the member list.</p>
         <label class="check"><input type="checkbox" id="pListed"> Show me in the member list</label>
+        <label class="check"><input type="checkbox" id="pRemind"> Email me a reminder the day before workouts I RSVP to</label>
+        <p class="hint">Reminders go to <span id="pEmail"></span>. Only CTF admins can see your email.</p>
       </div>
       <p style="margin-top:16px"><button class="btn" id="pSave">Save profile</button></p>
     </div>
@@ -490,6 +495,14 @@ function needSignIn(){ if(S.user) return false; openAuth(); return true; }
 function parseDate(s){ const [y,m,d]=String(s||"").split("-").map(Number); return y ? new Date(y,m-1,d) : null; }
 function fmtTime(t){ if(!t) return "Time TBD"; const [h,m]=t.split(":").map(Number); return ((h%12)||12)+":"+String(m).padStart(2,"0")+" "+(h>=12?"PM":"AM"); }
 function upcoming(){ const today=new Date(); today.setHours(0,0,0,0); return S.events.filter(e=>{const d=parseDate(e.date); return d && d>=today;}).sort((a,b)=>(a.date+(a.time||"")).localeCompare(b.date+(b.time||""))); }
+function goingIds(id){ return Object.keys(S.rsvps).filter(u=>S.rsvps[u].events && S.rsvps[u].events[id]); }
+function whoGoing(id, onDark){
+  if(!S.admin) return "";
+  const ids=goingIds(id);
+  if(!ids.length) return "";
+  const names=ids.map(u=>(S.members[u]&&S.members[u].name)||"Member (no profile)").sort((a,b)=>a.localeCompare(b));
+  return `<details class="going"${onDark?' style="color:inherit"':''}><summary>Who's going (${ids.length})</summary><ul>${names.map(n=>`<li>${esc(n)}</li>`).join("")}</ul></details>`;
+}
 function goingCount(id){ return Object.values(S.rsvps).filter(r=>r.events && r.events[id]).length; }
 function amGoing(id){ const r=S.rsvps[uid()]; return !!(r && r.events && r.events[id]); }
 function toMap(snap){ const o={}; snap.docs.forEach(d=>{ o[d.id]=d.data(); }); return o; }
@@ -541,7 +554,7 @@ function renderWorkouts(){
     m.className="muster";
     m.innerHTML=`<div class="when"><div class="day">${d.getDate()}</div><div class="mon">${DOW[d.getDay()]}<br>${MON[d.getMonth()]}</div></div>
       <h1>${esc(e.title)}</h1><div class="meta">${esc(fmtTime(e.time))} at ${esc(e.location||"location TBD")}</div>
-      <div class="count">${n} ${n===1?"veteran":"veterans"} going</div>
+      <div class="count">${n} going</div>${whoGoing(e.id,true)}
       ${e.description?`<p class="meta" style="margin-top:8px">${esc(e.description)}</p>`:""}
       ${rsvpButton(e,"")} <button class="btn small ghost" style="margin-top:16px;color:inherit;border-color:currentColor" data-cal="${esc(e.id)}">Add to calendar</button>
       ${S.admin?` <button class="btn small ghost" style="margin-top:16px;color:inherit;border-color:currentColor" data-edit-event="${esc(e.id)}">Edit</button> <button class="btn small danger" style="margin-top:16px;color:inherit;border-color:currentColor" data-del-event="${esc(e.id)}">Delete</button>`:""}`;
@@ -551,7 +564,7 @@ function renderWorkouts(){
       <div class="date"><b>${d.getDate()}</b><span>${MON[d.getMonth()]}</span></div>
       <div class="body"><h3>${esc(e.title)}</h3><div class="meta">${DOW[d.getDay()]}, ${esc(fmtTime(e.time))} · ${esc(e.location||"Location TBD")}</div>
       ${e.description?`<p class="meta" style="margin-top:4px">${esc(e.description)}</p>`:""}
-      <div class="meta">${n} going</div>
+      <div class="meta">${n} going</div>${whoGoing(e.id)}
       <div class="actions">${rsvpButton(e,"small ghost")}<button class="btn small ghost" data-cal="${esc(e.id)}">Add to calendar</button>${S.admin?`<button class="btn small ghost" data-edit-event="${esc(e.id)}">Edit</button><button class="btn small danger" data-del-event="${esc(e.id)}">Delete</button>`:""}</div></div></div>`;}).join("")
     : `<p class="empty-note">Nothing else scheduled yet.</p>`;
 }
@@ -822,7 +835,7 @@ $("#emailUp").addEventListener("click", async ()=>{
   try {
     const cred = await createUserWithEmailAndPassword(auth, $("#aEmail").value.trim(), $("#aPass").value);
     await updateProfile(cred.user, { displayName: name });
-    setTimeout(()=>ensureMine(true), 1500);
+    setTimeout(()=>{ ensureMine(true); syncContact(); }, 1500);
     closeAuth(); render(); toast("Welcome to CTF, " + name.split(" ")[0] + ".");
   } catch(e){ authFail(e); }
 });
@@ -894,7 +907,8 @@ document.addEventListener("click", async ev=>{
   if(t.dataset.rsvp){
     if(needSignIn()) return;
     const id=t.dataset.rsvp, cur={...((S.rsvps[uid()]||{}).events||{})};
-    if(cur[id]) delete cur[id]; else cur[id]=true;
+    const ev=S.events.find(x=>x.id===id)||{};
+    if(cur[id]) delete cur[id]; else cur[id]={title:ev.title||"", date:ev.date||"", time:ev.time||"", location:ev.location||"", at:Date.now()};
     t.disabled=true;
     try{ await setDoc(doc(fs,"rsvps",uid()), {events:cur}); toast(cur[id]?"You're on the list.":"RSVP canceled."); }
     catch(e){ writeFailed(e); } finally{ t.disabled=false; }
@@ -1015,6 +1029,8 @@ function fillProfile(m){
   $("#pAbout").value=m.about||""; $("#pReach").value=m.reach||"";
   $("#pLinkedin").value=m.linkedin||""; $("#pFacebook").value=m.facebook||""; $("#pInstagram").value=m.instagram||"";
   $("#pListed").checked = m.listed!==false;
+  $("#pRemind").checked = (S.contact||{}).remind!==false;
+  $("#pEmail").textContent = (S.user&&S.user.email)||"your email";
   pPhoto = m.photo||""; showPhoto(); toggleSvc(); mosLabel();
 }
 
@@ -1079,6 +1095,7 @@ $("#pSave").addEventListener("click", async ()=>{
     const b=writeBatch(fs);
     b.set(doc(fs,"private",uid()), priv);
     b.set(doc(fs,"members",uid()), pub);
+    syncContact($("#pRemind").checked);
     await b.commit();
     toast("Profile saved."); showTab(lastTab);
   }catch(e){ writeFailed(e); }
@@ -1308,6 +1325,14 @@ function syncBuddyPriv(){
 }
 // One-time move of private fields out of an older public profile.
 let migrating=false;
+// Email + reminder preference live in /contacts, readable only by the owner and admins.
+async function syncContact(remind){
+  const u=S.user; if(!u || !u.email) return;
+  const prev=S.contact||{};
+  const data={ email:u.email, name:myName(), remind: remind===undefined ? (prev.remind!==false) : !!remind };
+  if(prev.email===data.email && prev.name===data.name && prev.remind===data.remind) return;
+  try{ await setDoc(doc(fs,"contacts",u.uid), data); S.contact=data; }catch(e){ console.error("contact", e); }
+}
 // Everyone who signs in gets a basic card (name only, listed) so they show up
 // without having to open Edit profile first. Runs once per sign-in.
 let ensuring=false, ensured=false;
@@ -1378,7 +1403,7 @@ function subscribeMembers(){
 }
 
 onAuthStateChanged(auth, async u=>{
-  ensured=false; ensuring=false;
+  ensured=false; ensuring=false; S.contact=null;
   S.user=u; S.admin=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.myPrivLoaded=false; S.salutes={}; S.comments={}; S.photos={}; sPhotoDraft=undefined;
   clearSubs();
   renderMembers.filled=false; renderStories.filled=false;
@@ -1387,6 +1412,8 @@ onAuthStateChanged(auth, async u=>{
   if(u){
     try{ S.admin = (await getDoc(doc(fs,"admins",u.uid))).exists(); }catch(e){ console.error(e); }
     try{ const d=await getDoc(doc(fs,"approved",u.uid)); S.approvedIds[u.uid]=d.exists()?d.data():undefined; S.approved = computeApproved(S.approvedIds[u.uid]); }catch(e){ console.error(e); S.approved = computeApproved(undefined); }
+    try{ const c=await getDoc(doc(fs,"contacts",u.uid)); S.contact=c.exists()?c.data():null; }catch(e){ S.contact=null; }
+    syncContact();
     subscribeMembers();
     setView(); window.scrollTo(0,0);
   }
