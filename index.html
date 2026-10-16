@@ -121,9 +121,60 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .mono{font-family:ui-monospace,Menlo,monospace;font-size:.85rem;word-break:break-all;background:var(--bg);padding:8px;border-radius:8px}
 .dlg-close{float:right;background:none;border:0;font-size:1.6rem;line-height:1;cursor:pointer;color:var(--muted)}
 input[type=email],input[type=password]{width:100%;min-height:44px;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg)}
+
+[hidden]{display:none !important}
+/* ---- Sign-in gate ---- */
+#gate,#boot{display:none}
+body.booting #boot{display:grid}
+body.out #gate{display:block}
+body.booting .wrap, body.booting nav.tabs, body.out .wrap, body.out nav.tabs{display:none}
+body.booting, body.out{padding-bottom:0}
+#boot{min-height:100vh;place-items:center;background:#1E2419}
+#boot img{width:120px;height:120px;border-radius:50%;opacity:.9}
+#gate{min-height:100vh;background:#1E2419;color:#E9ECE2;padding:40px 16px calc(32px + env(safe-area-inset-bottom,0px))}
+.gate-inner{max-width:420px;margin:0 auto}
+.gate-logo{display:block;width:168px;height:168px;border-radius:50%;margin:0 auto 18px}
+.gate-title{font:700 2.3rem/1 var(--display);text-align:center;letter-spacing:.01em}
+.gate-sub{text-align:center;color:#C9CFBE;margin:8px 0 26px}
+.gate-card{background:var(--surface);color:var(--ink);border-radius:18px;padding:20px}
+.gate-tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);border-radius:12px;padding:4px;margin-bottom:16px}
+.gate-tabs button{border:0;background:none;min-height:40px;border-radius:9px;font-weight:700;color:var(--muted);cursor:pointer}
+.gate-tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.gate-card .btn{width:100%}
+#googleBtn{background:transparent;color:var(--green)}
+.gate-card .err:empty{min-height:0;margin:0}
+.gate-free{margin-top:18px;font-size:.92rem;color:#C9CFBE;text-align:center}
+.gate-crisis{margin-top:22px;text-align:center;font-size:.92rem;color:#E9ECE2}
+.gate-crisis a{color:#E9ECE2;font-weight:700}
 </style>
 </head>
-<body>
+<body class="booting">
+<div id="boot" aria-label="Loading"><img src="logo.png" alt=""></div>
+
+<section id="gate">
+  <div class="gate-inner">
+    <img class="gate-logo" src="logo.png" alt="Camaraderie Through Fitness badge">
+    <h1 class="gate-title">Camaraderie Through Fitness</h1>
+    <p class="gate-sub">Veterans training together in North Central Florida.</p>
+    <div class="gate-card">
+      <div class="gate-tabs" role="tablist">
+        <button role="tab" id="modeIn" aria-selected="true">Sign in</button>
+        <button role="tab" id="modeUp" aria-selected="false">Create account</button>
+      </div>
+      <button class="btn" id="googleBtn">Continue with Google</button>
+      <div class="or">or use email</div>
+      <div id="nameWrap" hidden><label for="aName">Your name</label><input id="aName" type="text" autocomplete="name"></div>
+      <label for="aEmail">Email</label><input id="aEmail" type="email" autocomplete="email">
+      <label for="aPass">Password</label><input id="aPass" type="password" autocomplete="current-password">
+      <p style="margin-top:16px"><button class="btn" id="emailIn">Sign in</button><button class="btn" id="emailUp" hidden>Create account</button></p>
+      <p id="resetWrap" style="text-align:center;margin:10px 0 0"><button class="btn small ghost" id="resetBtn" style="border:0;width:auto">Forgot password?</button></p>
+      <div class="err" id="authErr" role="alert"></div>
+    </div>
+    <p class="gate-free">Creating an account is free. Workouts, RSVPs, and support resources cost nothing.</p>
+    <p class="gate-crisis">In crisis right now? Call <a href="tel:988">988</a> and press 1, or text <a href="sms:838255">838255</a>.</p>
+  </div>
+</section>
+
 <div class="wrap">
   <header class="top">
     <img class="mark" src="logo.png" alt="" width="48" height="48">
@@ -232,22 +283,7 @@ input[type=email],input[type=password]{width:100%;min-height:44px;padding:10px 1
 
 <dialog id="authDlg">
   <button class="dlg-close" id="dlgClose" aria-label="Close">×</button>
-  <div id="signedOut">
-    <h3>Sign in to CTF</h3>
-    <p class="hint">Sign in to RSVP, join the member list, and share your story.</p>
-    <p style="margin-top:12px"><button class="btn" id="googleBtn" style="width:100%">Continue with Google</button></p>
-    <div class="or">or use email</div>
-    <label for="aName">Your name (new accounts only)</label><input id="aName" type="text" autocomplete="name">
-    <label for="aEmail">Email</label><input id="aEmail" type="email" autocomplete="email">
-    <label for="aPass">Password</label><input id="aPass" type="password" autocomplete="current-password">
-    <p style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn" id="emailIn">Sign in</button>
-      <button class="btn ghost" id="emailUp">Create account</button>
-    </p>
-    <p><button class="btn small ghost" id="resetBtn" style="border:0;padding:0">Forgot password?</button></p>
-    <div class="err" id="authErr" role="alert"></div>
-  </div>
-  <div id="signedIn" hidden>
+  <div id="signedIn">
     <h3 id="whoName">Signed in</h3>
     <p class="hint" id="whoEmail"></p>
     <p id="adminNote" class="hint"></p>
@@ -321,7 +357,7 @@ document.querySelectorAll("nav.tabs button").forEach(b=>b.addEventListener("clic
 
 // ---------- Render ----------
 function render(){
-  $("#acctBtn").textContent = S.user ? myName().split(" ")[0] : "Sign in";
+  $("#acctBtn").textContent = S.user ? myName().split(" ")[0] : "";
   renderWorkouts(); renderMembers(); renderStories(); renderSupport(); renderGive();
   ["#eventAdmin","#partnerAdmin","#giveAdmin"].forEach(s=>$(s).hidden=!S.admin);
   $("#seedWrap").hidden = !(S.admin && S.ready && S.events.length===0 && S.partners.length===0);
@@ -452,8 +488,8 @@ function renderGive(){
 // ---------- Account ----------
 const dlg = $("#authDlg");
 function openAuth(){
-  $("#signedOut").hidden = !!S.user; $("#signedIn").hidden = !S.user; $("#authErr").textContent="";
-  if(S.user){
+  if(!S.user){ window.scrollTo(0,0); return; }
+  {
     $("#whoName").textContent = myName(); $("#whoEmail").textContent = S.user.email || "";
     $("#whoId").textContent = S.user.uid;
     $("#adminNote").textContent = S.admin ? "You're an admin." : "";
@@ -462,6 +498,24 @@ function openAuth(){
 }
 function closeAuth(){ if(dlg.open) dlg.close(); }
 $("#acctBtn").addEventListener("click", openAuth);
+
+// Sign-in / create-account toggle on the gate
+let mode="in";
+function setMode(m){
+  mode=m;
+  $("#modeIn").setAttribute("aria-selected", m==="in"); $("#modeUp").setAttribute("aria-selected", m==="up");
+  $("#nameWrap").hidden = m!=="up"; $("#emailIn").hidden = m!=="in"; $("#emailUp").hidden = m!=="up";
+  $("#resetWrap").hidden = m!=="in";
+  $("#aPass").setAttribute("autocomplete", m==="up" ? "new-password" : "current-password");
+  $("#authErr").textContent="";
+}
+$("#modeIn").addEventListener("click",()=>setMode("in"));
+$("#modeUp").addEventListener("click",()=>setMode("up"));
+["#aName","#aEmail","#aPass"].forEach(f=>$(f).addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); (mode==="in"?$("#emailIn"):$("#emailUp")).click(); } }));
+function setView(){
+  document.body.classList.remove("booting","out","in");
+  document.body.classList.add(S.user ? "in" : "out");
+}
 $("#dlgClose").addEventListener("click", closeAuth);
 
 const AUTH_MSG = {
@@ -700,10 +754,12 @@ onAuthStateChanged(auth, async u=>{
   clearSubs();
   renderMembers.filled=false; renderStories.filled=false;
   resetEventForm(); resetPartnerForm();
+  if(!u){ setView(); setMode("in"); $("#aPass").value=""; }
   if(u){
     try{ S.admin = (await getDoc(doc(fs,"admins",u.uid))).exists(); }catch(e){ console.error(e); }
     try{ const d=await getDoc(doc(fs,"approved",u.uid)); S.approved = S.admin || (d.exists() && isActive(d.data())); }catch(e){ console.error(e); }
     subscribeMembers();
+    setView(); window.scrollTo(0,0);
   }
   render();
 });
