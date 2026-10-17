@@ -12,6 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="CTF">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#3E4A2E">
+<script>try{var t=localStorage.getItem("ctfTheme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t;}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
@@ -202,6 +203,11 @@ body.booting{overflow:hidden}
 .mi-txt{flex:1;display:flex;flex-direction:column;line-height:1.25}.mi-txt small{color:var(--muted);font-size:.85rem}
 .chev-r{flex:none;width:9px;height:9px;border-right:2px solid var(--muted);border-top:2px solid var(--muted);transform:rotate(45deg);margin-right:4px}
 #signOutBtn .mi-ico{color:var(--alert)}
+.mi-static{cursor:default}.mi-static:active{background:none}
+.mi-static .mi-txt b{white-space:nowrap}
+.seg{flex:none;display:flex;background:var(--bg);border-radius:10px;padding:3px}
+.seg button{border:0;background:none;color:var(--muted);font:600 .85rem var(--body);padding:7px 10px;border-radius:8px;cursor:pointer}
+.seg button[aria-checked="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.15)}
 .me-foot{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-top:16px}
 .me-foot{flex-wrap:wrap}
 .me-foot .uid-box{margin-top:0}
@@ -509,6 +515,9 @@ nav.tabs button{position:relative}
     <div class="menu">
       <button class="mi" id="editProfileBtn"><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span><span class="mi-txt"><b>Edit profile</b><small>Photo, service details, privacy</small></span><span class="chev-r" aria-hidden="true"></span></button>
       <button class="mi" id="inviteBtn"><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-5.5 6.5-5.5s6.5 2 6.5 5.5"/><path d="M19 8v6M16 11h6"/></svg></span><span class="mi-txt"><b>Build the community</b><small>Invite a friend to the app</small></span><span class="chev-r" aria-hidden="true"></span></button>
+      <div class="mi mi-static"><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></span><span class="mi-txt"><b>Night mode</b><small id="themeHint">Follows your phone's setting</small></span>
+        <div class="seg" role="radiogroup" aria-label="Night mode"><button role="radio" data-theme-set="auto">Auto</button><button role="radio" data-theme-set="dark">On</button><button role="radio" data-theme-set="light">Off</button></div>
+      </div>
       <button class="mi" id="signOutBtn"><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h4v16h-4"/><path d="M10 8l-4 4 4 4M6 12h10"/></svg></span><span class="mi-txt"><b>Sign out</b></span></button>
     </div>
     <div class="me-foot">
@@ -1079,6 +1088,16 @@ function openAuth(){
   }
   if(typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open","");
 }
+// ---------- Night mode (Auto follows the phone) ----------
+function themePref(){ try{ const t=localStorage.getItem("ctfTheme"); return t==="dark"||t==="light" ? t : "auto"; }catch{ return "auto"; } }
+function applyTheme(t){
+  if(t==="auto") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme=t;
+  try{ t==="auto" ? localStorage.removeItem("ctfTheme") : localStorage.setItem("ctfTheme",t); }catch{}
+  document.querySelectorAll("[data-theme-set]").forEach(b=>b.setAttribute("aria-checked", b.dataset.themeSet===t));
+  $("#themeHint").textContent = t==="auto" ? "Follows your phone's setting" : (t==="dark" ? "Always dark" : "Always light");
+}
+document.querySelectorAll("[data-theme-set]").forEach(b=>b.addEventListener("click",()=>applyTheme(b.dataset.themeSet)));
+applyTheme(themePref());
 function closeAuth(){ if(dlg.open) dlg.close(); }
 $("#acctBtn").addEventListener("click", openAuth);
 
