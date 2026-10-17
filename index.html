@@ -149,6 +149,14 @@ section[hidden]{display:none}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
 dialog{border:0;border-radius:16px;padding:20px;max-width:520px;width:calc(100% - 28px);background:var(--surface);color:var(--ink)}
 dialog::backdrop{background:rgba(0,0,0,.45)}
+.install{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));max-width:520px;margin:0 auto;z-index:45;background:var(--surface);color:var(--ink);border-radius:18px;padding:18px;box-shadow:0 10px 40px rgba(0,0,0,.35);max-height:80vh;overflow:auto}
+.install-top{display:flex;gap:12px;align-items:center;padding-right:28px}
+.install-top img{border-radius:12px;flex:none}
+.install-top h3{font-size:1.3rem}
+.install ol{margin:14px 0 0;padding-left:22px}.install li{margin:0 0 8px;line-height:1.4}
+.install .note{margin:10px 0 0;font-size:.9rem;color:var(--muted)}
+.install-btns{display:flex;gap:8px;justify-content:flex-end;margin:14px 0 0}
+.ico-share{display:inline-block;vertical-align:-3px}
 .give-big{font:700 2.6rem/1 var(--display);margin:6px 0 10px}
 .ig{margin-left:auto;flex:none;width:40px;height:40px;border-radius:99px;border:2px solid var(--line);display:grid;place-items:center;color:var(--ink)}
 .ig + .acct{margin-left:8px}
@@ -604,6 +612,13 @@ nav.tabs button{position:relative}
     <p class="hint">It opens full screen with the CTF badge, just like an app.</p>
   </div>
 </dialog>
+
+<div class="install" id="installSheet" role="dialog" aria-labelledby="installHead" hidden>
+  <button class="dlg-close" id="installX" aria-label="Close">×</button>
+  <div class="install-top"><img src="apple-touch-icon.png" alt="" width="48" height="48"><div><h3 id="installHead">Add CTF to your home screen</h3><p class="hint" style="margin:2px 0 0">Opens full screen with the CTF badge, just like an app.</p></div></div>
+  <div id="installBody"></div>
+  <p class="install-btns"><button class="btn small ghost" id="installLater">Not now</button><button class="btn small" id="installDone">Done, it's added</button></p>
+</div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -1268,6 +1283,43 @@ const SHARE_TEXT = "Join me on the Camaraderie Through Fitness app: workouts, RS
   + "Android: open the link in Chrome, tap the \u22EE menu at the top right, then Add to Home screen or Install app.\n\n"
   + "It opens full screen with the CTF badge, just like an app.";
 const shareDlg=$("#shareDlg");
+
+// ---------- Add-to-home-screen prompt (shown in a browser, never inside the installed app) ----------
+let installEvt=null;
+window.addEventListener("beforeinstallprompt", e=>{ e.preventDefault(); installEvt=e; if(!$("#installSheet").hidden) fillInstall(); });
+window.addEventListener("appinstalled", ()=>{ try{ localStorage.setItem("ctfInstall","done"); }catch{} $("#installSheet").hidden=true; });
+function installPlatform(){
+  const ua=navigator.userAgent||"";
+  if(/Instagram|FBAN|FBAV|FB_IAB|Snapchat|LinkedInApp|Twitter|Line\/|GSA\//i.test(ua)) return "inapp";
+  if(/iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints>1)) return /CriOS|FxiOS|EdgiOS/.test(ua) ? "ios-other" : "ios";
+  if(/Android/i.test(ua)) return "android";
+  return "desktop";
+}
+function fillInstall(){
+  const pf=installPlatform(), b=$("#installBody");
+  $("#installDone").hidden = pf==="inapp";
+  if(pf==="inapp") b.innerHTML=`<p style="margin:14px 0 0">You're viewing this inside another app, which can't add it to your home screen. Open it in your phone's browser first:</p>
+    <ol><li>Tap the <b>⋯</b> or <b>⋮</b> menu in the corner.</li><li>Choose <b>Open in browser</b> (or <b>Open in Safari</b> / <b>Open in Chrome</b>).</li><li>Then follow the steps that show up there.</li></ol>
+    <p class="note">No menu? <button class="linkish" id="installCopy">Copy the link</button> and paste it into Safari or Chrome.</p>`;
+  else if(pf==="ios") b.innerHTML=`<ol><li>Tap the <b>Share</b> button <svg class="ico-share" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v8h14v-8"/></svg> in Safari's toolbar. On newer iPhones it's inside the <b>⋯</b> button.</li><li>Scroll down and tap <b>Add to Home Screen</b>. Don't see it? Tap <b>View More</b> first.</li><li>Tap <b>Add</b>.</li></ol>`;
+  else if(pf==="ios-other") b.innerHTML=`<ol><li>Tap the <b>Share</b> button <svg class="ico-share" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v8h14v-8"/></svg> next to the address bar.</li><li>Tap <b>Add to Home Screen</b>. Don't see it? Tap <b>View More</b> first.</li><li>Tap <b>Add</b>.</li></ol><p class="note">If that option isn't there, open app.camaraderietf.org in Safari and try again.</p>`;
+  else if(installEvt) b.innerHTML=`<p style="margin:14px 0 0">Tap below to add it in one step.</p><p style="margin:10px 0 0"><button class="btn" id="installNow">Install app</button></p>`;
+  else b.innerHTML=`<ol><li>Tap the <b>⋮</b> menu at the top right of Chrome.</li><li>Tap <b>Add to Home screen</b> or <b>Install app</b>.</li><li>Tap <b>Install</b> or <b>Add</b>.</li></ol>`;
+  const c=$("#installCopy"); if(c) c.addEventListener("click", async ()=>{ try{ await navigator.clipboard.writeText(APP_URL); toast("Link copied."); }catch{ toast(APP_URL); } });
+  const n=$("#installNow"); if(n) n.addEventListener("click", async ()=>{ if(!installEvt) return; installEvt.prompt(); const r=await installEvt.userChoice.catch(()=>null); installEvt=null; if(r && r.outcome==="accepted"){ try{ localStorage.setItem("ctfInstall","done"); }catch{} $("#installSheet").hidden=true; } else fillInstall(); });
+}
+function maybeInstallPrompt(){
+  const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  if(standalone || installPlatform()==="desktop") return;
+  let st=null; try{ st=localStorage.getItem("ctfInstall"); }catch{}
+  if(st==="done" || (st && +st > Date.now())) return;
+  fillInstall(); $("#installSheet").hidden=false;
+}
+const snoozeInstall=()=>{ try{ localStorage.setItem("ctfInstall", String(Date.now()+3*24*60*60*1000)); }catch{} $("#installSheet").hidden=true; };
+$("#installLater").addEventListener("click", snoozeInstall);
+$("#installX").addEventListener("click", snoozeInstall);
+$("#installDone").addEventListener("click", ()=>{ try{ localStorage.setItem("ctfInstall","done"); }catch{} $("#installSheet").hidden=true; });
+setTimeout(maybeInstallPrompt, 1500);
 $("#inviteBtn").addEventListener("click", ()=>{
   closeAuth();
   $("#shareUrl").textContent = APP_URL;
