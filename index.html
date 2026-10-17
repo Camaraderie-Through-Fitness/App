@@ -124,6 +124,11 @@ blockquote{margin:0;font-size:1.08rem;line-height:1.6}
 .cmt .who{font-weight:600;font-size:.93rem}
 .cmt .when{color:var(--muted);font-weight:400;font-size:.85rem}
 .cmt p{margin:2px 0 0;font-size:.97rem;white-space:pre-wrap;overflow-wrap:anywhere}
+.more{flex:none;margin-left:auto;background:none;border:0;color:var(--muted);font:700 1.3rem/1 var(--body);padding:4px 8px;border-radius:8px;cursor:pointer;align-self:flex-start}
+.more[aria-expanded="true"]{background:var(--bg);color:var(--ink)}
+.more-sm{font-size:1.05rem;padding:2px 6px}
+.own-acts{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.cmt .x.x-del{color:var(--alert);font-weight:600}
 .cmt .x{background:none;border:0;color:var(--muted);font-size:.85rem;cursor:pointer;padding:0;margin-top:2px}
 .cmt-form{display:flex;gap:8px;margin-top:8px;align-items:flex-end}
 .cmt-form textarea{min-height:44px;height:44px;flex:1}
@@ -468,8 +473,8 @@ nav.tabs button{position:relative}
     <h2>Stories</h2>
     <p class="hint">What CTF has meant to the people in it. Everyone signed in can read stories.</p>
     <div class="panel admin" id="photoQueue" hidden></div>
-    <div id="storyList"></div>
-    <div class="panel">
+    <p id="shareStoryWrap" hidden style="margin:4px 0 14px"><button class="btn" id="shareStoryBtn">Share your story</button></p>
+    <div class="panel" id="storyEditor" hidden>
       <h3 id="storyHead">Share your story</h3>
       <label for="sText">Your story</label><textarea id="sText" placeholder="How did you find CTF? What changed?"></textarea>
       <div class="s-photo-prev" id="sPhotoPrev"></div>
@@ -478,8 +483,9 @@ nav.tabs button{position:relative}
         <button class="btn small ghost" id="sPhotoRemove" hidden>Remove photo</button>
       </p>
       <p class="hint">Photos show up after a CTF admin approves them.</p>
-      <p style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="sSave">Post story</button><button class="btn danger" id="sDelete" hidden>Remove my story</button></p>
+      <p style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="sSave">Post story</button><button class="btn ghost" id="sCancel">Cancel</button></p>
     </div>
+    <div id="storyList"></div>
   </section>
 
   <!-- SUPPORT -->
@@ -998,7 +1004,8 @@ function commentHTML(sid,c){
   const who=S.members[c.uid]||{name:c.name}; const canDel = c.uid===uid() || sid===uid() || S.admin;
   return `<div class="cmt">${avatarHTML({...who,name:who.name||c.name},"acct-av")}
     <div style="min-width:0"><div class="who">${esc(who.name||c.name||"Member")} <span class="when">· ${esc(ago(c.at||0))}</span></div>
-    <p>${esc(c.text)}</p>${canDel?`<button class="x" data-cmt-del="${esc(sid)}|${esc(c.id)}">Delete</button>`:""}</div></div>`;
+    <p>${esc(c.text)}</p>${canDel && S.cmtMenu===c.id?`<button class="x x-del" data-cmt-del="${esc(sid)}|${esc(c.id)}">Delete comment</button>`:""}</div>
+    ${canDel?`<button class="more more-sm" data-cmt-menu="${esc(c.id)}" aria-expanded="${S.cmtMenu===c.id}" aria-label="Comment options">⋯</button>`:""}</div>`;
 }
 function renderStories(){
   // keep a half-typed comment and its focus across live updates
@@ -1020,8 +1027,11 @@ function renderStories(){
           <div class="story-author${canOpen?" tap":""}"${canOpen?` data-person="${esc(id)}" tabindex="0"`:""}>${esc(auName)}${id===uid()?" (you)":""}${buddyState(id)==="buddy"?` <span class="tag bb-tag">Battle buddy</span>`:""}</div>
           ${auSub?`<div class="meta">${esc(auSub)}</div>`:""}
         </div>
-        ${S.admin && id!==uid()?`<button class="btn small danger" data-del-story="${esc(id)}">Remove</button>`:""}
+        ${id===uid() || S.admin?`<button class="more" data-story-menu="${esc(id)}" aria-expanded="${S.storyMenu===id}" aria-label="Story options">⋯</button>`:""}
       </div>
+      ${S.storyMenu===id?`<div class="own-acts">${id===uid()
+        ? `<button class="btn small ghost" data-my-story-edit="1">Edit story</button><button class="btn small danger" data-my-story-del="1">Remove story</button>`
+        : `<button class="btn small danger" data-del-story="${esc(id)}">Remove story</button>`}</div>`:""}
       ${showPh?`<div class="photo-wrap"><img class="story-photo" src="${ph.photo}" alt="Photo shared with this story" loading="lazy">${flag?`<span class="photo-flag">${flag}</span>`:""}</div>`:""}
       <blockquote>${esc(s.text)}</blockquote>
       <div class="story-acts">
@@ -1057,8 +1067,7 @@ function renderStories(){
   const mine = S.stories[uid()];
   $("#storyHead").textContent = mine ? "Edit your story" : "Share your story";
   $("#sSave").textContent = mine ? "Update story" : "Post story";
-  $("#sDelete").hidden = !mine;
-  if(mine && !renderStories.filled){ renderStories.filled=true; $("#sText").value=mine.text||""; }
+  $("#shareStoryWrap").hidden = !(S.user && !mine && $("#storyEditor").hidden);
 }
 
 // Turn phone numbers and emails in a partner's contact text into tap-to-call / tap-to-email buttons.
@@ -1434,6 +1443,10 @@ document.addEventListener("click", async ev=>{
     catch(e){ writeFailed(e); }
     t.disabled=false; return;
   }
+  if(t.dataset.storyMenu){ S.storyMenu = S.storyMenu===t.dataset.storyMenu ? null : t.dataset.storyMenu; renderStories(); return; }
+  if(t.dataset.cmtMenu){ S.cmtMenu = S.cmtMenu===t.dataset.cmtMenu ? null : t.dataset.cmtMenu; renderStories(); return; }
+  if(t.dataset.myStoryEdit){ openStoryEditor(); return; }
+  if(t.dataset.myStoryDel){ removeMyStory(); return; }
   if(t.dataset.cmtDel){
     const [sid,cid]=t.dataset.cmtDel.split("|");
     if(!confirm("Delete this comment?")) return;
@@ -1624,7 +1637,7 @@ $("#sSave").addEventListener("click", async ()=>{
     let msg = had ? "Story updated." : "Story posted.";
     if(sPhotoDraft===""){ await deleteDoc(doc(fs,"storyPhotos",uid())); }
     else if(sPhotoDraft){ await setDoc(doc(fs,"storyPhotos",uid()), {photo:sPhotoDraft, status:"pending", at:Date.now()}); msg += " Your photo will show once an admin approves it."; }
-    sPhotoDraft=undefined; renderStories(); toast(msg);
+    closeStoryEditor(); toast(msg);
   }catch(e){ writeFailed(e); }
 });
 // Story photos: shrink to 1280px on the long side, JPEG, under ~600 KB.
@@ -1652,10 +1665,20 @@ $("#sPhotoFile").addEventListener("change", async e=>{
   e.target.value="";
 });
 $("#sPhotoRemove").addEventListener("click", ()=>{ sPhotoDraft = ""; renderStories(); });
-$("#sDelete").addEventListener("click", async ()=>{
+async function removeMyStory(){
   if(!confirm("Remove your story?")) return;
-  try{ await deleteDoc(doc(fs,"stories",uid())); deleteDoc(doc(fs,"storyPhotos",uid())).catch(()=>{}); sPhotoDraft=undefined; $("#sText").value=""; renderStories.filled=false; toast("Story removed."); }catch(e){ writeFailed(e); }
-});
+  try{ await deleteDoc(doc(fs,"stories",uid())); deleteDoc(doc(fs,"storyPhotos",uid())).catch(()=>{}); S.storyMenu=null; closeStoryEditor(); toast("Story removed."); }catch(e){ writeFailed(e); }
+}
+function openStoryEditor(){
+  if(needSignIn()) return;
+  S.storyMenu=null; sPhotoDraft=undefined;
+  $("#sText").value=(S.stories[uid()]||{}).text||"";
+  $("#storyEditor").hidden=false; renderStories();
+  $("#storyEditor").scrollIntoView({behavior:"smooth", block:"start"}); setTimeout(()=>$("#sText").focus(), 300);
+}
+function closeStoryEditor(){ $("#storyEditor").hidden=true; sPhotoDraft=undefined; renderStories(); }
+$("#shareStoryBtn").addEventListener("click", openStoryEditor);
+$("#sCancel").addEventListener("click", closeStoryEditor);
 
 const PT_FIELDS=["#ptName","#ptOffer","#ptContact","#ptWeb"];
 function resetPartnerForm(){ editingPartner=null; PT_FIELDS.forEach(f=>$(f).value=""); $("#ptCat").value="support"; $("#ptHead").textContent="Add a partner"; $("#ptSave").textContent="Add partner"; $("#ptCancel").hidden=true; }
@@ -1944,7 +1967,7 @@ onAuthStateChanged(auth, async u=>{
   ensured=false; ensuring=false; S.contact=null; welcomeShown=false; welcoming=false;
   S.user=u; S.admin=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.myPrivLoaded=false; S.salutes={}; S.comments={}; S.photos={}; sPhotoDraft=undefined;
   clearSubs();
-  renderMembers.filled=false; renderStories.filled=false;
+  renderMembers.filled=false; renderStories.filled=false; $("#storyEditor").hidden=true; S.storyMenu=null; S.cmtMenu=null;
   resetEventForm(); resetPartnerForm();
   if(!u){ setView(); setMode("in"); $("#aPass").value=""; showTab("workouts"); }
   if(u){
