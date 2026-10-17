@@ -249,7 +249,13 @@ body.booting{overflow:hidden}
 .profile-head h2{margin:0;flex:1}
 #profileBack{white-space:nowrap;flex:none}
 .profile-head.setup #profileBack{order:2}
-.first-note{border:2px solid var(--brass);border-radius:12px;padding:12px 14px;font-size:.95rem;margin-bottom:12px}
+.gate-help{display:flex;gap:8px;margin-top:10px}
+.gh{flex:1 1 0;cursor:pointer;font:600 .92rem var(--body);color:var(--green);background:none;padding:8px 10px;border:1.5px solid var(--line);border-radius:10px}
+.gh::after{content:" ▾";font-size:.8em}
+.gh[aria-expanded="true"]{border-color:var(--brass);background:var(--brass-soft);color:var(--ink)}
+.gh[aria-expanded="true"]::after{content:" ▴"}
+.gh-body{margin-top:10px;padding:12px 14px;border:1.5px solid var(--brass);border-radius:12px;font-size:.93rem;line-height:1.45}
+.gh-body p{margin:0 0 8px}.gh-body p:last-child{margin:0}
 .verify-note{background:var(--brass-soft);color:var(--ink);border-radius:14px;padding:14px 16px;margin:8px 0 4px;font-size:.95rem}
 .verify-note p{margin:0}.verify-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px !important}
 .ios-note{background:var(--brass-soft);color:var(--ink);border-radius:12px;padding:12px 14px;font-size:.93rem;margin-bottom:14px}
@@ -304,9 +310,18 @@ nav.tabs button{position:relative}
         <button role="tab" id="modeIn" aria-selected="true">Sign in</button>
         <button role="tab" id="modeUp" aria-selected="false">Create account</button>
       </div>
-      <div class="first-note" id="firstNote"><b>First time here?</b> Tap <b>Continue with Google</b> to create your account. It's the quickest, most reliable way in.</div>
       <button class="btn" id="googleBtn">Continue with Google</button>
-      <div class="ios-note" id="iosNote" hidden style="margin:12px 0 0"><b>Google not opening?</b> That can happen in the home-screen app on iPhone. Use email below instead. Already made your account with Google? Enter your Gmail address and tap <b>Forgot password?</b> to set a password.</div>
+      <div class="gate-help">
+        <button type="button" class="gh" id="newHere" aria-expanded="false" aria-controls="firstNote">New here?</button>
+        <button type="button" class="gh" id="needHelp" aria-expanded="false" aria-controls="helpBody">Need help?</button>
+      </div>
+      <div class="gh-body" id="firstNote" hidden>Tap <b>Continue with Google</b> to create your account. It's the quickest, most reliable way in.</div>
+      <div class="gh-body" id="helpBody" hidden>
+          <p><b>Google not opening?</b> That can happen in the home-screen app on iPhone. Use email below instead.</p>
+          <p><b>Made your account with Google but want to use email?</b> Enter your Gmail address and tap <b>Forgot password?</b> to set a password.</p>
+          <p><b>Forgot your password?</b> Enter your email below and tap <b>Forgot password?</b></p>
+          <p><b>Still stuck?</b> Email <a href="mailto:CTF@camaraderietf.org">CTF@camaraderietf.org</a>.</p>
+      </div>
       <div class="or" id="orText">or use email</div>
       <div id="nameWrap" hidden><label for="aName">Your name</label><input id="aName" type="text" autocomplete="name"></div>
       <label for="aEmail">Email</label><input id="aEmail" type="email" autocomplete="email">
@@ -1140,8 +1155,8 @@ function setMode(m){
   $("#modeIn").setAttribute("aria-selected", m==="in"); $("#modeUp").setAttribute("aria-selected", m==="up");
   $("#nameWrap").hidden = m!=="up"; $("#emailIn").hidden = m!=="in"; $("#emailUp").hidden = m!=="up";
   $("#firstNote").innerHTML = m==="up"
-    ? "<b>Use Google to create your account.</b> Tap <b>Continue with Google</b> below. It's the quickest, most reliable way in. Email sign-up is a backup."
-    : "<b>First time here?</b> Tap <b>Continue with Google</b> to create your account. It's the quickest, most reliable way in.";
+    ? "Use <b>Continue with Google</b> to create your account. It's the quickest, most reliable way in. Email sign-up is a backup."
+    : "Tap <b>Continue with Google</b> to create your account. It's the quickest, most reliable way in.";
   $("#orText").textContent = m==="up" ? "or create one with email" : "or use email";
   $("#resetWrap").hidden = m!=="in";
   $("#aPass").setAttribute("autocomplete", m==="up" ? "new-password" : "current-password");
@@ -1180,7 +1195,11 @@ $("#googleBtn").addEventListener("click", async ()=>{
   catch(e){ if(e.code === "auth/popup-blocked"){ await signInWithRedirect(auth, provider); } else authFail(e); }
 });
 // iPhone home-screen app: steer people to email sign-in.
-if(navigator.standalone === true) $("#iosNote").hidden = false;
+// Sign-in help: one box open at a time.
+document.querySelectorAll(".gh").forEach(b=>b.addEventListener("click",()=>{
+  const open = b.getAttribute("aria-expanded")!=="true";
+  document.querySelectorAll(".gh").forEach(o=>{ const on = o===b && open; o.setAttribute("aria-expanded", on); $("#"+o.getAttribute("aria-controls")).hidden=!on; });
+}));
 $("#emailIn").addEventListener("click", async ()=>{
   try { await signInWithEmailAndPassword(auth, $("#aEmail").value.trim(), $("#aPass").value); closeAuth(); } catch(e){ authFail(e); }
 });
