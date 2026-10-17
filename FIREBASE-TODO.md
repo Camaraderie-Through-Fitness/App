@@ -23,3 +23,11 @@ full app review that includes Firebase changes.
 
 ## Next review
 - [ ] Full user-side review, this time including items that need Firebase.
+
+## Ideas on hold (waiting on test group feedback)
+- [ ] **Multiple stories per member**: 1 free story a month, +1 for each workout
+      attended, extra posts for a $1 donation. Open questions: how attendance is
+      confirmed (admin marks it vs. QR check-in), whether unused free posts roll
+      over, $1 each vs. packs (card fees eat ~1/3 of $1), admin grants paid posts
+      by hand after seeing the donation, how it fits with the $22/yr membership,
+      and "donation" wording (check with whoever does CTF's books).
