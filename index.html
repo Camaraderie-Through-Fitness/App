@@ -250,6 +250,8 @@ body.booting{overflow:hidden}
 #profileBack{white-space:nowrap;flex:none}
 .profile-head.setup #profileBack{order:2}
 .first-note{border:2px solid var(--brass);border-radius:12px;padding:12px 14px;font-size:.95rem;margin-bottom:12px}
+.verify-note{background:var(--brass-soft);color:var(--ink);border-radius:14px;padding:14px 16px;margin:8px 0 4px;font-size:.95rem}
+.verify-note p{margin:0}.verify-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px !important}
 .ios-note{background:var(--brass-soft);color:var(--ink);border-radius:12px;padding:12px 14px;font-size:.93rem;margin-bottom:14px}
 .dir-search{margin:0 0 10px}
 .dir-search input{width:100%;min-height:44px;padding:10px 14px;border:1.5px solid var(--line);border-radius:99px;background:var(--surface);font:inherit;color:inherit}
@@ -325,6 +327,10 @@ nav.tabs button{position:relative}
     <a class="ig" href="https://www.instagram.com/camaraderie_through_fitness/" target="_blank" rel="noopener" aria-label="CTF on Instagram" title="CTF on Instagram"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg></a>
     <button class="acct" id="acctBtn">Sign in</button>
   </header>
+  <div class="verify-note" id="verifyNote" hidden>
+    <p id="verifyText"></p>
+    <p class="verify-btns"><button class="btn small" id="verifyDone">I've confirmed</button><button class="btn small ghost" id="verifyResend">Send link</button></p>
+  </div>
 
   <!-- WORKOUTS -->
   <section id="tab-workouts">
@@ -588,7 +594,7 @@ nav.tabs button{position:relative}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, updateProfile, deleteUser, reauthenticateWithCredential, reauthenticateWithPopup, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, updateProfile, deleteUser, reauthenticateWithCredential, reauthenticateWithPopup, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, doc, onSnapshot, setDoc, addDoc, deleteDoc, getDoc, writeBatch, updateDoc, query, where, collectionGroup } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -724,6 +730,7 @@ document.querySelector('nav.tabs button[data-tab="stories"]').addEventListener("
 
 // ---------- Render ----------
 function render(){
+  renderVerify();
   { const me=S.members[uid()]||{name:myName()};
     $("#acctBtn").innerHTML = S.user ? `${avatarHTML({...me,name:me.name||myName()},"acct-av")}<span>${esc(myName().split(" ")[0])}</span>` : ""; }
   renderWorkouts(); renderMembers(); renderPerson(); renderStories(); renderSupport(); renderGive();
@@ -1088,6 +1095,31 @@ function openAuth(){
   }
   if(typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open","");
 }
+// ---------- Email confirmation (email/password accounts only; Google accounts are already confirmed) ----------
+const VERIFY_LINK = { url: "https://app.camaraderietf.org/" };
+function needsVerify(){ const u=S.user; return !!(u && !u.emailVerified && (u.providerData||[]).some(p=>p.providerId==="password")); }
+function renderVerify(){
+  const show=needsVerify(); $("#verifyNote").hidden=!show;
+  if(!show) return;
+  const em=esc(S.user.email||"your email");
+  $("#verifyText").innerHTML = S.verifySent
+    ? `<b>Confirm your email.</b> We sent a link to ${em}. Tap it, then come back and tap <b>I've confirmed</b>. Check your spam folder if you don't see it.`
+    : `<b>Confirm your email</b> so password resets reach you. Tap <b>Send link</b>, open the email sent to ${em}, tap the link, then come back and tap <b>I've confirmed</b>.`;
+  $("#verifyResend").textContent = S.verifySent ? "Send it again" : "Send link";
+}
+$("#verifyDone").addEventListener("click", async e=>{
+  const b=e.currentTarget; b.disabled=true;
+  try{ await S.user.reload(); await S.user.getIdToken(true); }catch(err){ console.warn(err); }
+  b.disabled=false; renderVerify();
+  toast(needsVerify() ? "Not confirmed yet. Tap the link in the email first." : "Email confirmed. Thanks.");
+});
+$("#verifyResend").addEventListener("click", async e=>{
+  const b=e.currentTarget; b.disabled=true;
+  try{ await sendEmailVerification(S.user, VERIFY_LINK); S.verifySent=true; renderVerify(); toast("Sent. Check your inbox and spam folder."); }
+  catch(err){ toast(err.code==="auth/too-many-requests" ? "Already sent recently. Wait a few minutes and try again." : "Couldn't send it. Try again in a bit."); }
+  setTimeout(()=>{ b.disabled=false; }, 30000);
+});
+
 // ---------- Night mode (Auto follows the phone) ----------
 function themePref(){ try{ const t=localStorage.getItem("ctfTheme"); return t==="dark"||t==="light" ? t : "auto"; }catch{ return "auto"; } }
 function applyTheme(t){
@@ -1158,6 +1190,7 @@ $("#emailUp").addEventListener("click", async ()=>{
   try {
     const cred = await createUserWithEmailAndPassword(auth, $("#aEmail").value.trim(), $("#aPass").value);
     await updateProfile(cred.user, { displayName: name });
+    S.verifySent=true; sendEmailVerification(cred.user, VERIFY_LINK).catch(e=>{ S.verifySent=false; console.warn("verify email", e.code); });
     setTimeout(()=>{ ensureMine(true); syncContact(); }, 1500);
     closeAuth(); render(); toast("Welcome to CTF, " + name.split(" ")[0] + ".");
   } catch(e){ authFail(e); }
