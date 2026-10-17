@@ -1269,7 +1269,7 @@ $("#delGo").addEventListener("click", async ()=>{
     const del = ref => deleteDoc(ref).catch(e=>console.warn("skip", ref.path, e.code));
     const jobs=[ "members","private","contacts","rsvps","stories","storyPhotos" ].map(c=>del(doc(fs,c,me)));
     Object.entries(S.buddies||{}).forEach(([pid])=>jobs.push(del(doc(fs,"buddies",pid))));
-    Object.entries(S.salutes||{}).forEach(([sid,set])=>{ if(set.has(me)) jobs.push(del(doc(fs,"stories",sid,"salutes",me))); });
+    Object.entries(S.salutes||{}).forEach(([sid,set])=>set.forEach(u=>{ if(u===me || sid===me) jobs.push(del(doc(fs,"stories",sid,"salutes",u))); }));
     Object.entries(S.comments||{}).forEach(([sid,list])=>list.forEach(c=>{ if(c.uid===me || sid===me) jobs.push(del(doc(fs,"stories",sid,"comments",c.id))); }));
     await Promise.all(jobs);
     phase="login";

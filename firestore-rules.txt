@@ -1,0 +1,139 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isMe(id) { return signedIn() && request.auth.uid == id; }
+    function isAdmin() {
+      return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    // Paywall switch lives in config/site. Missing or false = everyone signed in is a member.
+    function paywallOn() {
+      let cfg = /databases/$(database)/documents/config/site;
+      return exists(cfg) && get(cfg).data.get('paywall', false) == true;
+    }
+    function isMember() {
+      let path = /databases/$(database)/documents/approved/$(request.auth.uid);
+      return signedIn() && (isAdmin() || !paywallOn() ||
+        (exists(path) && get(path).data.get('until', 0) > request.time.toMillis()));
+    }
+
+    // Battle buddies: pair ID is the two user IDs, sorted, joined by "_".
+    function isBuddy(a, b) {
+      let p1 = /databases/$(database)/documents/buddies/$(a + '_' + b);
+      let p2 = /databases/$(database)/documents/buddies/$(b + '_' + a);
+      return (exists(p1) && get(p1).data.status == 'accepted') ||
+             (exists(p2) && get(p2).data.status == 'accepted');
+    }
+    function validPair(id) {
+      let d = request.resource.data;
+      return d.users.size() == 2 && d.users[0] < d.users[1]
+        && id == d.users[0] + '_' + d.users[1]
+        && d.from in d.users && d.to in d.users && d.from != d.to;
+    }
+
+    match /admins/{id} {
+      allow read: if isMe(id);
+      allow write: if false;
+    }
+
+    match /approved/{id} {
+      allow read: if isMe(id) || isMember();
+      allow write: if isAdmin();
+    }
+
+    match /events/{id}   { allow read: if true; allow write: if isAdmin(); }
+    match /partners/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /config/{id}   { allow read: if true; allow write: if isAdmin(); }
+
+    match /rsvps/{id} {
+      allow read: if true;
+      allow write: if isMe(id);
+    }
+
+    // Public card: only name, photo, status, branch, listed. Everything else lives in /private.
+    match /members/{id} {
+      allow read: if isMe(id) || isMember();
+      allow create, update: if isMe(id)
+        && request.resource.data.keys().hasOnly(['name','status','branch','photo','listed'])
+        && request.resource.data.get('photo', '').size() < 200000;
+      allow delete: if isMe(id) || isAdmin();
+    }
+
+    // Full profile: only the owner, their accepted battle buddies, and admins.
+    match /private/{id} {
+      allow read: if isMe(id) || isAdmin() || (signedIn() && isBuddy(request.auth.uid, id));
+      allow create, update: if isMe(id) && request.resource.data.get('about', '').size() <= 600;
+      allow delete: if isMe(id) || isAdmin();
+    }
+
+    match /buddies/{id} {
+      allow read: if signedIn() && request.auth.uid in resource.data.users;
+      allow create: if isMember()
+        && request.resource.data.from == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.keys().hasOnly(['users','from','to','status','createdAt'])
+        && validPair(id);
+      allow update: if signedIn()
+        && resource.data.to == request.auth.uid
+        && resource.data.status == 'pending'
+        && request.resource.data.status == 'accepted'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','acceptedAt']);
+      allow delete: if signedIn() && request.auth.uid in resource.data.users;
+    }
+
+    match /stories/{id} {
+      allow read: if true;
+      allow create, update: if isMe(id) && isMember() && request.resource.data.text.size() <= 2000;
+      allow delete: if isMe(id) || isAdmin();
+
+      // One salute per person per story; the doc ID is the person's user ID.
+      match /salutes/{uid} {
+        allow create: if isMe(uid) && isMember() && request.resource.data.keys().hasOnly(['at']);
+        // The story's owner can also clear salutes on their own story (used when deleting an account).
+        allow delete: if isMe(uid) || isMe(id) || isAdmin();
+      }
+      // Comments: author, the story's owner (story ID = owner's user ID), or an admin can delete.
+      match /comments/{cid} {
+        allow create: if isMember()
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.keys().hasOnly(['uid','name','text','at'])
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 500;
+        allow delete: if signedIn() && (resource.data.uid == request.auth.uid || request.auth.uid == id || isAdmin());
+      }
+    }
+
+    // Email + reminder preference. Only the owner and admins can read it.
+    match /contacts/{id} {
+      allow read: if isMe(id) || isAdmin();
+      allow create, update: if isMe(id)
+        && request.resource.data.keys().hasOnly(['email','name','remind'])
+        && request.resource.data.email == request.auth.token.email;
+      allow delete: if isMe(id) || isAdmin();
+    }
+
+    // Story photos: one per story (ID = owner's user ID). New or changed photos start as
+    // "pending"; only admins can approve or reject. Others only see approved photos.
+    function validPhoto() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['photo','status','at']) && d.status == 'pending'
+        && d.photo is string && d.photo.size() < 700000;
+    }
+    match /storyPhotos/{id} {
+      allow get: if isMe(id) || isAdmin() || (signedIn() && resource.data.status == 'approved');
+      allow list: if isAdmin() || (signedIn() && resource.data.status == 'approved');
+      allow create: if isMe(id) && isMember() && validPhoto();
+      allow update: if (isMe(id) && isMember() && validPhoto())
+        || (isAdmin()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','reviewedAt','reviewedBy'])
+            && request.resource.data.status in ['approved','rejected']);
+      allow delete: if isMe(id) || isAdmin();
+    }
+
+    // Lets the app load all salutes and comments in one go.
+    match /{path=**}/salutes/{uid}  { allow read: if signedIn(); }
+    match /{path=**}/comments/{cid} { allow read: if signedIn(); }
+  }
+}
