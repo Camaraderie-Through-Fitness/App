@@ -129,6 +129,10 @@ blockquote{margin:0;font-size:1.08rem;line-height:1.6}
 .more-sm{font-size:1.05rem;padding:2px 6px}
 .own-acts{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
 .cmt .x.x-del{color:var(--alert);font-weight:600}
+.bb-admin{margin:6px 0 0;font-size:.88rem}
+.bb-admin-panel summary{cursor:pointer}
+.bb-pair{padding:8px 0;border-top:1px solid var(--line)}.bb-pair:first-of-type{margin-top:8px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .cmt .x{background:none;border:0;color:var(--muted);font-size:.85rem;cursor:pointer;padding:0;margin-top:2px}
 .cmt-form{display:flex;gap:8px;margin-top:8px;align-items:flex-end}
 .cmt-form textarea{min-height:44px;height:44px;flex:1}
@@ -394,6 +398,7 @@ nav.tabs button{position:relative}
     <div class="dir-search" id="dirSearchWrap" hidden><input id="dirSearch" type="search" placeholder="Search by name, branch, or unit" aria-label="Search members" autocomplete="off"></div>
     <div id="bbRequests"></div>
     <div id="pendingWrap" class="panel admin" hidden><h3>Waiting on payment</h3><p class="hint">Check your payment platform, then tap Activate 1 year.</p><div class="list" id="pendingList" style="border-top:0"></div><div id="renewWrap"></div></div>
+    <div id="bbAdminWrap"></div>
     <div class="list" id="memberList"></div>
   </section>
 
@@ -876,6 +881,29 @@ function bbButtons(id){
   }
 }
 function years(m){ if(!m.startYear) return ""; return m.startYear + "–" + (m.endYear || "present"); }
+// ---------- Admin: who is battle buddies with whom ----------
+const nameOf = id => (S.members[id]||{}).name || "Former member";
+function adminBuddyLine(id){
+  if(!S.admin || !S.allBuddies) return "";
+  const pairs=Object.values(S.allBuddies).filter(b=>Array.isArray(b.users) && b.users.includes(id));
+  const acc=pairs.filter(b=>b.status==="accepted").map(b=>nameOf(b.users.find(u=>u!==id))).sort();
+  const pend=pairs.filter(b=>b.status==="pending").length;
+  return `<p class="meta bb-admin">🤝 ${acc.length ? "Battle buddies: "+acc.map(esc).join(", ") : "No battle buddies yet"}${pend?` · ${pend} request${pend===1?"":"s"} pending`:""}</p>`;
+}
+function renderBuddyAdmin(){
+  const w=$("#bbAdminWrap"); if(!w) return;
+  if(!S.admin || !S.approved){ w.innerHTML=""; return; }
+  if(S.allBuddiesErr){ w.innerHTML=`<div class="panel admin"><b>Battle buddy connections</b><p class="hint" style="margin:6px 0 0">Couldn't load these. The latest Firestore rules may not be published yet.</p></div>`; return; }
+  if(!S.allBuddies){ w.innerHTML=""; return; }
+  const all=Object.values(S.allBuddies||{}).filter(b=>Array.isArray(b.users) && b.users.length===2);
+  const acc=all.filter(b=>b.status==="accepted").sort((a,b)=>(b.acceptedAt||0)-(a.acceptedAt||0));
+  const pend=all.filter(b=>b.status==="pending").sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  const wasOpen=!!(w.querySelector("details")||{}).open;
+  w.innerHTML=`<details class="panel admin bb-admin-panel"${wasOpen?" open":""}><summary><b>Battle buddy connections</b> <span class="meta">${acc.length} pair${acc.length===1?"":"s"}${pend.length?` · ${pend.length} pending`:""}</span></summary>
+    ${acc.length?acc.map(b=>`<div class="bb-pair">${esc(nameOf(b.users[0]))} <span aria-hidden="true">↔</span><span class="sr-only"> and </span> ${esc(nameOf(b.users[1]))}${b.acceptedAt?` <span class="meta">· since ${esc(fmtDay(b.acceptedAt))}</span>`:""}</div>`).join(""):`<p class="hint" style="margin:8px 0 0">No connections yet.</p>`}
+    ${pend.length?`<h4 style="margin:12px 0 4px">Waiting on a reply</h4>`+pend.map(b=>`<div class="bb-pair">${esc(nameOf(b.from))} <span aria-hidden="true">→</span><span class="sr-only"> asked </span> ${esc(nameOf(b.to))}</div>`).join(""):""}
+  </details>`;
+}
 function memberRow(id, _m, extra){
   const m=fullProfile(id), full=canSeeFull(id), st=buddyState(id);
   const status = statusOf(m);
@@ -897,6 +925,7 @@ function memberRow(id, _m, extra){
       ${links?`<div class="links">${links}</div>`:""}
       ${full && m.reach?`<p class="meta" style="margin-top:6px">Reach out: ${esc(m.reach)}</p>`:""}
       ${!full?`<p class="locked">Connect as battle buddies to see their full profile.</p>`:""}
+      ${adminBuddyLine(id)}
       ${actions?`<div class="actions">${actions}</div>`:""}
     </div></div></div>`;
 }
@@ -929,6 +958,7 @@ function renderPerson(){
 }
 function openPerson(id){ personId=id; renderPerson(); showTab("person"); }
 function renderMembers(){
+  renderBuddyAdmin();
   const note=$("#approvalNote");
   $("#pendingWrap").hidden = true;
   const payUrl = safeUrl(S.config.memberUrl);
@@ -1953,6 +1983,8 @@ function subscribeMembers(){
   }
   if(S.admin){
     subs.push(onSnapshot(collection(fs,"private"), s=>{ S.priv=toMap(s); S.myPrivLoaded=true; migrateMine(); render(); }, e=>{ console.error(e); S.myPrivLoaded=true; }));
+    // Admins see every battle buddy connection (needs the admin read rule on /buddies).
+    subs.push(onSnapshot(collection(fs,"buddies"), s=>{ S.allBuddies=toMap(s); S.allBuddiesErr=false; renderMembers(); }, e=>{ console.error("all buddies", e.code); S.allBuddiesErr=true; renderMembers(); }));
   } else watchPriv(u.uid);
   if(S.approved){
     subs.push(onSnapshot(collection(fs,"members"), s=>{ S.members=toMap(s); migrateMine(); ensureMine(); render(); }, e=>console.error(e)));
@@ -1965,7 +1997,7 @@ function subscribeMembers(){
 
 onAuthStateChanged(auth, async u=>{
   ensured=false; ensuring=false; S.contact=null; welcomeShown=false; welcoming=false;
-  S.user=u; S.admin=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.myPrivLoaded=false; S.salutes={}; S.comments={}; S.photos={}; sPhotoDraft=undefined;
+  S.user=u; S.admin=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.allBuddies=null; S.allBuddiesErr=false; S.myPrivLoaded=false; S.salutes={}; S.comments={}; S.photos={}; sPhotoDraft=undefined;
   clearSubs();
   renderMembers.filled=false; renderStories.filled=false; $("#storyEditor").hidden=true; S.storyMenu=null; S.cmtMenu=null;
   resetEventForm(); resetPartnerForm();
