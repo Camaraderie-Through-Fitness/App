@@ -146,6 +146,12 @@ blockquote{margin:0;font-size:1.08rem;line-height:1.6}
 .rq .meta{display:block;margin-top:4px}
 .rq img.thumb{width:64px;height:64px;object-fit:cover;border-radius:8px;cursor:pointer;flex:none;border:1px solid var(--line)}
 .rq .actions{margin-top:8px}
+.cache{margin-top:18px;text-align:left;border-top:1px solid var(--line);padding-top:12px}
+.cache summary{cursor:pointer}
+.cache-post{padding:12px 0;border-top:1px solid var(--line)}
+.cache-post:first-of-type{margin-top:10px}
+.cache-post blockquote{margin:6px 0}
+.cache-cmt{margin:6px 0 0;font-size:.92rem}
 .cmt .x{background:none;border:0;color:var(--muted);font-size:.85rem;cursor:pointer;padding:0;margin-top:2px}
 .cmt-form{display:flex;gap:8px;margin-top:8px;align-items:flex-end}
 .cmt-form textarea{min-height:44px;height:44px;flex:1}
@@ -496,6 +502,7 @@ nav.tabs button{position:relative}
     <p class="hint">A place to speak freely with people who get it. Everyone signed in can read what's posted here.</p>
     <div class="panel admin" id="photoQueue" hidden></div>
     <p id="shareStoryWrap" hidden style="margin:4px 0 14px"><button class="btn" id="shareStoryBtn">Jump in</button></p>
+    <p class="hint" id="stashPrompt" hidden style="margin:4px 0 14px">Want to post something new? <button class="linkish" data-my-stash="new">Stash your current post to your cache</button> to make room.</p>
     <p class="hint" id="shareStoryHint" style="margin:-6px 0 14px">Wins, struggles, a shout-out, or whatever's on your mind.</p>
     <div class="panel" id="storyEditor" hidden>
       <h3 id="storyHead">Jump in</h3>
@@ -984,7 +991,7 @@ function renderPerson(){
     ${links?`<div class="links" style="margin-top:14px">${links}</div>`:""}
     ${empty?`<p class="hint" style="margin-top:14px">${esc((m.name||"They").split(" ")[0])} hasn't filled in their profile details yet.</p>`:""}
     ${!full?`<p class="locked" style="margin-top:14px">Connect as battle buddies to see their full profile.</p>`:""}
-    ${st==="self"?`<p style="margin-top:14px"><button class="btn small" data-welcome="profile">Edit my profile</button></p>`:`<div class="actions" style="margin-top:14px">${bbButtons(id)}${adminVerifyBtn(id)}</div>`}
+    ${st==="self"?`<p style="margin-top:14px"><button class="btn small" data-welcome="profile">Edit my profile</button></p>${cacheHTML()}`:`<div class="actions" style="margin-top:14px">${bbButtons(id)}${adminVerifyBtn(id)}</div>`}
   </div>`;
 }
 function openPerson(id){ personId=id; renderPerson(); showTab("person"); }
@@ -1091,7 +1098,7 @@ function renderStories(){
         ${id===uid() || S.admin?`<button class="more" data-story-menu="${esc(id)}" aria-expanded="${S.storyMenu===id}" aria-label="Story options">⋯</button>`:""}
       </div>
       ${S.storyMenu===id?`<div class="own-acts">${id===uid()
-        ? `<button class="btn small ghost" data-my-story-edit="1">Edit post</button><button class="btn small danger" data-my-story-del="1">Remove post</button>`
+        ? `<button class="btn small ghost" data-my-story-edit="1">Edit post</button><button class="btn small ghost" data-my-stash="1">Stash to my cache</button><button class="btn small danger" data-my-story-del="1">Remove post</button>`
         : `<button class="btn small danger" data-del-story="${esc(id)}">Remove post</button>`}</div>`:""}
       ${showPh?`<div class="photo-wrap"><img class="story-photo" src="${ph.photo}" alt="Photo shared with this story" loading="lazy">${flag?`<span class="photo-flag">${flag}</span>`:""}</div>`:""}
       <blockquote>${esc(s.text)}</blockquote>
@@ -1129,6 +1136,7 @@ function renderStories(){
   $("#storyHead").textContent = mine ? "Edit your post" : "Jump in";
   $("#sSave").textContent = mine ? "Update post" : "Post";
   $("#shareStoryWrap").hidden = !(S.user && !mine && $("#storyEditor").hidden); $("#shareStoryHint").hidden = $("#shareStoryWrap").hidden;
+  $("#stashPrompt").hidden = !(S.user && mine && $("#storyEditor").hidden);
 }
 
 // Turn phone numbers and emails in a partner's contact text into tap-to-call / tap-to-email buttons.
@@ -1742,6 +1750,12 @@ document.addEventListener("click", async ev=>{
   if(t.dataset.cmtMenu){ S.cmtMenu = S.cmtMenu===t.dataset.cmtMenu ? null : t.dataset.cmtMenu; renderStories(); return; }
   if(t.dataset.myStoryEdit){ openStoryEditor(); return; }
   if(t.dataset.myStoryDel){ removeMyStory(); return; }
+  if(t.dataset.myStash){ stashMyStory(t.dataset.myStash==="new"); return; }
+  if(t.dataset.cacheDel){
+    if(!confirm("Delete this post from your cache for good?")) return;
+    try{ await deleteDoc(doc(fs,"cache",uid(),"posts",t.dataset.cacheDel)); toast("Deleted from your cache."); }catch(e){ writeFailed(e); }
+    return;
+  }
   if(t.dataset.cmtDel){
     const [sid,cid]=t.dataset.cmtDel.split("|");
     if(!confirm("Delete this comment?")) return;
@@ -1960,9 +1974,46 @@ $("#sPhotoFile").addEventListener("change", async e=>{
   e.target.value="";
 });
 $("#sPhotoRemove").addEventListener("click", ()=>{ sPhotoDraft = ""; renderStories(); });
+// Clear salutes and comments under my post so they don't carry over to my next one.
+async function clearMyThread(){
+  const me=uid(), jobs=[];
+  (S.salutes[me]||new Set()).forEach(u=>jobs.push(deleteDoc(doc(fs,"stories",me,"salutes",u)).catch(e=>console.warn("salute",e.code))));
+  (S.comments[me]||[]).forEach(c=>jobs.push(deleteDoc(doc(fs,"stories",me,"comments",c.id)).catch(e=>console.warn("comment",e.code))));
+  await Promise.all(jobs);
+}
 async function removeMyStory(){
-  if(!confirm("Remove your post?")) return;
-  try{ await deleteDoc(doc(fs,"stories",uid())); deleteDoc(doc(fs,"storyPhotos",uid())).catch(()=>{}); S.storyMenu=null; closeStoryEditor(); toast("Post removed."); }catch(e){ writeFailed(e); }
+  if(!confirm("Remove your post? Its salutes and comments go with it.")) return;
+  try{ await clearMyThread(); await deleteDoc(doc(fs,"stories",uid())); deleteDoc(doc(fs,"storyPhotos",uid())).catch(()=>{}); S.storyMenu=null; closeStoryEditor(); toast("Post removed."); }catch(e){ writeFailed(e); }
+}
+async function stashMyStory(thenWrite){
+  const me=uid(), st=S.stories[me]; if(!st) return;
+  if(!confirm("Move your post to your cache? It leaves the Fox Hole with its salutes and comments, and stays on your card for you to look back on.")) return;
+  const ph=S.photos[me];
+  const entry={ text:st.text||"", at:st.updatedAt||Date.now(), stashedAt:Date.now(),
+    salutes:(S.salutes[me]||new Set()).size,
+    comments:(S.comments[me]||[]).slice(0,100).map(c=>({name:String(c.name||"").slice(0,80), text:String(c.text||"").slice(0,500), at:c.at||0})),
+    photo: ph && ph.status==="approved" && /^data:image\/jpeg;base64,/.test(ph.photo||"") ? ph.photo : "" };
+  try{
+    await addDoc(collection(fs,"cache",me,"posts"), entry);
+    await clearMyThread();
+    await deleteDoc(doc(fs,"stories",me)); deleteDoc(doc(fs,"storyPhotos",me)).catch(()=>{});
+    S.storyMenu=null; toast("Stashed to your cache. The Fox Hole is open for your next post.");
+    if(thenWrite) setTimeout(openStoryEditor, 300); else renderStories();
+  }catch(e){ writeFailed(e); }
+}
+function cacheHTML(){
+  const posts=Object.entries(S.cache||{}).sort((a,b)=>(b[1].stashedAt||0)-(a[1].stashedAt||0));
+  if(!posts.length) return "";
+  return `<details class="cache"><summary><b>My cache</b> <span class="meta">${posts.length} stashed post${posts.length===1?"":"s"} · only you can see these</span></summary>
+    ${posts.map(([id,c])=>`<div class="cache-post">
+      <div class="meta">Posted ${esc(fmtDay(c.at||0))} · stashed ${esc(fmtDay(c.stashedAt||0))}</div>
+      ${c.photo?`<img class="story-photo" src="${c.photo}" alt="Photo from this post" loading="lazy">`:""}
+      <blockquote>${esc(c.text||"")}</blockquote>
+      <div class="meta">🫡 ${c.salutes||0} · 💬 ${(c.comments||[]).length}</div>
+      ${(c.comments||[]).length?`<details><summary class="meta">Show comments</summary>${c.comments.map(x=>`<p class="cache-cmt"><b>${esc(x.name||"Member")}</b> ${esc(x.text||"")}</p>`).join("")}</details>`:""}
+      <p style="margin-top:6px"><button class="linkish danger-text" data-cache-del="${esc(id)}">Delete from cache</button></p>
+    </div>`).join("")}
+  </details>`;
 }
 function openStoryEditor(){
   if(needSignIn()) return;
@@ -2259,6 +2310,7 @@ function subscribeMembers(){
     watchPriv(u.uid);
     subs.push(onSnapshot(doc(fs,"reimb",u.uid), d=>{ S.myReimb=d.exists()?d.data():null; renderSupport(); }, e=>console.error("my reimb", e.code)));
   }
+  subs.push(onSnapshot(collection(fs,"cache",u.uid,"posts"), s=>{ S.cache=toMap(s); renderPerson(); }, e=>console.error("cache", e.code)));
   subs.push(onSnapshot(collection(fs,"verified"), s=>{ S.verified=toMap(s); render(); }, e=>console.error("verified", e.code)));
   if(S.approved){
     subs.push(onSnapshot(collection(fs,"members"), s=>{ S.members=toMap(s); migrateMine(); ensureMine(); render(); }, e=>console.error(e)));
@@ -2271,7 +2323,7 @@ function subscribeMembers(){
 
 onAuthStateChanged(auth, async u=>{
   ensured=false; ensuring=false; S.contact=null; welcomeShown=false; welcoming=false;
-  S.user=u; S.admin=false; S.realAdmin=false; S.memberView=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.allBuddies=null; S.allBuddiesErr=false; S.verified={}; S.reimbAll={}; S.myReimb=null; S.awards={}; S.reimbErr=false; S.reimbOpen=false; reimbPhoto=undefined; S.myPrivLoaded=false; S.salutes={}; S.comments={}; S.photos={}; sPhotoDraft=undefined;
+  S.user=u; S.admin=false; S.realAdmin=false; S.memberView=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.allBuddies=null; S.allBuddiesErr=false; S.verified={}; S.cache={}; S.reimbAll={}; S.myReimb=null; S.awards={}; S.reimbErr=false; S.reimbOpen=false; reimbPhoto=undefined; S.myPrivLoaded=false; S.salutes={}; S.comments={}; S.photos={}; sPhotoDraft=undefined;
   clearSubs();
   renderMembers.filled=false; renderStories.filled=false; $("#storyEditor").hidden=true; S.storyMenu=null; S.cmtMenu=null;
   resetEventForm(); resetPartnerForm();
