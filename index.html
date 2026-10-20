@@ -1152,7 +1152,9 @@ document.querySelectorAll(".drop").forEach(d=>d.addEventListener("toggle",()=>{
   if(d.open) document.querySelectorAll(".drop").forEach(o=>{ if(o!==d) o.open=false; });
 }));
 // ---------- Verified veteran badge + gym start-fee reimbursement ----------
-const REIMB_CAP=52.68, GYMS={GHF:"Gainesville Health & Fitness", DBC:"Diaz Boxing Club"}, PAY={venmo:"Venmo", cashapp:"Cash App"};
+const REIMB_CAP=52.68, REIMB_DAYS=30, GYMS={GHF:"Gainesville Health & Fitness", DBC:"Diaz Boxing Club"}, PAY={venmo:"Venmo", cashapp:"Cash App"};
+const GHF_PLANS={LTD:"LTD (12 months)", VIP:"VIP (24 months)", M2M:"Month to month"};
+const daysSince = ymd => { const d=parseDate(ymd); const t=new Date(); t.setHours(0,0,0,0); return Math.round((t-d)/86400000); };
 const money = n => "$"+(Math.round((+n||0)*100)/100).toFixed(2);
 let reimbPhoto;
 function isVerified(id){ return !!(S.verified||{})[id]; }
@@ -1175,11 +1177,15 @@ function myReimb(){ return S.admin ? (S.reimbAll||{})[uid()] || null : S.myReimb
 function reimbFormHTML(r){
   r=r||{};
   return `<form id="reimbForm" onsubmit="return false">
-    <label for="rGym">Gym you joined</label><select id="rGym"><option value="GHF"${r.gym==="GHF"?" selected":""}>${GYMS.GHF}</option><option value="DBC"${r.gym==="DBC"?" selected":""}>${GYMS.DBC}</option></select>
+    <label for="rGym">Gym you joined</label><select id="rGym"><option value="GHF"${r.gym!=="DBC"?" selected":""}>${GYMS.GHF}</option><option value="DBC"${r.gym==="DBC"?" selected":""}>${GYMS.DBC}</option></select>
+    <div id="rPlanWrap"${r.gym==="DBC"?" hidden":""}><label for="rPlan">Membership type</label><select id="rPlan"><option value="">Choose one</option>${Object.entries(GHF_PLANS).map(([k,v])=>`<option value="${k}"${r.plan===k?" selected":""}>${v}</option>`).join("")}</select></div>
     <label for="rJoined">Date you joined</label><input id="rJoined" type="date" value="${esc(r.joined||"")}">
+    <p class="hint">Request within ${REIMB_DAYS} days of joining.</p>
+    <label for="rMemberNo">Member number</label><input id="rMemberNo" type="text" autocomplete="off" value="${esc(r.memberNo||"")}">
     <label for="rPaid">Starting fee you paid ($)</label><input id="rPaid" type="number" inputmode="decimal" step="0.01" min="0" value="${r.paid!=null?esc(String(r.paid)):""}">
     <p class="hint">CTF reimburses up to ${money(REIMB_CAP)}.</p>
     <label>Receipt photo</label>
+    <p class="hint" style="margin-top:0">It must show your name, member number, and the date.</p>
     <div class="s-photo-prev" id="rReceiptPrev">${r.receipt?`<img src="${r.receipt}" alt="Your receipt">`:""}</div>
     <p style="margin-top:8px"><span class="btn small ghost file-btn">${r.receipt?"Change photo":"Add receipt photo"}<input id="rReceiptFile" type="file" accept="image/*" aria-label="Add a photo of your receipt"></span></p>
     <label for="rMethod">Pay me back by</label><select id="rMethod"><option value="venmo"${r.method!=="cashapp"?" selected":""}>Venmo</option><option value="cashapp"${r.method==="cashapp"?" selected":""}>Cash App</option></select>
@@ -1215,6 +1221,7 @@ function renderReimb(){
   }
   box.innerHTML=`<h3>Gym membership help</h3>
     <p>Joining Gainesville Health & Fitness or Diaz Boxing Club? CTF reimburses your starting fee once, up to ${money(REIMB_CAP)}.</p>
+    <ul class="hint" style="margin:8px 0 0;padding-left:20px"><li>Request within ${REIMB_DAYS} days of starting your membership.</li><li>Your receipt must show your name, member number, and the date.</li></ul>
     ${verLine}${body}`;
 }
 function payLink(r){
@@ -1229,7 +1236,7 @@ function renderReimbAdmin(){
   w.hidden=false;
   if(!$("#reimbList")){
     w.innerHTML=`<h3>Reimbursement requests</h3>
-      <p class="hint">One-time starting fee, up to ${money(REIMB_CAP)} per veteran. Verify veterans in person at a workout before approving.</p>
+      <p class="hint">One-time starting fee, up to ${money(REIMB_CAP)} per veteran, within ${REIMB_DAYS} days of joining. Check that the receipt shows their name, member number, and date. Verify veterans in person at a workout before approving.</p>
       <div id="reimbList"></div>
       <details style="margin-top:14px"><summary><b>Record a one-off award</b> <span class="meta">(for example, an annual membership)</span></summary>
         <label for="awWho">Veteran</label><select id="awWho"></select>
@@ -1255,7 +1262,8 @@ function renderReimbAdmin(){
       : r.status==="declined" ? `Declined${r.adminNote?`: ${esc(r.adminNote)}`:""}` : `Waiting${ver?" for approval":" for verification"}`;
     return `<div class="rq"><div class="rq-top">${r.receipt?`<img class="thumb" src="${r.receipt}" alt="Receipt from ${esc(nm)}" data-receipt="${esc(id)}">`:""}
       <div style="flex:1;min-width:0"><b class="tap" data-person="${esc(id)}">${esc(nm)}</b> ${ver?vBadge(id):`<span class="tag">Not verified</span>`}
-      <span class="meta">${esc(GYMS[r.gym]||r.gym||"")} · joined ${esc(r.joined||"?")} · paid ${money(r.paid)} · ${esc(PAY[r.method]||"")} ${esc(r.handle||"")}</span>
+      <span class="meta">${esc(GYMS[r.gym]||r.gym||"")}${r.plan?` · ${esc(GHF_PLANS[r.plan]||r.plan)}`:""} · member #${esc(r.memberNo||"?")}</span>
+      <span class="meta">Joined ${esc(r.joined||"?")}${r.joined&&r.at?` (requested ${Math.max(0,Math.round((r.at-parseDate(r.joined).getTime())/86400000))} days later)`:""} · paid ${money(r.paid)} · ${esc(PAY[r.method]||"")} ${esc(r.handle||"")}</span>
       <span class="meta"><b>${st}</b></span></div></div>${acts?`<div class="actions">${acts}</div>`:""}</div>`;
   }).join("") : `<p class="hint">No requests yet.</p>`;
   // one-off awards
@@ -1270,6 +1278,7 @@ function renderReimbAdmin(){
   $("#awardList").innerHTML = aw.length ? aw.map(a=>`<div class="rq"><b>${esc(a.name||"Member")}</b> · ${money(a.amount)}<span class="meta">${esc(a.note||"")} · ${esc(PAY[a.method]||"Other")} · ${esc(fmtDay(a.at||0))} · by ${esc(a.by||"admin")}</span></div>`).join("") : `<p class="hint">No awards recorded yet.</p>`;
 }
 document.addEventListener("change", async e=>{
+  if(e.target.id==="rGym"){ $("#rPlanWrap").hidden = e.target.value!=="GHF"; return; }
   if(e.target.id!=="rReceiptFile") return;
   const f=e.target.files && e.target.files[0]; if(!f) return;
   try{ reimbPhoto=await resizeStoryPhoto(f); $("#rReceiptPrev").innerHTML=`<img src="${reimbPhoto}" alt="Your receipt">`; }
@@ -1647,13 +1656,19 @@ document.addEventListener("click", async ev=>{
     if(needSignIn()) return;
     const r=myReimb()||{}, gym=$("#rGym").value, joined=$("#rJoined").value, paid=Math.round(parseFloat($("#rPaid").value)*100)/100;
     const method=$("#rMethod").value, handle=$("#rHandle").value.trim().replace(/\s+/g,""), receipt=reimbPhoto || r.receipt || "";
+    const plan = gym==="GHF" ? $("#rPlan").value : "", memberNo=$("#rMemberNo").value.trim().slice(0,40);
+    if(gym==="GHF" && !plan){ toast("Choose your membership type."); return; }
     if(!joined){ toast("Add the date you joined."); return; }
+    const ago=daysSince(joined);
+    if(ago<0){ toast("The join date can't be in the future."); return; }
+    if(ago>REIMB_DAYS){ toast(`Reimbursements are only for memberships started in the last ${REIMB_DAYS} days.`); return; }
+    if(!memberNo){ toast("Add your member number."); return; }
     if(!(paid>0)){ toast("Add the starting fee you paid."); return; }
     if(!receipt){ toast("Add a photo of your receipt."); return; }
     if(!handle){ toast(method==="cashapp" ? "Add your $Cashtag." : "Add your Venmo username."); return; }
     t.disabled=true;
     try{
-      await setDoc(doc(fs,"reimb",uid()), {gym, joined, paid, receipt, method, handle, name:myName(), status:"submitted", at:Date.now()});
+      await setDoc(doc(fs,"reimb",uid()), {gym, plan, joined, memberNo, paid, receipt, method, handle, name:myName(), status:"submitted", at:Date.now()});
       S.reimbOpen=false; reimbPhoto=undefined; $("#reimbBox").innerHTML=""; renderReimb();
       toast(isVerified(uid()) ? "Request sent. An admin will review it." : "Request sent. It'll be approved after you're verified at a workout.");
     }catch(e){ writeFailed(e); } finally{ t.disabled=false; }

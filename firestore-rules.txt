@@ -79,7 +79,9 @@ service cloud.firestore {
     // The veteran submits and can edit while it's waiting or was declined; admins approve, pay, decline.
     match /reimb/{id} {
       function ownerFields() {
-        return request.resource.data.keys().hasOnly(['gym','joined','paid','receipt','method','handle','name','status','at'])
+        return request.resource.data.keys().hasOnly(['gym','plan','joined','memberNo','paid','receipt','method','handle','name','status','at'])
+          && request.resource.data.get('plan', '') in ['', 'LTD', 'VIP', 'M2M']
+          && request.resource.data.get('memberNo', '') is string && request.resource.data.get('memberNo', '').size() < 41
           && request.resource.data.status == 'submitted'
           && request.resource.data.gym in ['GHF','DBC']
           && request.resource.data.method in ['venmo','cashapp']
