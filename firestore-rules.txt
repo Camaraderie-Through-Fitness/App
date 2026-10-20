@@ -101,9 +101,15 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
-    // Fox Hole cache: a member's stashed past posts. Only they (and admins) can see them.
+    // Fox Hole cache: a member's stashed past posts. Private unless they choose to share it.
+    // Each member's cache setting: public = other members can see their stashed posts.
+    match /cache/{uid} {
+      allow read: if signedIn();
+      allow write: if isMe(uid) && request.resource.data.keys().hasOnly(['public']) && request.resource.data.public is bool;
+    }
     match /cache/{uid}/posts/{pid} {
-      allow read: if isMe(uid) || isAdmin();
+      allow read: if isMe(uid) || isAdmin()
+        || (isMember() && get(/databases/$(database)/documents/cache/$(uid)).data.get('public', false) == true);
       allow create: if isMe(uid)
         && request.resource.data.keys().hasOnly(['text','at','stashedAt','salutes','comments','photo'])
         && request.resource.data.text is string && request.resource.data.text.size() <= 2000

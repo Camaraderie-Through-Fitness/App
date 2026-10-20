@@ -991,10 +991,10 @@ function renderPerson(){
     ${links?`<div class="links" style="margin-top:14px">${links}</div>`:""}
     ${empty?`<p class="hint" style="margin-top:14px">${esc((m.name||"They").split(" ")[0])} hasn't filled in their profile details yet.</p>`:""}
     ${!full?`<p class="locked" style="margin-top:14px">Connect as battle buddies to see their full profile.</p>`:""}
-    ${st==="self"?`<p style="margin-top:14px"><button class="btn small" data-welcome="profile">Edit my profile</button></p>${cacheHTML()}`:`<div class="actions" style="margin-top:14px">${bbButtons(id)}${adminVerifyBtn(id)}</div>`}
+    ${st==="self"?`<p style="margin-top:14px"><button class="btn small" data-welcome="profile">Edit my profile</button></p>${cacheHTML()}`:`<div class="actions" style="margin-top:14px">${bbButtons(id)}${adminVerifyBtn(id)}</div>${cacheHTML(id)}`}
   </div>`;
 }
-function openPerson(id){ personId=id; renderPerson(); showTab("person"); }
+function openPerson(id){ personId=id; watchOtherCache(id); renderPerson(); showTab("person"); }
 function renderMembers(){
   renderBuddyAdmin();
   const note=$("#approvalNote");
@@ -1296,6 +1296,12 @@ function renderReimbAdmin(){
   $("#awardList").innerHTML = aw.length ? aw.map(a=>`<div class="rq"><b>${esc(a.name||"Member")}</b> · ${money(a.amount)}<span class="meta">${esc(a.note||"")} · ${esc(PAY[a.method]||"Other")} · ${esc(fmtDay(a.at||0))} · by ${esc(a.by||"admin")}</span></div>`).join("") : `<p class="hint">No awards recorded yet.</p>`;
 }
 document.addEventListener("change", async e=>{
+  if(e.target.matches && e.target.matches("[data-cache-public]")){
+    const on=e.target.checked;
+    try{ await setDoc(doc(fs,"cache",uid()), {public:on}); toast(on ? "Your cache is now visible to other members." : "Your cache is private again."); }
+    catch(err){ e.target.checked=!on; writeFailed(err); }
+    return;
+  }
   if(e.target.id==="rGym"){ $("#rPlanWrap").hidden = e.target.value!=="GHF"; return; }
   if(e.target.id!=="rReceiptFile") return;
   const f=e.target.files && e.target.files[0]; if(!f) return;
@@ -2001,19 +2007,41 @@ async function stashMyStory(thenWrite){
     if(thenWrite) setTimeout(openStoryEditor, 300); else renderStories();
   }catch(e){ writeFailed(e); }
 }
-function cacheHTML(){
-  const posts=Object.entries(S.cache||{}).sort((a,b)=>(b[1].stashedAt||0)-(a[1].stashedAt||0));
+function cacheHTML(id){
+  const own = !id || id===uid();
+  const src = own ? S.cache : (S.otherCache && S.otherCache.id===id && S.otherCache.public ? S.otherCache.posts : null);
+  const posts=Object.entries(src||{}).sort((a,b)=>(b[1].stashedAt||0)-(a[1].stashedAt||0));
   if(!posts.length) return "";
-  return `<details class="cache"><summary><b>My cache</b> <span class="meta">${posts.length} stashed post${posts.length===1?"":"s"} · only you can see these</span></summary>
-    ${posts.map(([id,c])=>`<div class="cache-post">
+  const pub = !!(S.cacheSetting && S.cacheSetting.public);
+  const first = own ? "My cache" : `${esc(((S.members[id]||{}).name||"Their").split(" ")[0])}'s cache`;
+  const sub = own ? (pub ? "other members can see these" : "only you can see these") : "past posts they chose to share";
+  return `<details class="cache"><summary><b>${first}</b> <span class="meta">${posts.length} stashed post${posts.length===1?"":"s"} · ${sub}</span></summary>
+    ${own?`<label class="check" style="margin-top:10px"><input type="checkbox" data-cache-public${pub?" checked":""}> Show my cache to other members on my card</label>`:""}
+    ${posts.map(([pid,c])=>`<div class="cache-post">
       <div class="meta">Posted ${esc(fmtDay(c.at||0))} · stashed ${esc(fmtDay(c.stashedAt||0))}</div>
       ${c.photo?`<img class="story-photo" src="${c.photo}" alt="Photo from this post" loading="lazy">`:""}
       <blockquote>${esc(c.text||"")}</blockquote>
       <div class="meta">🫡 ${c.salutes||0} · 💬 ${(c.comments||[]).length}</div>
       ${(c.comments||[]).length?`<details><summary class="meta">Show comments</summary>${c.comments.map(x=>`<p class="cache-cmt"><b>${esc(x.name||"Member")}</b> ${esc(x.text||"")}</p>`).join("")}</details>`:""}
-      <p style="margin-top:6px"><button class="linkish danger-text" data-cache-del="${esc(id)}">Delete from cache</button></p>
+      ${own?`<p style="margin-top:6px"><button class="linkish danger-text" data-cache-del="${esc(pid)}">Delete from cache</button></p>`:""}
     </div>`).join("")}
   </details>`;
+}
+// Another member's cache: only loads if they made it public.
+let otherCacheSubs=[];
+function watchOtherCache(id){
+  otherCacheSubs.forEach(f=>f()); otherCacheSubs=[]; S.otherCache=null;
+  if(!id || id===uid() || !S.user) return;
+  S.otherCache={id, public:false, posts:{}};
+  otherCacheSubs.push(onSnapshot(doc(fs,"cache",id), d=>{
+    const pub=!!(d.exists() && d.data().public);
+    if(!S.otherCache || S.otherCache.id!==id) return;
+    S.otherCache.public=pub;
+    if(pub && otherCacheSubs.length===1){
+      otherCacheSubs.push(onSnapshot(collection(fs,"cache",id,"posts"), s=>{ if(S.otherCache && S.otherCache.id===id){ S.otherCache.posts=toMap(s); renderPerson(); } }, e=>console.warn("other cache", e.code)));
+    }
+    renderPerson();
+  }, e=>console.warn("other cache setting", e.code)));
 }
 function openStoryEditor(){
   if(needSignIn()) return;
@@ -2311,6 +2339,7 @@ function subscribeMembers(){
     subs.push(onSnapshot(doc(fs,"reimb",u.uid), d=>{ S.myReimb=d.exists()?d.data():null; renderSupport(); }, e=>console.error("my reimb", e.code)));
   }
   subs.push(onSnapshot(collection(fs,"cache",u.uid,"posts"), s=>{ S.cache=toMap(s); renderPerson(); }, e=>console.error("cache", e.code)));
+  subs.push(onSnapshot(doc(fs,"cache",u.uid), d=>{ S.cacheSetting=d.exists()?d.data():null; renderPerson(); }, e=>console.error("cache setting", e.code)));
   subs.push(onSnapshot(collection(fs,"verified"), s=>{ S.verified=toMap(s); render(); }, e=>console.error("verified", e.code)));
   if(S.approved){
     subs.push(onSnapshot(collection(fs,"members"), s=>{ S.members=toMap(s); migrateMine(); ensureMine(); render(); }, e=>console.error(e)));
@@ -2323,7 +2352,7 @@ function subscribeMembers(){
 
 onAuthStateChanged(auth, async u=>{
   ensured=false; ensuring=false; S.contact=null; welcomeShown=false; welcoming=false;
-  S.user=u; S.admin=false; S.realAdmin=false; S.memberView=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.allBuddies=null; S.allBuddiesErr=false; S.verified={}; S.cache={}; S.reimbAll={}; S.myReimb=null; S.awards={}; S.reimbErr=false; S.reimbOpen=false; reimbPhoto=undefined; S.myPrivLoaded=false; S.salutes={}; S.comments={}; S.photos={}; sPhotoDraft=undefined;
+  S.user=u; S.admin=false; S.realAdmin=false; S.memberView=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.allBuddies=null; S.allBuddiesErr=false; S.verified={}; S.cache={}; S.cacheSetting=null; S.otherCache=null; S.reimbAll={}; S.myReimb=null; S.awards={}; S.reimbErr=false; S.reimbOpen=false; reimbPhoto=undefined; S.myPrivLoaded=false; S.salutes={}; S.comments={}; S.photos={}; sPhotoDraft=undefined;
   clearSubs();
   renderMembers.filled=false; renderStories.filled=false; $("#storyEditor").hidden=true; S.storyMenu=null; S.cmtMenu=null;
   resetEventForm(); resetPartnerForm();
