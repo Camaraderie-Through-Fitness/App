@@ -31,3 +31,14 @@ full app review that includes Firebase changes.
       over, $1 each vs. packs (card fees eat ~1/3 of $1), admin grants paid posts
       by hand after seeing the donation, how it fits with the $22/yr membership,
       and "donation" wording (check with whoever does CTF's books).
+- [ ] **Gym membership reimbursement program** (parameters set Oct 19; not built yet):
+      veterans joining a partner gym (GHF, Diaz Boxing Club) get a one-time
+      start-fee reimbursement, capped at $52.68 per veteran. Must attend one CTF
+      monthly workout first; an admin verifies veteran status in person there
+      (no document uploads). Requests can be submitted any time but can't be
+      approved until verified. Any admin can approve. Payout by Venmo or Cash App
+      (one-tap "Pay in" links; admin marks paid). Admins can also record annual
+      memberships as one-off awards above the cap. Needs new Firestore rules
+      (requests, verified status, workout check-in list).
+      - On hold within this: showing how much of the fund is left. No bank
+        linking; if built, it would be a budget number an admin types in.
