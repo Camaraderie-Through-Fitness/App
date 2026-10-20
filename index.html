@@ -368,6 +368,93 @@ nav.tabs button{position:relative}
 .member-head .body{min-width:0}
 .svc{color:var(--muted);font-size:.93rem;margin-top:2px}
 .links{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+/* ---- Redesign: header, Home, Events, Community, Give, Admin ---- */
+.donate-pill{flex:none;min-height:40px;padding:0 14px;border-radius:99px;border:0;background:var(--brass);color:#1A1405;font-weight:700;cursor:pointer}
+.acct-wrap{position:relative;flex:none;display:inline-flex}
+.acct-wrap .badge{left:auto;right:-4px;top:-4px}
+@media (max-width:430px){ header.top .acct span{display:none} header.top .acct{padding:0 4px} header.top .donate-pill{padding:0 12px} }
+@media (max-width:360px){ header.top .sub{display:none} }
+.btn.brass{background:var(--brass);border-color:var(--brass);color:#1A1405}
+.btn.wide{width:100%}
+.two-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0 4px}
+.page-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:28px 0 12px}
+.page-head h2{margin:0}
+.sec-head{font-size:1.5rem;margin:26px 0 6px}
+.home-hero{margin-top:12px;border-radius:18px;overflow:hidden;background:var(--line);aspect-ratio:16/10}
+.home-hero img{display:block;width:100%;height:100%;object-fit:cover}
+.home-hero.fallback{background:var(--green);display:grid;place-items:center;aspect-ratio:auto;padding:28px 0}
+.home-hero.fallback img{width:132px;height:132px;border-radius:50%}
+.home-title{font-size:2.5rem;margin:18px 0 8px}
+.home-mission{font-size:1.05rem;color:var(--ink)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:18px 0 4px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 6px;text-align:center}
+.stat b{display:block;font:700 1.8rem/1 var(--display);color:var(--green)}
+.stat span{display:block;font-size:.82rem;color:var(--muted);margin-top:4px;line-height:1.2}
+.kicker{font-size:.8rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.muster .kicker{color:var(--brass-soft)}
+.home-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;margin:18px 0}
+.home-card p{white-space:pre-wrap}
+.home-card .by{color:var(--muted);font-size:.93rem;font-weight:600;margin:0}
+.quote{background:var(--brass-soft);border-radius:16px;padding:18px;margin:18px 0}
+.quote blockquote{font-style:italic;font-size:1.12rem}
+.quote figcaption{margin-top:8px;font-weight:600;font-size:.93rem}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.chip{border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:99px;padding:7px 12px;font-size:.92rem;cursor:pointer}
+.ig-row{margin:22px 0 8px}
+.ig-row a{display:inline-flex;align-items:center;gap:8px;font-weight:600;min-height:44px}
+/* event types */
+.etag{display:inline-block;font-size:.78rem;font-weight:700;padding:2px 9px;border-radius:99px;margin-right:6px;vertical-align:2px}
+.etag.workout{background:#DCE4CF;color:#27331B}
+.etag.fundraiser{background:#F3E6C8;color:#4F3B0E}
+.etag.community{background:#D7E2EA;color:#1C3446}
+.etag.wellness{background:#E9DBE5;color:#45263F}
+.muster .etag{box-shadow:0 0 0 1px rgba(0,0,0,.08)}
+.muster .ev-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.muster .ev-acts .btn{margin-top:0}
+.muster .ev-acts .btn.ghost{background:transparent;color:inherit;border-color:currentColor}
+.muster .own-acts .btn{margin-top:0;background:transparent;color:inherit;border-color:currentColor}
+.ev-more{min-height:36px;padding:0 12px;border:2px solid var(--green);border-radius:9px;background:transparent;color:var(--green);font:700 1.05rem/1 var(--body);cursor:pointer}
+.muster .ev-more{min-height:46px;border-radius:12px;color:inherit;border-color:currentColor;padding:0 14px}
+.ev-more[aria-expanded="true"]{background:var(--bg)}
+.muster .ev-more[aria-expanded="true"]{background:rgba(255,255,255,.14)}
+.row .own-acts{margin:8px 0 0}
+.muster .own-acts{margin:10px 0 0}
+.past{margin-top:24px;border-top:1px solid var(--line);padding-top:6px}
+.past summary{cursor:pointer;font:700 1.2rem var(--display);color:var(--muted);padding:8px 0}
+.past .row{padding:10px 0}
+/* community */
+.comm-seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--line);border-radius:14px;padding:4px;margin:16px 0 0}
+.comm-seg button{position:relative;border:0;background:none;min-height:44px;border-radius:10px;font-weight:700;color:var(--ink);cursor:pointer}
+.comm-seg button[aria-selected="true"]{background:var(--green);color:var(--green-ink)}
+.seg-badge{top:6px;left:auto;right:10px}
+.crisis-mini{background:var(--surface);border:1.5px solid var(--alert);border-radius:12px;padding:10px 14px;font-size:.93rem;margin:6px 0 14px}
+.crisis-mini a{color:var(--alert);font-weight:700}
+/* support */
+.crisis-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.crisis .btn{background:#fff;color:#8E2B1E;border-color:#fff}
+.crisis .btn.ghost{background:transparent;color:#fff;border-color:#fff}
+:root[data-theme="dark"] .crisis{background:#8E2B1E}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .crisis{background:#8E2B1E} }
+/* give */
+.give-box h3{margin-bottom:6px}
+.impact{display:flex;gap:14px;align-items:baseline;padding:12px 0;border-top:1px solid var(--line)}
+.impact .amt{flex:none;width:60px;font:700 1.6rem/1 var(--display);color:var(--green)}
+.give-box .btn{width:100%;min-height:54px;font-size:1.1rem}
+.help-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.help-card{display:flex;flex-direction:column;gap:4px;justify-content:center;text-align:center;min-height:84px;padding:10px 8px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);text-decoration:none;font:inherit;cursor:pointer}
+.help-card b{font-size:.95rem;line-height:1.2}
+.help-card span{font-size:.8rem;color:var(--muted)}
+.gate-give{margin-top:14px;text-align:center;font-size:.95rem;color:#E9ECE2}
+.gate-give a{color:#E3B95E;font-weight:700}
+/* admin */
+.admin-sum{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 4px}
+.admin-sum .tag{font-size:.88rem;padding:4px 12px}
+.admin-sum button.tag{border:0;cursor:pointer;font-family:inherit;color:var(--ink)}
+.kicker-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sub-h{font:600 1.1rem var(--display);margin:18px 0 0;color:var(--muted)}
+.stat-edit{display:grid;grid-template-columns:5.5rem 1fr;gap:8px;margin-top:8px}
+@media (max-width:420px){ .help-grid{grid-template-columns:1fr} .help-card{min-height:56px;flex-direction:row;justify-content:space-between;align-items:center;text-align:left;padding:10px 14px} }
+@media (max-width:400px){ nav.tabs .tab-lbl{font-size:.74rem} }
 </style>
 </head>
 <body class="booting">
@@ -405,6 +492,7 @@ nav.tabs button{position:relative}
       <div class="err" id="authErr" role="alert"></div>
     </div>
     <p class="gate-free">Creating an account is free. Workouts, RSVPs, and support resources cost nothing.</p>
+    <p class="gate-give">Here to support veterans? <a id="gateDonate" href="https://www.camaraderietf.org/donate" target="_blank" rel="noopener">Donate to CTF</a></p>
     <p class="gate-crisis">In crisis right now? Call <a href="tel:988">988</a> and press 1, or text <a href="sms:838255">838255</a>.</p>
   </div>
 </section>
@@ -413,8 +501,8 @@ nav.tabs button{position:relative}
   <header class="top">
     <img class="mark" src="logo.png" alt="" width="48" height="48">
     <div><div class="name">Camaraderie Through Fitness</div><div class="sub">Veterans community</div></div>
-    <a class="ig" href="https://www.instagram.com/camaraderie_through_fitness/" target="_blank" rel="noopener" aria-label="CTF on Instagram" title="CTF on Instagram"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg></a>
-    <button class="acct" id="acctBtn">Sign in</button>
+    <button class="donate-pill" data-go="give">Donate</button>
+    <span class="acct-wrap"><button class="acct" id="acctBtn" aria-label="Your profile and settings">Sign in</button><span class="badge" id="adminBadge" hidden></span></span>
   </header>
   <div class="view-note" id="viewNote" hidden><span>Viewing the app as a member. Admin tools are hidden.</span><button class="btn small" data-view-set="admin">Back to admin view</button></div>
   <div class="verify-note" id="verifyNote" hidden>
@@ -422,41 +510,44 @@ nav.tabs button{position:relative}
     <p class="verify-btns"><button class="btn small" id="verifyDone">I've confirmed</button><button class="btn small ghost" id="verifyResend">Send link</button></p>
   </div>
 
-  <!-- WORKOUTS -->
-  <section id="tab-workouts">
+  <!-- HOME -->
+  <section id="tab-home">
+    <div id="homeHero"></div>
+    <h1 class="home-title" id="homeTitle"></h1>
+    <p class="home-mission" id="homeMission"></p>
+    <div class="two-btns"><button class="btn" data-go="events">See events</button><button class="btn brass" data-go="give">Donate</button></div>
+    <div class="stats" id="homeStats" hidden></div>
+    <div id="homeNext"></div>
+    <div id="homeStory"></div>
+    <div id="homeQuote"></div>
+    <div id="homePartners"></div>
+    <p class="ig-row"><a href="https://www.instagram.com/camaraderie_through_fitness/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg>Follow CTF on Instagram</a></p>
+  </section>
+
+  <!-- EVENTS -->
+  <section id="tab-events" hidden>
+    <div class="page-head"><h2>Events</h2><button class="btn small ghost" id="evAddBtn" data-go="admin" data-focus="eventAdmin" hidden>Add an event</button></div>
+    <p style="margin:0 0 4px"><button class="btn ghost wide" id="calAllBtn"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Add all events to my calendar</button></p>
+    <p class="hint" style="text-align:center;margin:0 0 12px">One tap puts every scheduled CTF event on your phone's calendar, with reminders.</p>
+    <div class="filter" id="evFilter" role="group" aria-label="Filter events"></div>
     <div id="welcome"></div>
     <div id="myRsvps"></div>
     <div class="muster" id="muster"></div>
-    <h2>Upcoming</h2>
+    <h2 id="upHead">Upcoming</h2>
     <div id="eventList"></div>
-    <p id="moreWrap" hidden style="margin-top:14px"><button class="btn ghost" id="moreBtn">Show more workouts</button></p>
-    <p id="seedWrap" hidden style="margin-top:14px"><button class="btn ghost" id="seedBtn">Load starter partners</button></p>
-    <div class="panel admin" id="eventAdmin" hidden>
-      <h3 id="evHead">Add a workout</h3>
-      <label for="evTitle">Name</label><input id="evTitle" type="text" placeholder="Trail ruck, San Felasco">
-      <label for="evDate">Date</label><input id="evDate" type="date">
-      <label for="evTime">Start time</label><input id="evTime" type="time">
-      <label for="evLoc">Location</label><input id="evLoc" type="text">
-      <label for="evAddr">Street address <span class="hint">(for the Directions button)</span></label><input id="evAddr" type="text" placeholder="4820 W Newberry Rd, Gainesville, FL 32607">
-      <label for="evDesc">Details</label><textarea id="evDesc" placeholder="What to bring, where to park"></textarea>
-      <p style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="evSave">Add workout</button><button class="btn ghost" id="evCancel" hidden>Cancel</button></p>
-    </div>
+    <p id="moreWrap" hidden style="margin-top:14px"><button class="btn ghost" id="moreBtn">Show more events</button></p>
+    <div id="pastEvents"></div>
   </section>
 
-  <!-- MEMBERS -->
+  <!-- COMMUNITY: Members -->
   <section id="tab-members" hidden>
+    <div class="comm-seg" role="tablist" aria-label="Community"><button role="tab" data-comm="stories" aria-selected="false">The Fox Hole</button><button role="tab" data-comm="members" aria-selected="true">Members<span class="badge seg-badge" id="bbSegBadge" hidden></span></button></div>
     <h2>Members</h2>
     <p class="hint">Members choose whether to show up here.</p>
-    <div class="panel admin" id="paywallAdmin" hidden>
-      <label class="check" style="margin-top:0"><input type="checkbox" id="paywallToggle"> <span><b>Require paid membership</b> ($22/year) for the member directory and posting stories</span></label>
-      <p class="hint" id="paywallState" style="margin:8px 0 0"></p>
-    </div>
     <div id="approvalNote"></div>
     <div class="filter" id="dirFilter" role="group" aria-label="Filter members" hidden><button data-dir="all" aria-pressed="true">Everyone</button><button data-dir="mil" aria-pressed="false">Veterans &amp; military</button><button data-dir="bb" aria-pressed="false">Battle buddies</button><button type="button" class="tip" data-tip="battle" aria-label="What does battle buddy mean?">i</button></div>
     <div class="dir-search" id="dirSearchWrap" hidden><input id="dirSearch" type="search" placeholder="Search by name, branch, or unit" aria-label="Search members" autocomplete="off"></div>
     <div id="bbRequests"></div>
-    <div id="pendingWrap" class="panel admin" hidden><h3>Waiting on payment</h3><p class="hint">Check your payment platform, then tap Activate 1 year.</p><div class="list" id="pendingList" style="border-top:0"></div><div id="renewWrap"></div></div>
-    <div id="bbAdminWrap"></div>
     <div class="list" id="memberList"></div>
   </section>
 
@@ -524,18 +615,19 @@ nav.tabs button{position:relative}
         <label for="pReach">Best way to reach you</label><input id="pReach" type="text" placeholder="Phone or email" maxlength="120">
         <p class="hint">Only members see the member list.</p>
         <label class="check"><input type="checkbox" id="pListed"> Show me in the member list</label>
-        <label class="check"><input type="checkbox" id="pRemind"> Email me a reminder the day before workouts I RSVP to</label>
+        <label class="check"><input type="checkbox" id="pRemind"> Email me a reminder the day before events I RSVP to</label>
         <p class="hint">Reminders go to <span id="pEmail"></span>. Only CTF admins can see your email.</p>
       </div>
       <p style="margin-top:16px"><button class="btn" id="pSave">Save profile</button></p>
     </div>
   </section>
 
-  <!-- STORIES -->
+  <!-- COMMUNITY: Fox Hole -->
   <section id="tab-stories" hidden>
+    <div class="comm-seg" role="tablist" aria-label="Community"><button role="tab" data-comm="stories" aria-selected="true">The Fox Hole</button><button role="tab" data-comm="members" aria-selected="false">Members<span class="badge seg-badge" id="bbSegBadge2" hidden></span></button></div>
     <h2>The Fox Hole <button type="button" class="tip" data-tip="foxhole" aria-label="What does the Fox Hole mean?">i</button></h2>
     <p class="hint">A place to speak freely with people who get it. Everyone signed in can read what's posted here. Tap 🫡 Salute on a post to show respect <button type="button" class="tip" data-tip="salute" aria-label="What does salute mean?">i</button>.</p>
-    <div class="panel admin" id="photoQueue" hidden></div>
+    <p class="crisis-mini"><b>Having a rough time?</b> Veterans Crisis Line: <a href="tel:988">call 988, press 1</a> or <a href="sms:838255">text 838255</a>. Free and confidential, 24/7.</p>
     <div id="devoBox"></div>
     <p id="shareStoryWrap" hidden style="margin:4px 0 14px"><button class="btn" id="shareStoryBtn">Jump in</button></p>
     <p class="hint" id="stashPrompt" hidden style="margin:4px 0 14px">Want to post something new? <button class="linkish" data-my-stash="new">Stash your current post to your cache</button> to make room.</p>
@@ -557,18 +649,99 @@ nav.tabs button{position:relative}
 
   <!-- SUPPORT -->
   <section id="tab-support" hidden>
+    <h2>Support</h2>
     <div class="crisis">
       <h3>In crisis right now?</h3>
-      <p>Call the Veterans Crisis Line: dial <a href="tel:988">988</a> and press 1. Or text <a href="sms:838255">838255</a>. Free, confidential, 24/7.</p>
+      <p>Veterans Crisis Line. Free, confidential, 24/7.</p>
+      <div class="crisis-btns"><a class="btn" href="tel:988">Call 988, press 1</a><a class="btn ghost" href="sms:838255">Text 838255</a></div>
     </div>
     <div class="panel reimb" id="reimbBox" hidden></div>
-    <div class="panel admin" id="reimbAdmin" hidden></div>
-    <p class="hint" style="margin-top:22px">Partner organizations. Tap a section to see who's in it, then reach out to them directly.</p>
+    <h3 class="sec-head">Partners</h3>
+    <p class="hint">Tap a section to see who's in it, then reach out to them directly.</p>
     <div class="drops">
       <details class="drop" name="partners" id="dSupport"><summary><span class="drop-title">Counseling and care</span><span class="drop-count" id="cSupport"></span><span class="chev" aria-hidden="true"></span></summary><div class="list" id="supportList"></div></details>
       <details class="drop" name="partners" id="dNp"><summary><span class="drop-title">Pro-veteran nonprofits</span><span class="drop-count" id="cNp"></span><span class="chev" aria-hidden="true"></span></summary><div class="list" id="npList"></div></details>
       <details class="drop" name="partners" id="dBiz"><summary><span class="drop-title">Businesses that back us</span><span class="drop-count" id="cBiz"></span><span class="chev" aria-hidden="true"></span></summary><div class="list" id="bizList"></div></details>
     </div>
+    <p><a class="btn ghost wide" href="mailto:CTF@camaraderietf.org">Need something else? Email the CTF team</a></p>
+  </section>
+
+  <!-- GIVE -->
+  <section id="tab-give" hidden>
+    <h2>Give</h2>
+    <div id="giveHero"></div>
+    <div class="give-big">Keep veterans moving.</div>
+    <p>CTF is all-volunteer. Donations pay for gym memberships, gear, and events for veterans.</p>
+    <div class="panel give-box">
+      <h3>What your gift does</h3>
+      <div class="impact"><span class="amt">$22</span><span>Sponsors a year of CTF membership for a veteran</span></div>
+      <div class="impact"><span class="amt">$55</span><span>Covers one veteran's gym start fee at Gainesville Health &amp; Fitness or Diaz Boxing Club</span></div>
+      <p id="giveAction" style="margin:16px 0 0"></p>
+      <p class="hint" id="giveWhere" style="margin:8px 0 0;text-align:center"></p>
+    </div>
+    <div id="giveQuote"></div>
+    <h3 class="sec-head">Other ways to help</h3>
+    <div class="help-grid">
+      <button class="help-card" data-go="events" data-evfilter="fundraiser"><b>Come to a fundraiser</b><span>See what's coming up</span></button>
+      <a class="help-card" href="mailto:CTF@camaraderietf.org?subject=Business%20partnership"><b>Partner with us</b><span>For businesses</span></a>
+      <a class="help-card" href="mailto:CTF@camaraderietf.org?subject=Volunteering"><b>Volunteer</b><span>Help run events</span></a>
+    </div>
+    <p class="hint" style="margin-top:18px">Camaraderie Through Fitness, Inc. is a 501(c)(3) nonprofit, EIN 33-2237176. Gifts may be tax-deductible.</p>
+  </section>
+
+  <!-- ADMIN (opened from the profile menu; only admins) -->
+  <section id="tab-admin" hidden>
+    <div class="profile-head"><button class="btn small ghost" id="adminBack">Back</button><h2 style="margin:0">Admin</h2><span class="tag">Only admins see this</span></div>
+    <p class="hint">Everything you manage lives here, so the member pages stay clean. To see the app the way members do, use App view in your profile menu.</p>
+    <div class="admin-sum" id="adminSum"></div>
+
+    <div class="panel admin" id="homeAdmin" hidden>
+      <h3>Home page</h3>
+      <p class="hint">Fills in the Home tab. Anything left blank stays hidden.</p>
+      <label>Top photo</label>
+      <div class="s-photo-prev" id="hPhotoPrev"></div>
+      <p style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap"><span class="btn small ghost file-btn" id="hPhotoBtn">Choose photo<input id="hPhotoFile" type="file" accept="image/*" aria-label="Choose the Home page photo"></span><button class="btn small ghost" id="hPhotoRemove" hidden>Remove photo</button></p>
+      <label for="hTitle">Headline</label><input id="hTitle" type="text" maxlength="90">
+      <label for="hMission">Who we are (a sentence or two)</label><textarea id="hMission" maxlength="400" style="min-height:80px"></textarea>
+      <h4 class="sub-h">Impact numbers <span class="hint">(up to 3)</span></h4>
+      <div class="stat-edit"><input id="hS1n" type="text" maxlength="12" placeholder="40" aria-label="Number 1"><input id="hS1l" type="text" maxlength="30" placeholder="Veterans served" aria-label="Label 1"></div>
+      <div class="stat-edit"><input id="hS2n" type="text" maxlength="12" placeholder="25" aria-label="Number 2"><input id="hS2l" type="text" maxlength="30" placeholder="Events held" aria-label="Label 2"></div>
+      <div class="stat-edit"><input id="hS3n" type="text" maxlength="12" placeholder="$1,100" aria-label="Number 3"><input id="hS3l" type="text" maxlength="30" placeholder="Gym fees covered" aria-label="Label 3"></div>
+      <h4 class="sub-h">Why CTF exists</h4>
+      <label for="hStory">Your story, in your words</label><textarea id="hStory" maxlength="1200"></textarea>
+      <label for="hStoryBy">Signed by</label><input id="hStoryBy" type="text" maxlength="120" placeholder="Name · title">
+      <h4 class="sub-h">Member quote <span class="hint">(shows on Home and Give)</span></h4>
+      <label for="hQuote">Quote</label><textarea id="hQuote" maxlength="400" style="min-height:80px" placeholder="Get their OK before posting"></textarea>
+      <label for="hQuoteBy">Who said it</label><input id="hQuoteBy" type="text" maxlength="80" placeholder="Name · Branch veteran">
+      <p style="margin-top:14px"><button class="btn" id="hSave">Save Home page</button></p>
+    </div>
+
+    <div class="panel admin" id="eventAdmin" hidden>
+      <h3 id="evHead">Add an event</h3>
+      <label for="evTitle">Name</label><input id="evTitle" type="text" placeholder="Trail ruck, San Felasco">
+      <label for="evType">Type</label><select id="evType"><option value="workout">Workout</option><option value="fundraiser">Fundraiser</option><option value="community">Community</option><option value="wellness">Wellness</option></select>
+      <label for="evDate">Date</label><input id="evDate" type="date">
+      <label for="evTime">Start time</label><input id="evTime" type="time">
+      <label for="evLoc">Location</label><input id="evLoc" type="text">
+      <label for="evAddr">Street address <span class="hint">(for the Directions button)</span></label><input id="evAddr" type="text" placeholder="4820 W Newberry Rd, Gainesville, FL 32607">
+      <label for="evDesc">Details</label><textarea id="evDesc" placeholder="Who it's for, what to bring, where to park"></textarea>
+      <label for="evLink">Tickets or sign-up link <span class="hint">(optional)</span></label><input id="evLink" type="url" placeholder="https://">
+      <label class="check"><input type="checkbox" id="evPin"> Pin to the top of Events and Home</label>
+      <p style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="evSave">Add event</button><button class="btn ghost" id="evCancel" hidden>Cancel</button></p>
+    </div>
+
+    <div class="panel admin" id="photoQueue" hidden></div>
+    <div class="panel admin" id="reimbAdmin" hidden></div>
+
+    <div class="panel admin" id="paywallAdmin" hidden>
+      <h3>Membership</h3>
+      <label class="check" style="margin-top:8px"><input type="checkbox" id="paywallToggle"> <span><b>Require paid membership</b> ($22/year) for the member directory and posting stories</span></label>
+      <p class="hint" id="paywallState" style="margin:8px 0 0"></p>
+    </div>
+    <div id="pendingWrap" class="panel admin" hidden><h3>Waiting on payment</h3><p class="hint">Check your payment platform, then tap Activate 1 year.</p><div class="list" id="pendingList" style="border-top:0"></div><div id="renewWrap"></div></div>
+    <div id="bbAdminWrap"></div>
+    <p style="margin:0 0 12px"><button class="btn small ghost" data-go-devo="1">Post this week's devotional</button></p>
+
     <div class="panel admin" id="partnerAdmin" hidden>
       <h3 id="ptHead">Add a partner</h3>
       <label for="ptName">Name</label><input id="ptName" type="text">
@@ -578,19 +751,9 @@ nav.tabs button{position:relative}
       <label for="ptWeb">Website</label><input id="ptWeb" type="url" placeholder="https://">
       <p style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="ptSave">Add partner</button><button class="btn ghost" id="ptCancel" hidden>Cancel</button></p>
     </div>
-  </section>
 
-  <!-- GIVE -->
-  <section id="tab-give" hidden>
-    <h2>Give</h2>
-    <div class="panel">
-      <div class="give-big">Keep veterans moving.</div>
-      <p>CTF is all-volunteer. Donations pay for gym memberships, gear, and events for veterans.</p>
-      <p class="hint">Camaraderie Through Fitness, Inc. is a 501(c)(3) nonprofit, EIN 33-2237176. Gifts may be tax-deductible.</p>
-      <p id="giveAction" style="margin-top:14px"></p>
-    </div>
     <div class="panel admin" id="giveAdmin" hidden>
-      <h3>Donation link</h3>
+      <h3>Giving links</h3>
       <p class="hint">Paste the link from your donation platform (Zeffy, Givebutter, Donorbox).</p>
       <label for="gUrl">Link</label><input id="gUrl" type="url" placeholder="https://www.camaraderietf.org/donate">
       <p class="hint">Leave blank to use the donate page on camaraderietf.org.</p>
@@ -598,13 +761,14 @@ nav.tabs button{position:relative}
       <p class="hint">Can be the same platform. Set it up as a $22 membership or ticket.</p>
       <p style="margin-top:14px"><button class="btn" id="gSave">Save links</button></p>
     </div>
+    <p id="seedWrap" hidden style="margin-top:14px"><button class="btn ghost" id="seedBtn">Load starter partners</button></p>
   </section>
 </div>
 
 <nav class="tabs" aria-label="Sections"><div class="inner">
-  <button data-tab="workouts" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12"/></svg>Workouts</button>
-  <button data-tab="members"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.5c2.5 0 4.3 1.6 5 4.5"/></svg>Members<span class="badge" id="bbBadge" hidden></span></button>
-  <button data-tab="stories"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg><span class="tab-lbl">Fox Hole</span><span class="badge" id="photoBadge" hidden></span><span class="dot" id="storyDot" hidden aria-label="New activity on your story"></span></button>
+  <button data-tab="home" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></svg>Home</button>
+  <button data-tab="events"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Events</button>
+  <button data-tab="community"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.5c2.5 0 4.3 1.6 5 4.5"/></svg><span class="tab-lbl">Community</span><span class="badge" id="bbBadge" hidden></span><span class="dot" id="storyDot" hidden aria-label="New activity on your story"></span></button>
   <button data-tab="support"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Support</button>
   <button data-tab="give"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18M16.5 7.5c0-1.7-2-3-4.5-3s-4.5 1.3-4.5 3 2 2.6 4.5 3 4.5 1.4 4.5 3.3-2 3.2-4.5 3.2-4.5-1.3-4.5-3"/></svg>Give</button>
 </div></nav>
@@ -618,6 +782,7 @@ nav.tabs button{position:relative}
     </div>
     <div class="menu">
       <button class="mi" id="editProfileBtn"><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span><span class="mi-txt"><b>Edit profile</b><small>Photo, service details, privacy</small></span><span class="chev-r" aria-hidden="true"></span></button>
+      <button class="mi" id="adminBtn" hidden><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span><span class="mi-txt"><b>Admin tools</b><small id="adminBtnHint">Events, Home page, approvals, partners, links</small></span><span class="chev-r" aria-hidden="true"></span></button>
       <button class="mi" id="inviteBtn"><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-5.5 6.5-5.5s6.5 2 6.5 5.5"/><path d="M19 8v6M16 11h6"/></svg></span><span class="mi-txt"><b>Build the community</b><small>Invite a friend to the app</small></span><span class="chev-r" aria-hidden="true"></span></button>
       <div class="mi mi-static" id="viewRow" hidden><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="mi-txt"><b>App view</b><small id="viewHint">Seeing admin tools</small></span>
         <div class="seg" role="radiogroup" aria-label="App view"><button role="radio" data-view-set="admin">Admin</button><button role="radio" data-view-set="member">Member</button></div>
@@ -782,13 +947,24 @@ function amGoing(id){ const r=S.rsvps[uid()]; return !!(r && r.events && r.event
 function toMap(snap){ const o={}; snap.docs.forEach(d=>{ o[d.id]=d.data(); }); return o; }
 
 // ---------- Tabs ----------
-let lastTab="workouts";
+// Bottom tabs: Home, Events, Community (Fox Hole + Members), Support, Give.
+// Profile, person pages, and Admin open on top of them and go Back to the last tab.
+let lastTab="home";
+S.comm = (()=>{ try{ return localStorage.getItem("ctfComm")==="members" ? "members" : "stories"; }catch{ return "stories"; } })();
+const NAV_OF = {home:"home", events:"events", members:"community", stories:"community", support:"support", give:"give"};
 function showTab(name){
-  document.querySelectorAll("nav.tabs button").forEach(x=>{ if(x.dataset.tab===name) x.setAttribute("aria-current","page"); else x.removeAttribute("aria-current"); });
+  if(name==="community") name=S.comm;
+  if(name==="admin" && !S.admin) name="home";
+  if(name==="members" || name==="stories"){ S.comm=name; try{ localStorage.setItem("ctfComm",name); }catch{} }
+  const nav=NAV_OF[name];
+  document.querySelectorAll("nav.tabs button").forEach(x=>{ if(x.dataset.tab===nav) x.setAttribute("aria-current","page"); else x.removeAttribute("aria-current"); });
   document.querySelectorAll("section[id^=tab-]").forEach(s=>s.hidden = s.id !== "tab-"+name);
-  if(name!=="profile" && name!=="person") lastTab=name;
+  document.querySelectorAll("[data-comm]").forEach(b=>b.setAttribute("aria-selected", String(b.dataset.comm===name)));
+  if(name!=="profile" && name!=="person" && name!=="admin") lastTab=name;
   window.scrollTo(0,0);
+  if(name==="stories") setTimeout(updateStoryDot,0);
 }
+function scrollToEl(sel){ setTimeout(()=>{ const el=$(sel); if(el) el.scrollIntoView({behavior:"smooth", block:"start"}); }, 60); }
 let welcoming=false;
 function openProfile(welcome){
   welcoming=!!welcome;
@@ -862,7 +1038,7 @@ function renderOnboarding(){
     <p class="ob-sub">You can change these any time in your profile.</p>
     <label class="check"><input type="checkbox" id="obListed"${OB.listed?" checked":""}> Show me in the member list</label>
     <p class="hint" style="margin:4px 0 0 30px">Turn this off to stay hidden. Battle buddies and admins can still see you.</p>
-    <label class="check"><input type="checkbox" id="obRemind"${OB.remind?" checked":""}> Email me a reminder the day before workouts I RSVP to</label>
+    <label class="check"><input type="checkbox" id="obRemind"${OB.remind?" checked":""}> Email me a reminder the day before events I RSVP to</label>
     <div class="ob-actions"><button class="btn ghost" data-ob="back">Back</button><button class="btn" data-ob="finish">Finish</button></div>
     <p style="text-align:center;margin-top:18px"><button class="linkish" data-ob="signout">Not you? Sign out</button></p>`;
   $("#obStep").innerHTML=h; $("#onboard").scrollTop=0;
@@ -900,7 +1076,7 @@ document.addEventListener("click", async e=>{
       await setDoc(doc(fs,"members",uid()), {name:OB.name, status:OB.status, branch:OB.branch, photo:OB.photo||"", listed:OB.listed});
       if(OB.name && S.user && S.user.displayName!==OB.name){ try{ await updateProfile(S.user,{displayName:OB.name}); }catch{} }
       await syncContact(OB.remind);
-      endOnboarding(); showTab("workouts"); render();
+      endOnboarding(); showTab("home"); render();
       toast(`You're all set${OB.name?`, ${OB.name.split(" ")[0]}`:""}. Welcome to CTF.`);
     }catch(err){ writeFailed(err); }
     finally{ b.disabled=false; }
@@ -908,12 +1084,24 @@ document.addEventListener("click", async e=>{
 });
 document.querySelectorAll("nav.tabs button").forEach(b=>b.addEventListener("click",()=>{
   if(!okToLeaveProfile()) return;
-  lastTab=b.dataset.tab;
-  document.querySelectorAll("nav.tabs button").forEach(x=>x.removeAttribute("aria-current"));
-  b.setAttribute("aria-current","page");
-  document.querySelectorAll("section[id^=tab-]").forEach(s=>s.hidden = s.id !== "tab-"+b.dataset.tab);
-  window.scrollTo(0,0);
+  showTab(b.dataset.tab);
 }));
+// Buttons and links that jump to a tab: data-go="events", optional data-evfilter / data-focus.
+document.addEventListener("click", e=>{
+  const c=e.target.closest("[data-comm]");
+  if(c){ showTab(c.dataset.comm); return; }
+  const g=e.target.closest("[data-go]");
+  if(g){
+    e.preventDefault();
+    if(!okToLeaveProfile()) return;
+    if(g.dataset.evfilter){ S.evFilter=g.dataset.evfilter; renderEvents(); }
+    showTab(g.dataset.go);
+    if(g.dataset.focus) scrollToEl("#"+g.dataset.focus);
+    return;
+  }
+  const d=e.target.closest("[data-go-devo]");
+  if(d){ showTab("stories"); S.devoEditing=null; renderDevo(); scrollToEl("#devoForm"); setTimeout(()=>{ const f=$("#dvTitle"); if(f) f.focus(); },400); }
+});
 
 // ---------- Activity dot on Stories (salutes/comments on your story) ----------
 function storyActivity(){
@@ -928,9 +1116,20 @@ function updateStoryDot(){
   const dot=$("#storyDot"); if(!dot) return;
   const act=storyActivity();
   if(act && !$("#tab-stories").hidden){ try{ localStorage.setItem("ctfStorySeen_"+uid(), String(act)); }catch{} }
-  dot.hidden = !(act > storySeen()) || !$("#photoBadge").hidden;
+  dot.hidden = !(act > storySeen()) || !$("#bbBadge").hidden;
 }
-document.querySelector('nav.tabs button[data-tab="stories"]').addEventListener("click", ()=>setTimeout(updateStoryDot,0));
+// Admin-only count on the profile button: photos to approve + reimbursement requests waiting.
+function adminCounts(){
+  const photos = Object.keys(S.photos||{}).filter(id=>S.photos[id].status==="pending" && S.stories[id]).length;
+  const reimb = Object.values(S.reimbAll||{}).filter(r=>r.status==="submitted").length;
+  return {photos, reimb};
+}
+function updateAdminBadge(){
+  const b=$("#adminBadge"); if(!b) return;
+  const c=adminCounts(), n=S.admin ? c.photos+c.reimb : 0;
+  b.hidden=!n; b.textContent=n;
+  const h=$("#adminBtnHint"); if(h) h.textContent = n ? `${n} thing${n===1?"":"s"} waiting on you` : "Events, Home page, approvals, partners, links";
+}
 
 // ---------- Render ----------
 function render(){
@@ -938,8 +1137,10 @@ function render(){
   $("#viewNote").hidden = !(S.realAdmin && S.memberView);
   { const me=S.members[uid()]||{name:myName()};
     $("#acctBtn").innerHTML = S.user ? `${avatarHTML({...me,name:me.name||myName()},"acct-av")}<span>${esc(myName().split(" ")[0])}</span>` : ""; }
-  renderWorkouts(); renderMembers(); renderPerson(); renderStories(); renderSupport(); renderGive();
-  ["#eventAdmin","#partnerAdmin","#giveAdmin"].forEach(s=>$(s).hidden=!S.admin);
+  renderHome(); renderEvents(); renderMembers(); renderPerson(); renderStories(); renderSupport(); renderGive(); renderAdmin();
+  ["#eventAdmin","#partnerAdmin","#giveAdmin","#homeAdmin"].forEach(s=>$(s).hidden=!S.admin);
+  $("#adminBtn").hidden = !S.admin; $("#evAddBtn").hidden = !S.admin;
+  if(!S.admin && !$("#tab-admin").hidden) showTab("home");
   $("#seedWrap").hidden = !(S.admin && S.ready && S.partners.every(p=>BUILTIN_PARTNER_IDS.has(p.id)));
 }
 
@@ -951,14 +1152,53 @@ function rsvpButton(e, cls, cantStyle){
 const IS_APPLE = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
 function mapsLink(addr){ const q=encodeURIComponent(addr); return IS_APPLE ? `https://maps.apple.com/?q=${q}` : `https://www.google.com/maps/search/?api=1&query=${q}`; }
 function dirBtn(e, style){ return e.address ? `<a class="btn small ghost" ${style||""} href="${esc(mapsLink(e.address))}" target="_blank" rel="noopener">Directions</a>` : ""; }
+
+// ---------- Event types ----------
+const EV_TYPES = {workout:"Workout", fundraiser:"Fundraiser", community:"Community", wellness:"Wellness"};
+const EV_PLURAL = {workout:"Workouts", fundraiser:"Fundraisers", community:"Community", wellness:"Wellness"};
+function evType(e){ return EV_TYPES[e.type] ? e.type : (/tailgate|fundrais|gala/i.test(e.title||"") ? "fundraiser" : "workout"); }
+function typeTag(e){ const t=evType(e); return `<span class="etag ${t}">${EV_TYPES[t]}</span>`; }
+const pinnedId = () => (S.home||{}).pinned || "";
+function featuredOf(list){ return list.find(e=>e.id===pinnedId()) || list[0]; }
+S.evFilter = "all"; S.evMenu = null;
+
+// The ⋯ menu on an event: directions, sign-up link, and admin tools.
+function evMenuItems(e, onDark){
+  const st = onDark ? 'style="color:inherit;border-color:currentColor"' : "";
+  const link = safeUrl(e.link);
+  const items = [
+    dirBtn(e, st),
+    link ? `<a class="btn small ghost" ${st} href="${esc(link)}" target="_blank" rel="noopener">Tickets / sign up</a>` : "",
+    S.admin ? (pinnedId()===e.id ? `<button class="btn small ghost" ${st} data-unpin-event="${esc(e.id)}">Unpin</button>` : `<button class="btn small ghost" ${st} data-pin-event="${esc(e.id)}">Pin to top</button>`) : "",
+    S.admin ? `<button class="btn small ghost" ${st} data-edit-event="${esc(e.id)}">Edit</button><button class="btn small danger" ${st} data-del-event="${esc(e.id)}">Delete</button>` : ""
+  ].filter(Boolean);
+  return items;
+}
+function evMenuBtn(e, onDark){
+  if(!evMenuItems(e, onDark).length) return "";
+  const open = S.evMenu===e.id;
+  return `<button class="ev-more" data-ev-menu="${esc(e.id)}" aria-expanded="${open}" aria-label="More options for ${esc(e.title)}">⋯</button>`;
+}
+function evMenuRow(e, onDark){ return S.evMenu===e.id ? `<div class="own-acts">${evMenuItems(e, onDark).join("")}</div>` : ""; }
+
 function eventRow(e){
   const d=parseDate(e.date), n=goingCount(e.id);
   return `<div class="row">
       <div class="date"><b>${d.getDate()}</b><span>${MON[d.getMonth()]}</span></div>
-      <div class="body"><h3>${esc(e.title)}</h3><div class="meta">${DOW[d.getDay()]}, ${esc(fmtTime(e.time))} · ${esc(e.location||"Location TBD")}</div>
+      <div class="body">${typeTag(e)}<h3 style="margin-top:4px">${esc(e.title)}</h3><div class="meta">${DOW[d.getDay()]}, ${esc(fmtTime(e.time))} · ${esc(e.location||"Location TBD")}</div>
       ${e.description?`<p class="meta" style="margin-top:4px">${esc(e.description)}</p>`:""}
-      <div class="going-row">${facesGoing(e.id)}<span class="meta">${n} going</span></div>${whoGoing(e.id)}
-      <div class="actions">${rsvpButton(e,"small ghost")}<button class="btn small ghost" data-cal="${esc(e.id)}">Add to calendar</button>${dirBtn(e)}${S.admin?`<button class="btn small ghost" data-edit-event="${esc(e.id)}">Edit</button><button class="btn small danger" data-del-event="${esc(e.id)}">Delete</button>`:""}</div></div></div>`;
+      <div class="going-row">${facesGoing(e.id)}<span class="meta">${n ? `${n} going` : "Be one of the first to RSVP"}</span></div>${whoGoing(e.id)}
+      <div class="actions">${rsvpButton(e,"small ghost")}<button class="btn small ghost" data-cal="${esc(e.id)}">Add to calendar</button>${evMenuBtn(e)}</div>${evMenuRow(e)}</div></div>`;
+}
+// The big green card: pinned event, or the next one up.
+function featureHTML(e){
+  const d=parseDate(e.date), n=goingCount(e.id), on='style="color:inherit;border-color:currentColor"';
+  return `<div class="kicker-row">${pinnedId()===e.id?`<span class="kicker">Pinned</span> `:""}${typeTag(e)}</div>
+    <div class="when" style="margin-top:10px"><div class="day">${d.getDate()}</div><div class="mon">${DOW[d.getDay()]}<br>${MON[d.getMonth()]}</div></div>
+    <h1>${esc(e.title)}</h1><div class="meta">${esc(fmtTime(e.time))} at ${esc(e.location||"location TBD")}</div>
+    <div class="going-row count">${facesGoing(e.id,true)}<span>${n ? `${n} going` : "Be one of the first to RSVP"}</span></div>${whoGoing(e.id,true)}
+    ${e.description?`<p class="meta" style="margin-top:8px">${esc(e.description)}</p>`:""}
+    <div class="ev-acts">${rsvpButton(e,"",on)}<button class="btn small ghost" data-cal="${esc(e.id)}">Add to calendar</button>${evMenuBtn(e,true)}</div>${evMenuRow(e,true)}`;
 }
 // Old welcome card retired: the full "Set up your profile" page (maybeWelcome) now
 // shows every visit until a status is picked.
@@ -978,25 +1218,30 @@ function renderMyRsvps(){
       : `<button class="btn small ghost" data-myrsvps="1" style="margin-top:8px">+ ${more.length} more RSVP${more.length===1?"":"s"}</button>`) : ""}
   </div>`;
 }
-function renderWorkouts(){
+function pastEvents(){ const t=localYmd(new Date()); return S.events.filter(e=>e.date && e.date<t).sort((a,b)=>(b.date+(b.time||"")).localeCompare(a.date+(a.time||""))); }
+function renderEvents(){
   renderWelcome(); renderMyRsvps();
-  const list = upcoming(); const m = $("#muster");
-  if(S.loadError && !S.events.length){ m.className="muster empty"; m.innerHTML=`<h1>Couldn't load workouts</h1><p class="meta">Check your connection and refresh.</p>`; $("#eventList").innerHTML=""; return; }
-  if(!S.ready){ m.className="muster empty"; m.innerHTML=`<h1>Loading workouts</h1>`; $("#eventList").innerHTML=""; return; }
+  const all = upcoming(); const m = $("#muster");
+  // Filter chips: only types that have something coming up.
+  const types = Object.keys(EV_TYPES).filter(t=>all.some(e=>evType(e)===t));
+  if(S.evFilter!=="all" && !types.includes(S.evFilter)) S.evFilter="all";
+  $("#evFilter").hidden = types.length<2;
+  $("#evFilter").innerHTML = [["all","All"], ...types.map(t=>[t,EV_PLURAL[t]])]
+    .map(([k,l])=>`<button data-evf="${k}" aria-pressed="${S.evFilter===k}">${l}</button>`).join("");
+  const list = S.evFilter==="all" ? all : all.filter(e=>evType(e)===S.evFilter);
+  $("#calAllBtn").hidden = !all.length;
+  if(S.loadError && !S.events.length){ m.className="muster empty"; m.innerHTML=`<h1>Couldn't load events</h1><p class="meta">Check your connection and refresh.</p>`; $("#eventList").innerHTML=""; return; }
+  if(!S.ready){ m.className="muster empty"; m.innerHTML=`<h1>Loading events</h1>`; $("#eventList").innerHTML=""; return; }
+  let feat=null;
   if(!list.length){
     m.className="muster empty";
-    m.innerHTML=`<h1>No workouts on the calendar</h1><p class="meta">${S.admin?"Add the next one below.":"Check back soon."}</p>`;
+    m.innerHTML=`<h1>No events on the calendar</h1><p class="meta">${S.admin?"Add the next one from Admin tools.":"Check back soon."}</p>`;
   } else {
-    const e=list[0], d=parseDate(e.date), n=goingCount(e.id);
-    m.className="muster";
-    m.innerHTML=`<div class="when"><div class="day">${d.getDate()}</div><div class="mon">${DOW[d.getDay()]}<br>${MON[d.getMonth()]}</div></div>
-      <h1>${esc(e.title)}</h1><div class="meta">${esc(fmtTime(e.time))} at ${esc(e.location||"location TBD")}</div>
-      <div class="going-row count">${facesGoing(e.id,true)}<span>${n} going</span></div>${whoGoing(e.id,true)}
-      ${e.description?`<p class="meta" style="margin-top:8px">${esc(e.description)}</p>`:""}
-      ${rsvpButton(e,"",'style="margin-top:16px;color:inherit;border-color:currentColor"')} <button class="btn small ghost" style="margin-top:16px;color:inherit;border-color:currentColor" data-cal="${esc(e.id)}">Add to calendar</button> ${dirBtn(e,'style="margin-top:16px;color:inherit;border-color:currentColor"')}
-      ${S.admin?` <button class="btn small ghost" style="margin-top:16px;color:inherit;border-color:currentColor" data-edit-event="${esc(e.id)}">Edit</button> <button class="btn small danger" style="margin-top:16px;color:inherit;border-color:currentColor" data-del-event="${esc(e.id)}">Delete</button>`:""}`;
+    feat=featuredOf(list);
+    m.className="muster"; m.innerHTML=featureHTML(feat);
   }
-  const rest = list.slice(1);
+  const rest = list.filter(e=>e!==feat);
+  $("#upHead").hidden = !rest.length && !list.length;
   // Next 6 weeks by default; the rest behind "Show more".
   const cutoff=new Date(); cutoff.setDate(cutoff.getDate()+42); const cut=ymd(cutoff);
   const shown = S.showAllEvents ? rest : rest.filter(e=>e.date<=cut);
@@ -1007,7 +1252,72 @@ function renderWorkouts(){
   $("#eventList").innerHTML = shown.length ? html : `<p class="empty-note">${rest.length?"Nothing else in the next six weeks.":"Nothing else scheduled yet."}</p>`;
   const hidden = rest.length - shown.length;
   $("#moreWrap").hidden = !hidden && !S.showAllEvents;
-  $("#moreBtn").textContent = S.showAllEvents ? "Show fewer" : `Show ${hidden} more workout${hidden===1?"":"s"}`;
+  $("#moreBtn").textContent = S.showAllEvents ? "Show fewer" : `Show ${hidden} more event${hidden===1?"":"s"}`;
+  // Past events: proof CTF shows up, and a record for members.
+  const past = pastEvents().slice(0,12), wasOpen=!!(($("#pastEvents").querySelector("details")||{}).open);
+  $("#pastEvents").innerHTML = past.length ? `<details class="past"${wasOpen?" open":""}><summary>Past events (${past.length})</summary>${past.map(e=>{
+      const d=parseDate(e.date), n=goingCount(e.id);
+      return `<div class="row"><div class="date"><b>${d.getDate()}</b><span>${MON[d.getMonth()]}</span></div><div class="body">${typeTag(e)}<h3 style="margin-top:4px;font-size:1.15rem">${esc(e.title)}</h3><div class="meta">${d.getFullYear()} · ${esc(e.location||"")}${n?` · ${n} RSVP'd`:""}</div></div></div>`;
+    }).join("")}</details>` : "";
+}
+
+// ---------- Home ----------
+const HOME_TITLE="Veterans training together, building community.";
+const HOME_MISSION="Camaraderie Through Fitness is an all-volunteer 501(c)(3) in Gainesville, FL, serving veterans through group fitness, peer connection, and community programming.";
+const homePhoto = () => /^data:image\/jpeg;base64,/.test((S.home||{}).photo||"") ? S.home.photo : "";
+function quoteHTML(){
+  const h=S.home||{}; if(!h.quote) return "";
+  return `<figure class="quote"><blockquote>${esc(h.quote)}</blockquote>${h.quoteBy?`<figcaption>${esc(h.quoteBy)}</figcaption>`:""}</figure>`;
+}
+function renderHome(){
+  const h=S.home||{}, ph=homePhoto();
+  $("#homeHero").innerHTML = ph ? `<div class="home-hero"><img src="${ph}" alt="CTF members at a recent event"></div>`
+    : `<div class="home-hero fallback"><img src="logo.png" alt="Camaraderie Through Fitness badge"></div>`;
+  $("#homeTitle").textContent = h.title || HOME_TITLE;
+  $("#homeMission").textContent = h.mission || HOME_MISSION;
+  const stats=(Array.isArray(h.stats)?h.stats:[]).filter(s=>s && s.n && s.l).slice(0,3);
+  $("#homeStats").hidden = !stats.length;
+  $("#homeStats").style.gridTemplateColumns = `repeat(${Math.max(1,stats.length)},minmax(0,1fr))`;
+  $("#homeStats").innerHTML = stats.map(s=>`<div class="stat"><b>${esc(s.n)}</b><span>${esc(s.l)}</span></div>`).join("");
+  const list=upcoming(), e=list.length ? featuredOf(list) : null;
+  $("#homeNext").innerHTML = e ? `<h2>Next up</h2><div class="muster">${featureHTML(e)}</div>
+    <p style="margin-top:10px"><button class="btn ghost wide" data-go="events">See all events</button></p>` : "";
+  $("#homeStory").innerHTML = h.story ? `<div class="home-card"><h3 style="margin-bottom:8px">Why CTF exists</h3><p>${esc(h.story)}</p>${h.storyBy?`<p class="by">${esc(h.storyBy)}</p>`:""}</div>` : "";
+  $("#homeQuote").innerHTML = quoteHTML() ? `<h2 style="margin-bottom:0">What members say</h2>${quoteHTML()}` : "";
+  const names=[...new Set(S.partners.map(p=>p.name).filter(Boolean))];
+  $("#homePartners").innerHTML = names.length ? `<h2 style="margin-bottom:4px">Our partners</h2><div class="chips">${names.map(n=>`<button class="chip" data-go="support">${esc(n)}</button>`).join("")}</div>` : "";
+}
+
+// ---------- Admin screen ----------
+let hPhotoDraft, hDirty=false; // hPhotoDraft: undefined = no change, "" = remove, data URL = new
+const H_FIELDS=["hTitle","hMission","hS1n","hS1l","hS2n","hS2l","hS3n","hS3l","hStory","hStoryBy","hQuote","hQuoteBy"];
+function fillHomeForm(){
+  const h=S.home||{}, st=Array.isArray(h.stats)?h.stats:[];
+  $("#hTitle").value=h.title||""; $("#hTitle").placeholder=HOME_TITLE;
+  $("#hMission").value=h.mission||""; $("#hMission").placeholder=HOME_MISSION;
+  [1,2,3].forEach(i=>{ const s=st[i-1]||{}; $("#hS"+i+"n").value=s.n||""; $("#hS"+i+"l").value=s.l||""; });
+  $("#hStory").value=h.story||""; $("#hStoryBy").value=h.storyBy||"";
+  $("#hQuote").value=h.quote||""; $("#hQuoteBy").value=h.quoteBy||"";
+}
+function showHomePhoto(){
+  const ph = hPhotoDraft!==undefined ? hPhotoDraft : homePhoto();
+  $("#hPhotoPrev").innerHTML = ph ? `<img src="${ph}" alt="Home page photo">` : `<p class="hint" style="margin:0">No photo yet. The CTF badge shows instead.</p>`;
+  $("#hPhotoRemove").hidden = !ph;
+  $("#hPhotoBtn").firstChild.textContent = ph ? "Change photo" : "Choose photo";
+}
+function renderAdmin(){
+  updateAdminBadge();
+  if(!S.admin) return;
+  if(!hDirty) fillHomeForm();
+  showHomePhoto();
+  const c=adminCounts();
+  const bbPend=Object.values(S.allBuddies||{}).filter(b=>b.status==="pending").length;
+  const bits=[
+    c.photos ? `<button class="tag" data-focus-admin="photoQueue">${c.photos} photo${c.photos===1?"":"s"} to approve</button>` : "",
+    c.reimb ? `<button class="tag" data-focus-admin="reimbAdmin">${c.reimb} reimbursement request${c.reimb===1?"":"s"}</button>` : "",
+    bbPend ? `<span class="tag">${bbPend} battle buddy request${bbPend===1?"":"s"} pending</span>` : ""
+  ].filter(Boolean);
+  $("#adminSum").innerHTML = bits.length ? bits.join("") : `<span class="tag">Nothing waiting on you</span>`;
 }
 
 const MILITARY = ["Veteran","Active duty","Guard / Reserve"];
@@ -1156,7 +1466,7 @@ function renderMembers(){
   const payUrl = safeUrl(S.config.memberUrl);
   $("#dirFilter").hidden = true; $("#dirSearchWrap").hidden = true; $("#bbRequests").innerHTML="";
   { const n = S.user ? Object.values(S.buddies).filter(d=>d.status==="pending" && d.to===uid()).length : 0;
-    $("#bbBadge").hidden = !n; $("#bbBadge").textContent = n; }
+    ["#bbBadge","#bbSegBadge","#bbSegBadge2"].forEach(sel=>{ $(sel).hidden = !n; $(sel).textContent = n; }); }
   $("#paywallAdmin").hidden = !S.admin;
   if(S.admin){
     $("#paywallToggle").checked = paywallOn();
@@ -1172,7 +1482,7 @@ function renderMembers(){
     const expired = mine && !isActive(mine);
     note.innerHTML=`<div class="panel"><h3>${expired?"Your membership expired":"Become a member"}</h3>
       <p>Membership is $22 a year. It unlocks the veteran directory and sharing your story. Workouts, RSVPs, and support resources stay free.</p>
-      <p><b>1.</b> Tap your name at the top right, then Edit profile, and save it.<br><b>2.</b> Pay your membership${payUrl?"":" (link coming soon)"}, using the same name as your profile.<br><b>3.</b> A CTF admin activates your account, usually within a day or two.</p>
+      <p><b>1.</b> Tap your picture at the top right, then Edit profile, and save it.<br><b>2.</b> Pay your membership${payUrl?"":" (link coming soon)"}, using the same name as your profile.<br><b>3.</b> A CTF admin activates your account, usually within a day or two.</p>
       ${payUrl?`<p style="margin-top:12px"><a class="btn" href="${esc(payUrl)}" target="_blank" rel="noopener">Pay $22 membership</a></p>`:""}
       <p class="hint" style="margin-top:10px">Can't swing the $22 right now? Talk to any CTF team member. No veteran gets turned away.</p></div>`;
     $("#memberList").innerHTML="";
@@ -1197,7 +1507,7 @@ function renderMembers(){
         const extra = S.admin && id!==uid() && paywallOn() ? `<span class="meta">Paid through ${a?fmtDay(activeUntil(a)):"—"}</span><button class="btn small ghost" data-approve="${esc(id)}">Add 1 year</button><button class="btn small ghost" data-setdate="${esc(id)}">Set date</button><button class="btn small danger" data-revoke="${esc(id)}">Remove access</button>` : "";
         return memberRow(id, S.members[id], extra);
       }).join("")
-      : `<p class="empty-note">${q ? `No one matches "${esc(q)}".` : S.dir==="mil" ? "No veterans or service members listed yet." : S.dir==="bb" ? "No battle buddies yet. Send a request from someone's card." : "No one's listed yet. Tap your name at the top right to fill in your profile."}</p>`;
+      : `<p class="empty-note">${q ? `No one matches "${esc(q)}".` : S.dir==="mil" ? "No veterans or service members listed yet." : S.dir==="bb" ? "No battle buddies yet. Send a request from someone's card." : "No one's listed yet. Tap your picture at the top right to fill in your profile."}</p>`;
     if(S.admin && paywallOn()){
       const pend = Object.keys(S.members).filter(id=>id!==uid() && !isActive(S.approvedIds[id]));
       $("#pendingWrap").hidden = false;
@@ -1328,8 +1638,7 @@ function renderStories(){
   $("#sPhotoAddBtn").firstChild.textContent = myPh ? "Change photo" : "Add a photo";
   // admin approval queue
   const pending = Object.keys(S.photos).filter(id=>S.photos[id].status==="pending" && S.stories[id]);
-  $("#photoBadge").hidden = !(S.admin && pending.length); $("#photoBadge").textContent = pending.length;
-  updateStoryDot();
+  updateStoryDot(); updateAdminBadge();
   $("#photoQueue").hidden = !(S.admin && pending.length);
   if(S.admin && pending.length){
     $("#photoQueue").innerHTML = `<h3>Photos waiting for approval</h3>` + pending.map(id=>{
@@ -1500,6 +1809,7 @@ function renderReimbAdmin(){
     sel.value=keep;
   }
   const aw=Object.values(S.awards||{}).sort((a,b)=>(b.at||0)-(a.at||0));
+  updateAdminBadge(); renderAdmin();
   $("#awardList").innerHTML = aw.length ? aw.map(a=>`<div class="rq"><b>${esc(a.name||"Member")}</b> · ${money(a.amount)}<span class="meta">${esc(a.note||"")} · ${esc(PAY[a.method]||"Other")} · ${esc(fmtDay(a.at||0))} · by ${esc(a.by||"admin")}</span></div>`).join("") : `<p class="hint">No awards recorded yet.</p>`;
 }
 document.addEventListener("change", async e=>{
@@ -1542,8 +1852,14 @@ function renderSupport(){
 const DEFAULT_DONATE_URL = "https://www.camaraderietf.org/donate";
 function renderGive(){
   const url = safeUrl(S.config.donateUrl) || DEFAULT_DONATE_URL;
-  $("#giveAction").innerHTML = url ? `<a class="btn" href="${esc(url)}" target="_blank" rel="noopener">Donate to CTF</a>`
+  // Donations still go to the website until the Zeffy form is set up.
+  $("#giveAction").innerHTML = url ? `<a class="btn brass" href="${esc(url)}" target="_blank" rel="noopener">Donate to CTF</a>`
     : `<span class="hint">Online giving opens soon.</span>`;
+  $("#giveWhere").textContent = url===DEFAULT_DONATE_URL ? "Opens the donate page on camaraderietf.org." : "Opens CTF's secure giving page.";
+  $("#gateDonate").href = url;
+  const ph=homePhoto();
+  $("#giveHero").innerHTML = ph ? `<div class="home-hero" style="margin-bottom:14px"><img src="${ph}" alt="CTF members at a recent event"></div>` : "";
+  $("#giveQuote").innerHTML = quoteHTML();
   if(S.admin && document.activeElement !== $("#gUrl")) $("#gUrl").value = S.config.donateUrl || "";
   if(S.admin && document.activeElement !== $("#gMember")) $("#gMember").value = S.config.memberUrl || "";
 }
@@ -1865,10 +2181,14 @@ document.addEventListener("click", async ev=>{
     return;
   }
   if(t.dataset.myrsvps){ S.showMyRsvps=!S.showMyRsvps; renderMyRsvps(); return; }
-  if(t.id==="moreBtn"){ S.showAllEvents=!S.showAllEvents; renderWorkouts(); return; }
+  if(t.id==="moreBtn"){ S.showAllEvents=!S.showAllEvents; renderEvents(); return; }
+  if(t.dataset.evf){ S.evFilter=t.dataset.evf; S.evMenu=null; renderEvents(); return; }
+  if(t.dataset.evMenu){ S.evMenu = S.evMenu===t.dataset.evMenu ? null : t.dataset.evMenu; renderEvents(); renderHome(); return; }
+  if(t.dataset.pinEvent || t.dataset.unpinEvent){ S.evMenu=null; setPinned(t.dataset.pinEvent||""); return; }
+  if(t.dataset.focusAdmin){ scrollToEl("#"+t.dataset.focusAdmin); return; }
   if(t.dataset.salute){
     const sid=t.dataset.salute, ref=doc(fs,threadCol(sid),sid,"salutes",uid());
-    if(!S.approved){ toast("Saluting is for members. See the Members tab to join."); return; }
+    if(!S.approved){ toast("Saluting is for members. Open Community, then Members, to join."); return; }
     const had=(S.salutes[sid]||new Set()).has(uid());
     try{ if(had) await deleteDoc(ref); else await setDoc(ref,{at:Date.now()}); }catch(e){ writeFailed(e); }
     return;
@@ -1879,7 +2199,7 @@ document.addEventListener("click", async ev=>{
     const sid=t.dataset.cmtPost, el=document.querySelector(`[data-cmt-input="${CSS.escape(sid)}"]`);
     const text=(el?el.value:"").trim().slice(0,500);
     if(!text){ toast("Write a comment first."); return; }
-    if(!S.approved){ toast("Commenting is for members. See the Members tab to join."); return; }
+    if(!S.approved){ toast("Commenting is for members. Open Community, then Members, to join."); return; }
     t.disabled=true;
     try{ await addDoc(collection(fs,threadCol(sid),sid,"comments"), {uid:uid(), name:myName(), text, at:Date.now()}); S.cmtDrafts[sid]=""; if(el) el.value=""; }
     catch(e){ writeFailed(e); }
@@ -2031,12 +2351,12 @@ document.addEventListener("click", async ev=>{
     return; }
   if(t.dataset.decline && confirm("Decline this person? Their profile will be deleted.")){ try{ await deleteDoc(doc(fs,"members",t.dataset.decline)); toast("Declined."); }catch(e){ writeFailed(e); } return; }
   if(t.dataset.revoke && confirm("Remove this person's member access?")){ try{ await deleteDoc(doc(fs,"approved",t.dataset.revoke)); toast("Access removed."); }catch(e){ writeFailed(e); } return; }
-  if(t.dataset.delEvent && confirm("Delete this workout?")){
+  if(t.dataset.delEvent && confirm("Delete this event?")){
     const id=t.dataset.delEvent;
     try{
       if(SCHEDULE_IDS.has(id)) await setDoc(doc(fs,"events",id), {deleted:true});
       else await deleteDoc(doc(fs,"events",id));
-      toast("Workout deleted.");
+      S.evMenu=null; if(pinnedId()===id) setPinned(""); toast("Event deleted.");
     }catch(e){ writeFailed(e); }
   }
   if(t.dataset.delPartner && confirm("Delete this partner?")){ const id=t.dataset.delPartner;
@@ -2047,26 +2367,61 @@ document.addEventListener("click", async ev=>{
     try{ await updateDoc(doc(fs,"storyPhotos",t.dataset.photoNo), {status:"rejected", reviewedAt:Date.now(), reviewedBy:uid()}); toast("Photo rejected."); }catch(e){ writeFailed(e); } return; }
 });
 
-const EV_FIELDS=["#evTitle","#evDate","#evTime","#evLoc","#evAddr","#evDesc"];
-function resetEventForm(){ editingEvent=null; EV_FIELDS.forEach(f=>$(f).value=""); $("#evHead").textContent="Add a workout"; $("#evSave").textContent="Add workout"; $("#evCancel").hidden=true; }
+const EV_FIELDS=["#evTitle","#evDate","#evTime","#evLoc","#evAddr","#evDesc","#evLink"];
+function resetEventForm(){ editingEvent=null; EV_FIELDS.forEach(f=>$(f).value=""); $("#evType").value="workout"; $("#evPin").checked=false; $("#evHead").textContent="Add an event"; $("#evSave").textContent="Add event"; $("#evCancel").hidden=true; }
 function startEditEvent(id){
   const e=S.events.find(x=>x.id===id); if(!e) return;
-  editingEvent=id;
-  $("#evTitle").value=e.title||""; $("#evDate").value=e.date||""; $("#evTime").value=e.time||""; $("#evLoc").value=e.location||""; $("#evAddr").value=e.address||""; $("#evDesc").value=e.description||"";
-  $("#evHead").textContent="Edit workout"; $("#evSave").textContent="Save changes"; $("#evCancel").hidden=false;
-  $("#eventAdmin").scrollIntoView({behavior:"smooth", block:"start"});
+  editingEvent=id; S.evMenu=null;
+  $("#evTitle").value=e.title||""; $("#evType").value=evType(e); $("#evDate").value=e.date||""; $("#evTime").value=e.time||""; $("#evLoc").value=e.location||""; $("#evAddr").value=e.address||""; $("#evDesc").value=e.description||""; $("#evLink").value=e.link||"";
+  $("#evPin").checked = pinnedId()===id;
+  $("#evHead").textContent="Edit event"; $("#evSave").textContent="Save changes"; $("#evCancel").hidden=false;
+  showTab("admin"); scrollToEl("#eventAdmin");
+}
+// Pinned event lives in config/home so Home and Events agree on it.
+async function setPinned(id){
+  try{ await setDoc(doc(fs,"config","home"), {...S.home, pinned:id||""}); toast(id ? "Pinned to the top." : "Unpinned."); }
+  catch(e){ writeFailed(e); }
 }
 $("#evCancel").addEventListener("click", resetEventForm);
 $("#evSave").addEventListener("click", async ()=>{
-  const title=$("#evTitle").value.trim(), date=$("#evDate").value;
+  const title=$("#evTitle").value.trim(), date=$("#evDate").value, link=$("#evLink").value.trim();
   if(!title || !date){ toast("Add a name and a date."); return; }
-  const data={title, date, time:$("#evTime").value, location:$("#evLoc").value.trim(), address:$("#evAddr").value.trim(), description:$("#evDesc").value.trim()};
+  if(link && !safeUrl(link)){ toast("The sign-up link doesn't look right. Start it with https://"); return; }
+  const data={title, type:$("#evType").value, date, time:$("#evTime").value, location:$("#evLoc").value.trim(), address:$("#evAddr").value.trim(), description:$("#evDesc").value.trim(), link};
+  const pin=$("#evPin").checked;
   try{
-    if(editingEvent){ await setDoc(doc(fs,"events",editingEvent), data); toast("Workout updated."); }
-    else { await addDoc(collection(fs,"events"), data); toast("Workout added."); }
+    let id=editingEvent;
+    if(editingEvent){ await setDoc(doc(fs,"events",editingEvent), data); }
+    else { const ref=await addDoc(collection(fs,"events"), data); id=ref.id; }
+    if(pin && pinnedId()!==id) await setDoc(doc(fs,"config","home"), {...S.home, pinned:id});
+    else if(!pin && pinnedId()===id) await setDoc(doc(fs,"config","home"), {...S.home, pinned:""});
+    toast(editingEvent ? "Event updated." : "Event added.");
     resetEventForm();
   } catch(e){ writeFailed(e); }
 });
+
+// ---------- Admin: Home page content ----------
+H_FIELDS.forEach(id=>$("#"+id).addEventListener("input", ()=>{ hDirty=true; }));
+$("#hPhotoFile").addEventListener("change", async e=>{
+  const f=e.target.files && e.target.files[0]; if(!f) return;
+  try{ hPhotoDraft = await resizeStoryPhoto(f); showHomePhoto(); toast("Photo ready. Tap Save Home page to keep it."); }
+  catch{ toast("That photo didn't work. Try a JPG or PNG."); }
+  e.target.value="";
+});
+$("#hPhotoRemove").addEventListener("click", ()=>{ hPhotoDraft=""; showHomePhoto(); });
+$("#hSave").addEventListener("click", async e=>{
+  const b=e.currentTarget, v=id=>$("#"+id).value.trim();
+  const stats=[1,2,3].map(i=>({n:v("hS"+i+"n").slice(0,12), l:v("hS"+i+"l").slice(0,30)})).filter(s=>s.n && s.l);
+  const photo = hPhotoDraft!==undefined ? hPhotoDraft : ((S.home||{}).photo||"");
+  const data={...S.home, title:v("hTitle").slice(0,90), mission:v("hMission").slice(0,400), stats,
+    story:v("hStory").slice(0,1200), storyBy:v("hStoryBy").slice(0,120), quote:v("hQuote").slice(0,400), quoteBy:v("hQuoteBy").slice(0,80), photo};
+  b.disabled=true;
+  try{ await setDoc(doc(fs,"config","home"), data); hDirty=false; hPhotoDraft=undefined; toast("Home page saved."); }
+  catch(err){ writeFailed(err); }
+  finally{ b.disabled=false; }
+});
+$("#adminBtn").addEventListener("click", ()=>{ closeAuth(); if(!okToLeaveProfile()) return; showTab("admin"); renderAdmin(); });
+$("#adminBack").addEventListener("click", ()=>showTab(lastTab));
 
 // ---------- Profile form ----------
 let pPhoto = "";
@@ -2175,7 +2530,7 @@ $("#pSave").addEventListener("click", async ()=>{
 
 $("#sSave").addEventListener("click", async ()=>{
   if(needSignIn()) return;
-  if(!S.approved){ toast("Sharing your story is for members. See the Members tab to join."); return; }
+  if(!S.approved){ toast("Sharing your story is for members. Open Community, then Members, to join."); return; }
   const text=$("#sText").value.trim().slice(0,2000);
   if(!text){ toast("Write something first."); return; }
   const branch = (S.members[uid()]||{}).branch || "";
@@ -2294,7 +2649,7 @@ function startEditPartner(id){
   editingPartner=id;
   $("#ptName").value=p.name||""; $("#ptCat").value=p.category||"support"; $("#ptOffer").value=p.offer||""; $("#ptContact").value=p.contact||""; $("#ptWeb").value=p.website||"";
   $("#ptHead").textContent="Edit partner"; $("#ptSave").textContent="Save changes"; $("#ptCancel").hidden=false;
-  $("#partnerAdmin").scrollIntoView({behavior:"smooth", block:"start"});
+  showTab("admin"); scrollToEl("#partnerAdmin");
 }
 $("#ptCancel").addEventListener("click", resetPartnerForm);
 $("#ptSave").addEventListener("click", async ()=>{
@@ -2324,7 +2679,7 @@ const DIAZ_DESC="Boxing fundamentals, cardio-intensive.";
 const HYROX_DESC="HYROX training with GHF.";
 const SCHEDULE = [
   {id:"hyrox-2026-11",title:"CTF/GHF HYROX Training",date:"2026-11-05",time:"13:00",location:GHF,address:GHF_ADDR,description:HYROX_DESC},
-  {id:"tailgate-2026",title:"BRCC x CTF Tailgate",date:"2026-11-07",time:"11:00",location:"Reitz Union Courtyard, UF",address:"J. Wayne Reitz Union, Gainesville, FL",description:"UF vs. Oklahoma Military Appreciation Game. Hosted by REVELxp. CTF's biggest fundraiser of the year."},
+  {id:"tailgate-2026",type:"fundraiser",title:"BRCC x CTF Tailgate",date:"2026-11-07",time:"11:00",location:"Reitz Union Courtyard, UF",address:"J. Wayne Reitz Union, Gainesville, FL",description:"UF vs. Oklahoma Military Appreciation Game. Hosted by REVELxp. CTF's biggest fundraiser of the year."},
   {id:"boxing-2026-11",title:"CTF @ Diaz Boxing Club",date:"2026-11-12",time:"17:00",location:DIAZ,address:DIAZ_ADDR,description:DIAZ_DESC},
   {id:"ghf-2026-11",title:"CTF @ GHF: Veteran Family",date:"2026-11-19",time:"07:00",location:GHF,address:GHF_ADDR,description:GHF_DESC},
   {id:"hyrox-2026-12",title:"CTF/GHF HYROX Training",date:"2026-12-03",time:"13:00",location:GHF,address:GHF_ADDR,description:HYROX_DESC},
@@ -2428,8 +2783,7 @@ $("#dateSave").addEventListener("click", async ()=>{
 });
 
 // ---------- Add to calendar ----------
-function addToCalendar(id){
-  const e=S.events.find(x=>x.id===id); if(!e) return;
+function veventLines(e){
   const ds=e.date.replace(/-/g,"");
   const pad=n=>String(n).padStart(2,"0");
   let start, end, timed=!!e.time;
@@ -2444,17 +2798,30 @@ function addToCalendar(id){
     end=`DTEND;VALUE=DATE:${n.getFullYear()}${pad(n.getMonth()+1)}${pad(n.getDate())}`;
   }
   const clean=v=>String(v||"").replace(/[\\,;]/g,m=>"\\"+m).replace(/\n/g,"\\n");
-  const ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//CTF//Community App//EN","BEGIN:VEVENT",
-    `UID:${id}@camaraderie-through-fitness`,`DTSTAMP:${new Date().toISOString().replace(/[-:]/g,"").slice(0,15)}Z`,
-    start,end,`SUMMARY:${clean("CTF: "+e.title)}`,`LOCATION:${clean(e.location)}`,`DESCRIPTION:${clean(e.description)}`,
+  return ["BEGIN:VEVENT",
+    `UID:${e.id}@camaraderie-through-fitness`,`DTSTAMP:${new Date().toISOString().replace(/[-:]/g,"").slice(0,15)}Z`,
+    start,end,`SUMMARY:${clean("CTF: "+e.title)}`,`LOCATION:${clean([e.location,e.address].filter(Boolean).join(", "))}`,`DESCRIPTION:${clean(e.description)}`,
     "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:Reminder",timed?"TRIGGER:-PT2H":"TRIGGER:-PT12H","END:VALARM",
     "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:Reminder","TRIGGER:-P1D","END:VALARM",
-    "END:VEVENT","END:VCALENDAR"].join("\r\n");
+    "END:VEVENT"];
+}
+function downloadIcs(events, name){
+  const ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//CTF//Community App//EN","X-WR-CALNAME:CTF events", ...events.flatMap(veventLines), "END:VCALENDAR"].join("\r\n");
   const url=URL.createObjectURL(new Blob([ics],{type:"text/calendar"}));
-  const a=document.createElement("a"); a.href=url; a.download="ctf-"+id+".ics";
+  const a=document.createElement("a"); a.href=url; a.download=name;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=>URL.revokeObjectURL(url),5000);
 }
+function addToCalendar(id){
+  const e=S.events.find(x=>x.id===id); if(!e) return;
+  downloadIcs([e], "ctf-"+id+".ics");
+}
+// Every upcoming event in one file. Re-adding later updates the same events instead of doubling them.
+$("#calAllBtn").addEventListener("click", ()=>{
+  const list=upcoming(); if(!list.length){ toast("Nothing on the calendar yet."); return; }
+  downloadIcs(list, "ctf-events.ics");
+  toast(`Adding ${list.length} event${list.length===1?"":"s"} to your calendar.`);
+});
 
 // ---------- Data ----------
 function loadFail(e){ console.error(e); S.loadError=true; render(); }
@@ -2463,6 +2830,8 @@ onSnapshot(collection(fs,"rsvps"), s=>{ S.rsvps=toMap(s); render(); }, e=>consol
 onSnapshot(collection(fs,"stories"), s=>{ S.stories=toMap(s); render(); }, e=>console.error(e));
 onSnapshot(collection(fs,"devotionals"), s=>{ S.devos=toMap(s); renderStories(); }, e=>console.error("devotionals", e.code));
 onSnapshot(collection(fs,"partners"), s=>{ S.partners=mergePartners(s.docs.map(d=>({id:d.id, ...d.data()}))); render(); }, e=>console.error(e));
+S.home={};
+onSnapshot(doc(fs,"config","home"), d=>{ S.home=d.exists() ? d.data() : {}; render(); }, e=>console.error("home", e.code));
 onSnapshot(doc(fs,"config","site"), d=>{
   S.config=d.exists() ? d.data() : {};
   if(S.user){ const was=S.approved; S.approved=computeApproved(S.approvedIds[uid()]); if(was!==S.approved){ subscribeMembers(); return; } }
@@ -2607,7 +2976,7 @@ onAuthStateChanged(auth, async u=>{
   clearSubs();
   renderMembers.filled=false; renderStories.filled=false; $("#storyEditor").hidden=true; S.storyMenu=null; S.cmtMenu=null;
   resetEventForm(); resetPartnerForm();
-  if(!u){ setView(); setMode("in"); $("#aPass").value=""; showTab("workouts"); }
+  if(!u){ setView(); setMode("in"); $("#aPass").value=""; showTab("home"); }
   if(u){
     try{ S.realAdmin = (await getDoc(doc(fs,"admins",u.uid))).exists(); }catch(e){ console.error(e); }
     S.memberView = S.realAdmin && memberViewPref(); S.admin = S.realAdmin && !S.memberView;
