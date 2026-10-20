@@ -493,12 +493,13 @@ nav.tabs button{position:relative}
   <!-- STORIES -->
   <section id="tab-stories" hidden>
     <h2>The Fox Hole</h2>
-    <p class="hint">What CTF has meant to the people in it. Everyone signed in can read stories.</p>
+    <p class="hint">Stories from the people beside you in the fight. Everyone signed in can read them.</p>
     <div class="panel admin" id="photoQueue" hidden></div>
-    <p id="shareStoryWrap" hidden style="margin:4px 0 14px"><button class="btn" id="shareStoryBtn">Share your story</button></p>
+    <p id="shareStoryWrap" hidden style="margin:4px 0 14px"><button class="btn" id="shareStoryBtn">Jump in: share your story</button></p>
+    <p class="hint" id="shareStoryHint" style="margin:-6px 0 14px">What brought you to CTF, and what's changed since?</p>
     <div class="panel" id="storyEditor" hidden>
       <h3 id="storyHead">Share your story</h3>
-      <label for="sText">Your story</label><textarea id="sText" placeholder="How did you find CTF? What changed?"></textarea>
+      <label for="sText">Your story</label><textarea id="sText" placeholder="What brought you to CTF, and what's changed since?"></textarea>
       <div class="s-photo-prev" id="sPhotoPrev"></div>
       <p style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <span class="btn small ghost file-btn" id="sPhotoAddBtn">Add a photo<input id="sPhotoFile" type="file" accept="image/*" aria-label="Add a photo to your story"></span>
@@ -1103,7 +1104,7 @@ function renderStories(){
         <button class="btn small" data-cmt-post="${esc(id)}">Post</button></div>
       </div>`:""}
     </div>`;}).join("")
-    : `<p class="empty-note">No stories yet. Yours could be the first.</p>`;
+    : `<p class="empty-note">The fox hole is empty. Be the first one in.</p>`;
   if(focusSid){ const el=document.querySelector(`[data-cmt-input="${CSS.escape(focusSid)}"]`); if(el){ el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }
   // photo in the form
   const myPh = sPhotoDraft!==undefined ? sPhotoDraft : ((S.photos[uid()]||{}).photo||"");
@@ -1126,7 +1127,7 @@ function renderStories(){
   const mine = S.stories[uid()];
   $("#storyHead").textContent = mine ? "Edit your story" : "Share your story";
   $("#sSave").textContent = mine ? "Update story" : "Post story";
-  $("#shareStoryWrap").hidden = !(S.user && !mine && $("#storyEditor").hidden);
+  $("#shareStoryWrap").hidden = !(S.user && !mine && $("#storyEditor").hidden); $("#shareStoryHint").hidden = $("#shareStoryWrap").hidden;
 }
 
 // Turn phone numbers and emails in a partner's contact text into tap-to-call / tap-to-email buttons.
