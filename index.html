@@ -978,6 +978,7 @@ function memberRow(id, _m, extra){
       ${full && m.reach?`<p class="meta" style="margin-top:6px">Reach out: ${esc(m.reach)}</p>`:""}
       ${!full?`<p class="locked">Connect as battle buddies to see their full profile.</p>`:""}
       ${adminBuddyLine(id)}
+      ${S.admin && st!=="self"?`<p class="meta bb-admin">🕒 ${esc(lastSeenText(id))}</p>`:""}
       ${actions?`<div class="actions">${actions}</div>`:""}
     </div></div></div>`;
 }
@@ -1681,7 +1682,8 @@ $("#delGo").addEventListener("click", async ()=>{
     err.textContent="Deleting your data…"; phase="data";
     // 2. Remove everything this person owns. Missing items are fine.
     const del = ref => deleteDoc(ref).catch(e=>console.warn("skip", ref.path, e.code));
-    const jobs=[ "members","private","contacts","rsvps","stories","storyPhotos" ].map(c=>del(doc(fs,c,me)));
+    const jobs=[ "members","private","contacts","rsvps","stories","storyPhotos","seen","reimb","cache" ].map(c=>del(doc(fs,c,me)));
+    Object.keys(S.cache||{}).forEach(pid=>jobs.push(del(doc(fs,"cache",me,"posts",pid))));
     Object.entries(S.buddies||{}).forEach(([pid])=>jobs.push(del(doc(fs,"buddies",pid))));
     Object.entries(S.salutes||{}).forEach(([sid,set])=>set.forEach(u=>{ if(u===me || sid===me) jobs.push(del(doc(fs,threadCol(sid),sid,"salutes",u))); }));
     Object.entries(S.comments||{}).forEach(([sid,list])=>list.forEach(c=>{ if(c.uid===me || sid===me) jobs.push(del(doc(fs,threadCol(sid),sid,"comments",c.id))); }));
@@ -2357,6 +2359,21 @@ function syncBuddyPriv(){
 // One-time move of private fields out of an older public profile.
 let migrating=false;
 // Email + reminder preference live in /contacts, readable only by the owner and admins.
+// Last active: the app records when each member opens it (at most every 30 minutes). Only admins can see it.
+async function markSeen(){
+  const u=S.user; if(!u) return;
+  const key="ctfSeen_"+u.uid; let last=0; try{ last=+localStorage.getItem(key)||0; }catch{}
+  if(Date.now()-last < 30*60*1000) return;
+  try{ await setDoc(doc(fs,"seen",u.uid), {at:Date.now()}); try{ localStorage.setItem(key,String(Date.now())); }catch{} }
+  catch(e){ console.warn("seen", e.code); }
+}
+document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="visible") markSeen(); });
+function lastSeenText(id){
+  const at=((S.seen||{})[id]||{}).at; if(!at) return "Last active: not yet tracked";
+  const mins=Math.round((Date.now()-at)/60000);
+  const when = mins<60 ? "within the last hour" : mins<24*60 ? `${Math.round(mins/60)} hr ago` : mins<7*24*60 ? `${Math.round(mins/1440)} day${Math.round(mins/1440)===1?"":"s"} ago` : fmtDay(at);
+  return `Last active: ${when}`;
+}
 async function syncContact(remind){
   const u=S.user; if(!u || !u.email) return;
   const prev=S.contact||{};
@@ -2424,6 +2441,7 @@ function subscribeMembers(){
   if(S.realAdmin){
     subs.push(onSnapshot(collection(fs,"private"), s=>{ S.priv=toMap(s); S.myPrivLoaded=true; migrateMine(); render(); }, e=>{ console.error(e); S.myPrivLoaded=true; }));
     subs.push(onSnapshot(collection(fs,"reimb"), s=>{ S.reimbAll=toMap(s); S.reimbErr=false; renderSupport(); }, e=>{ console.error("reimb", e.code); S.reimbErr=true; renderSupport(); }));
+    subs.push(onSnapshot(collection(fs,"seen"), s=>{ S.seen=toMap(s); renderMembers(); }, e=>console.error("seen", e.code)));
     subs.push(onSnapshot(collection(fs,"awards"), s=>{ S.awards=toMap(s); renderSupport(); }, e=>console.error("awards", e.code)));
     // Admins see every battle buddy connection (needs the admin read rule on /buddies).
     subs.push(onSnapshot(collection(fs,"buddies"), s=>{ S.allBuddies=toMap(s); S.allBuddiesErr=false; renderMembers(); }, e=>{ console.error("all buddies", e.code); S.allBuddiesErr=true; renderMembers(); }));
@@ -2445,7 +2463,7 @@ function subscribeMembers(){
 
 onAuthStateChanged(auth, async u=>{
   ensured=false; ensuring=false; S.contact=null; welcomeShown=false; welcoming=false;
-  S.user=u; S.admin=false; S.realAdmin=false; S.memberView=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.allBuddies=null; S.allBuddiesErr=false; S.verified={}; S.cache={}; S.cacheSetting=null; S.otherCache=null; S.reimbAll={}; S.myReimb=null; S.awards={}; S.reimbErr=false; S.reimbOpen=false; reimbPhoto=undefined; S.myPrivLoaded=false; S.salutes={}; S.comments={}; S.photos={}; sPhotoDraft=undefined;
+  S.user=u; S.admin=false; S.realAdmin=false; S.memberView=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.allBuddies=null; S.allBuddiesErr=false; S.verified={}; S.seen={}; S.cache={}; S.cacheSetting=null; S.otherCache=null; S.reimbAll={}; S.myReimb=null; S.awards={}; S.reimbErr=false; S.reimbOpen=false; reimbPhoto=undefined; S.myPrivLoaded=false; S.salutes={}; S.comments={}; S.photos={}; sPhotoDraft=undefined;
   clearSubs();
   renderMembers.filled=false; renderStories.filled=false; $("#storyEditor").hidden=true; S.storyMenu=null; S.cmtMenu=null;
   resetEventForm(); resetPartnerForm();
@@ -2455,7 +2473,7 @@ onAuthStateChanged(auth, async u=>{
     S.memberView = S.realAdmin && memberViewPref(); S.admin = S.realAdmin && !S.memberView;
     try{ const d=await getDoc(doc(fs,"approved",u.uid)); S.approvedIds[u.uid]=d.exists()?d.data():undefined; S.approved = computeApproved(S.approvedIds[u.uid]); }catch(e){ console.error(e); S.approved = computeApproved(undefined); }
     try{ const c=await getDoc(doc(fs,"contacts",u.uid)); S.contact=c.exists()?c.data():null; }catch(e){ S.contact=null; }
-    syncContact();
+    syncContact(); markSeen();
     subscribeMembers();
     setView(); window.scrollTo(0,0);
   }

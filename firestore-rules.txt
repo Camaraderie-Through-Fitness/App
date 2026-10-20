@@ -178,6 +178,17 @@ service cloud.firestore {
     }
 
     // Email + reminder preference. Only the owner and admins can read it.
+    // Last active time: each member records their own; only admins (and the member) can read it.
+    match /seen/{id} {
+      allow read: if isMe(id) || isAdmin();
+      allow create, update: if isMe(id)
+        && request.resource.data.keys().hasOnly(['at'])
+        && request.resource.data.at is int
+        && request.resource.data.at > request.time.toMillis() - 600000
+        && request.resource.data.at < request.time.toMillis() + 600000;
+      allow delete: if isMe(id) || isAdmin();
+    }
+
     match /contacts/{id} {
       allow read: if isMe(id) || isAdmin();
       allow create, update: if isMe(id)
