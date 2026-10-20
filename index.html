@@ -152,6 +152,19 @@ blockquote{margin:0;font-size:1.08rem;line-height:1.6}
 .cache-post:first-of-type{margin-top:10px}
 .cache-post blockquote{margin:6px 0}
 .cache-cmt{margin:6px 0 0;font-size:.92rem}
+.devo{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--brass);border-radius:16px;padding:16px;margin:4px 0 16px}
+.devo-head{display:flex;align-items:center;gap:8px}
+.devo-hide{margin-left:auto;font-size:.85rem;color:var(--muted)}
+.devo-head .more{margin-left:0}
+.devo-min{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px}
+.devo-min .linkish{margin-left:auto}
+.devo-kicker{font-size:.8rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--brass)}
+.devo h3{font-size:1.4rem;margin:6px 0 2px}
+.devo-verse{font-style:italic;color:var(--muted);margin-bottom:8px}
+.devo-body{white-space:pre-wrap;line-height:1.55}
+.devo-past{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
+.devo-past summary{cursor:pointer}
+.devo-old{padding:8px 0;border-top:1px solid var(--line)}.devo-old:first-of-type{border-top:0}
 .cmt .x{background:none;border:0;color:var(--muted);font-size:.85rem;cursor:pointer;padding:0;margin-top:2px}
 .cmt-form{display:flex;gap:8px;margin-top:8px;align-items:flex-end}
 .cmt-form textarea{min-height:44px;height:44px;flex:1}
@@ -501,6 +514,7 @@ nav.tabs button{position:relative}
     <h2>The Fox Hole</h2>
     <p class="hint">A place to speak freely with people who get it. Everyone signed in can read what's posted here.</p>
     <div class="panel admin" id="photoQueue" hidden></div>
+    <div id="devoBox"></div>
     <p id="shareStoryWrap" hidden style="margin:4px 0 14px"><button class="btn" id="shareStoryBtn">Jump in</button></p>
     <p class="hint" id="stashPrompt" hidden style="margin:4px 0 14px">Want to post something new? <button class="linkish" data-my-stash="new">Stash your current post to your cache</button> to make room.</p>
     <p class="hint" id="shareStoryHint" style="margin:-6px 0 14px">Wins, struggles, a shout-out, or whatever's on your mind.</p>
@@ -697,7 +711,7 @@ const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const S = { events:[], rsvps:{}, members:{}, stories:{}, partners:[], config:{}, approvedIds:{}, user:null, admin:false, approved:false, ready:false, loadError:false };
 let editingEvent = null, editingPartner = null;
 S.priv={}; S.buddies={}; S.myPrivLoaded=false;
-S.salutes={}; S.comments={}; S.openCmts=new Set(); S.cmtDrafts={};
+S.salutes={}; S.comments={}; S.openCmts=new Set(); S.cmtDrafts={}; S.devos={}; S.devoOpen=new Set();
 S.photos={}; let sPhotoDraft; // undefined = no change, "" = remove, data URL = new photo
 const paywallOn = () => S.config.paywall === true;
 const computeApproved = mine => S.realAdmin || !paywallOn() || isActive(mine);
@@ -1075,9 +1089,70 @@ function commentHTML(sid,c){
     <p>${esc(c.text)}</p>${canDel && S.cmtMenu===c.id?`<button class="x x-del" data-cmt-del="${esc(sid)}|${esc(c.id)}">Delete comment</button>`:""}</div>
     ${canDel?`<button class="more more-sm" data-cmt-menu="${esc(c.id)}" aria-expanded="${S.cmtMenu===c.id}" aria-label="Comment options">⋯</button>`:""}</div>`;
 }
+// Salute + comment row, shared by Fox Hole posts and devotionals.
+function threadHTML(id, what){
+  const sal=S.salutes[id]||new Set(), mine=sal.has(uid()), cm=(S.comments[id]||[]), open=S.openCmts.has(id);
+  return `<div class="story-acts">
+      <button class="pill" data-salute="${esc(id)}" aria-pressed="${mine}" aria-label="${mine?"Remove salute":"Salute this "+what}"><span class="emo" aria-hidden="true">🫡</span>${mine?"Saluted":"Salute"}${sal.size?` · ${sal.size}`:""}</button>
+      <button class="pill" data-cmt-toggle="${esc(id)}" aria-expanded="${open}"><span class="emo" aria-hidden="true">💬</span>${cm.length?`${cm.length} comment${cm.length===1?"":"s"}`:"Comment"}</button>
+    </div>
+    ${open?`<div class="comments">
+      ${cm.length?cm.map(c=>commentHTML(id,c)).join(""):`<p class="hint" style="margin:6px 0">No comments yet.</p>`}
+      <div class="cmt-form"><textarea data-cmt-input="${esc(id)}" maxlength="500" placeholder="Write a comment" aria-label="Write a comment">${esc(S.cmtDrafts[id]||"")}</textarea>
+      <button class="btn small" data-cmt-post="${esc(id)}">Post</button></div>
+    </div>`:""}`;
+}
+// ---------- Weekly devotional (pinned at the top of the Fox Hole) ----------
+const threadCol = id => (S.devos||{})[id] ? "devotionals" : "stories";
+function devoForm(d){
+  d=d||{};
+  return `<div class="panel admin" id="devoForm">
+    <h3>${d.id?"Edit devotional":"Post this week's devotional"}</h3>
+    <label for="dvTitle">Title</label><input id="dvTitle" type="text" maxlength="120" value="${esc(d.title||"")}">
+    <label for="dvScripture">Scripture</label><input id="dvScripture" type="text" maxlength="200" placeholder="Joshua 1:9" value="${esc(d.scripture||"")}">
+    <label for="dvBody">Message</label><textarea id="dvBody" maxlength="5000" style="min-height:160px">${esc(d.body||"")}</textarea>
+    <label for="dvAuthor">Written by (optional)</label><input id="dvAuthor" type="text" maxlength="80" value="${esc(d.author||"")}">
+    <p style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-devo-save="${esc(d.id||"")}">${d.id?"Save changes":"Post devotional"}</button><button class="btn ghost" data-devo-cancel="1">Cancel</button></p>
+  </div>`;
+}
+function devoBody(d, full){
+  const text=String(d.body||"");
+  const long=text.length>320 && !full;
+  return `<div class="devo-body">${esc(long ? text.slice(0,300).replace(/\s+\S*$/,"")+"…" : text)}</div>${long?`<button class="linkish" data-devo-more="${esc(d.id)}">Read more</button>`:""}`;
+}
+function renderDevo(){
+  const box=$("#devoBox"); if(!box) return;
+  if(S.devoEditing!==undefined && $("#devoForm")) return; // keep what an admin is typing
+  const list=Object.entries(S.devos||{}).map(([id,d])=>({...d,id})).sort((a,b)=>(b.at||0)-(a.at||0));
+  const cur=list[0], past=list.slice(1);
+  let html="";
+  if(S.devoEditing!==undefined) html+=devoForm(S.devoEditing ? list.find(x=>x.id===S.devoEditing) : null);
+  if(cur){
+    const exp=S.devoOpen.has(cur.id), menu=S.storyMenu==="devo:"+cur.id;
+    let hidden=false; try{ hidden = localStorage.getItem("ctfDevoHide")===cur.id; }catch{}
+    if(hidden) html+=`<div class="devo devo-min"><span class="devo-kicker">Weekly devotional</span> <b>${esc(cur.title||"This week")}</b><button class="linkish" data-devo-show="${esc(cur.id)}">Show</button></div>`;
+    else html+=`<div class="devo">
+      <div class="devo-head"><span class="devo-kicker">Weekly devotional · ${esc(fmtDay(cur.at||0))}</span>
+        <button class="linkish devo-hide" data-devo-hide="${esc(cur.id)}">Hide</button>
+        ${S.admin?`<button class="more" data-story-menu="devo:${esc(cur.id)}" aria-expanded="${menu}" aria-label="Devotional options">⋯</button>`:""}</div>
+      ${menu?`<div class="own-acts"><button class="btn small ghost" data-devo-edit="${esc(cur.id)}">Edit</button><button class="btn small danger" data-devo-del="${esc(cur.id)}">Delete</button></div>`:""}
+      <h3>${esc(cur.title||"This week")}</h3>
+      ${cur.scripture?`<div class="devo-verse">${esc(cur.scripture)}</div>`:""}
+      ${devoBody(cur, exp)}
+      ${cur.author?`<div class="meta" style="margin-top:8px">${esc(cur.author)}</div>`:""}
+      ${threadHTML(cur.id,"devotional")}
+      ${past.length?`<details class="devo-past"><summary class="meta">Past weeks (${past.length})</summary>${past.map(d=>`<details class="devo-old"><summary><b>${esc(d.title||"Devotional")}</b> <span class="meta">${esc(fmtDay(d.at||0))}${d.scripture?` · ${esc(d.scripture)}`:""}</span></summary>
+        <div class="devo-body" style="margin-top:6px">${esc(d.body||"")}</div>${d.author?`<div class="meta" style="margin-top:6px">${esc(d.author)}</div>`:""}
+        ${S.admin?`<p style="margin-top:6px"><button class="linkish danger-text" data-devo-del="${esc(d.id)}">Delete</button></p>`:""}</details>`).join("")}</details>`:""}
+    </div>`;
+  }
+  if(S.admin && S.devoEditing===undefined) html+=`<p style="margin:0 0 14px"><button class="btn small ghost" data-devo-new="1">Post this week's devotional</button></p>`;
+  box.innerHTML=html;
+}
 function renderStories(){
   // keep a half-typed comment and its focus across live updates
   const act=document.activeElement, focusSid = act && act.dataset ? act.dataset.cmtInput : null;
+  renderDevo();
   const ids = Object.keys(S.stories).filter(id=>S.stories[id].text).sort((a,b)=>(S.stories[b].updatedAt||0)-(S.stories[a].updatedAt||0));
   $("#storyList").innerHTML = ids.length ? ids.map(id=>{
     const s=S.stories[id], sal=S.salutes[id]||new Set(), mine=sal.has(uid()), cm=(S.comments[id]||[]), open=S.openCmts.has(id);
@@ -1102,15 +1177,7 @@ function renderStories(){
         : `<button class="btn small danger" data-del-story="${esc(id)}">Remove post</button>`}</div>`:""}
       ${showPh?`<div class="photo-wrap"><img class="story-photo" src="${ph.photo}" alt="Photo shared with this story" loading="lazy">${flag?`<span class="photo-flag">${flag}</span>`:""}</div>`:""}
       <blockquote>${esc(s.text)}</blockquote>
-      <div class="story-acts">
-        <button class="pill" data-salute="${esc(id)}" aria-pressed="${mine}" aria-label="${mine?"Remove salute":"Salute this story"}"><span class="emo" aria-hidden="true">🫡</span>${mine?"Saluted":"Salute"}${sal.size?` · ${sal.size}`:""}</button>
-        <button class="pill" data-cmt-toggle="${esc(id)}" aria-expanded="${open}"><span class="emo" aria-hidden="true">💬</span>${cm.length?`${cm.length} comment${cm.length===1?"":"s"}`:"Comment"}</button>
-      </div>
-      ${open?`<div class="comments">
-        ${cm.length?cm.map(c=>commentHTML(id,c)).join(""):`<p class="hint" style="margin:6px 0">No comments yet.</p>`}
-        <div class="cmt-form"><textarea data-cmt-input="${esc(id)}" maxlength="500" placeholder="Write a comment" aria-label="Write a comment">${esc(S.cmtDrafts[id]||"")}</textarea>
-        <button class="btn small" data-cmt-post="${esc(id)}">Post</button></div>
-      </div>`:""}
+      ${threadHTML(id,"post")}
     </div>`;}).join("")
     : `<p class="empty-note">The fox hole is empty. Be the first one in.</p>`;
   if(focusSid){ const el=document.querySelector(`[data-cmt-input="${CSS.escape(focusSid)}"]`); if(el){ el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }
@@ -1616,8 +1683,8 @@ $("#delGo").addEventListener("click", async ()=>{
     const del = ref => deleteDoc(ref).catch(e=>console.warn("skip", ref.path, e.code));
     const jobs=[ "members","private","contacts","rsvps","stories","storyPhotos" ].map(c=>del(doc(fs,c,me)));
     Object.entries(S.buddies||{}).forEach(([pid])=>jobs.push(del(doc(fs,"buddies",pid))));
-    Object.entries(S.salutes||{}).forEach(([sid,set])=>set.forEach(u=>{ if(u===me || sid===me) jobs.push(del(doc(fs,"stories",sid,"salutes",u))); }));
-    Object.entries(S.comments||{}).forEach(([sid,list])=>list.forEach(c=>{ if(c.uid===me || sid===me) jobs.push(del(doc(fs,"stories",sid,"comments",c.id))); }));
+    Object.entries(S.salutes||{}).forEach(([sid,set])=>set.forEach(u=>{ if(u===me || sid===me) jobs.push(del(doc(fs,threadCol(sid),sid,"salutes",u))); }));
+    Object.entries(S.comments||{}).forEach(([sid,list])=>list.forEach(c=>{ if(c.uid===me || sid===me) jobs.push(del(doc(fs,threadCol(sid),sid,"comments",c.id))); }));
     await Promise.all(jobs);
     phase="login";
     // 3. Remove the login itself.
@@ -1659,7 +1726,7 @@ document.addEventListener("click", async ev=>{
   if(t.dataset.myrsvps){ S.showMyRsvps=!S.showMyRsvps; renderMyRsvps(); return; }
   if(t.id==="moreBtn"){ S.showAllEvents=!S.showAllEvents; renderWorkouts(); return; }
   if(t.dataset.salute){
-    const sid=t.dataset.salute, ref=doc(fs,"stories",sid,"salutes",uid());
+    const sid=t.dataset.salute, ref=doc(fs,threadCol(sid),sid,"salutes",uid());
     if(!S.approved){ toast("Saluting is for members. See the Members tab to join."); return; }
     const had=(S.salutes[sid]||new Set()).has(uid());
     try{ if(had) await deleteDoc(ref); else await setDoc(ref,{at:Date.now()}); }catch(e){ writeFailed(e); }
@@ -1673,7 +1740,7 @@ document.addEventListener("click", async ev=>{
     if(!text){ toast("Write a comment first."); return; }
     if(!S.approved){ toast("Commenting is for members. See the Members tab to join."); return; }
     t.disabled=true;
-    try{ await addDoc(collection(fs,"stories",sid,"comments"), {uid:uid(), name:myName(), text, at:Date.now()}); S.cmtDrafts[sid]=""; if(el) el.value=""; }
+    try{ await addDoc(collection(fs,threadCol(sid),sid,"comments"), {uid:uid(), name:myName(), text, at:Date.now()}); S.cmtDrafts[sid]=""; if(el) el.value=""; }
     catch(e){ writeFailed(e); }
     t.disabled=false; return;
   }
@@ -1752,6 +1819,31 @@ document.addEventListener("click", async ev=>{
       $("#awAmt").value=""; $("#awNote").value=""; toast("Award recorded."); }catch(e){ writeFailed(e); }
     return;
   }
+  if(t.dataset.devoNew){ S.devoEditing=null; renderDevo(); setTimeout(()=>{ const f=$("#dvTitle"); if(f){ f.focus(); $("#devoForm").scrollIntoView({behavior:"smooth",block:"start"}); } },50); return; }
+  if(t.dataset.devoEdit){ S.storyMenu=null; S.devoEditing=t.dataset.devoEdit; renderDevo(); return; }
+  if(t.dataset.devoCancel){ S.devoEditing=undefined; $("#devoBox").innerHTML=""; renderDevo(); return; }
+  if(t.dataset.devoHide){ try{ localStorage.setItem("ctfDevoHide", t.dataset.devoHide); }catch{} renderDevo(); return; }
+  if(t.dataset.devoShow){ try{ localStorage.removeItem("ctfDevoHide"); }catch{} renderDevo(); return; }
+  if(t.dataset.devoMore){ S.devoOpen.add(t.dataset.devoMore); renderDevo(); return; }
+  if(t.dataset.devoSave!==undefined){
+    const id=t.dataset.devoSave, title=$("#dvTitle").value.trim().slice(0,120), scripture=$("#dvScripture").value.trim().slice(0,200), body=$("#dvBody").value.trim().slice(0,5000), author=$("#dvAuthor").value.trim().slice(0,80);
+    if(!title || !body){ toast("Add a title and a message."); return; }
+    t.disabled=true;
+    try{
+      if(id) await updateDoc(doc(fs,"devotionals",id), {title, scripture, body, author});
+      else await addDoc(collection(fs,"devotionals"), {title, scripture, body, author, by:myName(), at:Date.now()});
+      S.devoEditing=undefined; $("#devoBox").innerHTML=""; renderDevo(); toast(id ? "Devotional updated." : "Devotional posted.");
+    }catch(e){ writeFailed(e); } finally{ t.disabled=false; }
+    return;
+  }
+  if(t.dataset.devoDel){
+    if(!confirm("Delete this devotional? Its salutes and comments go with it.")) return;
+    const id=t.dataset.devoDel, jobs=[];
+    (S.salutes[id]||new Set()).forEach(u=>jobs.push(deleteDoc(doc(fs,"devotionals",id,"salutes",u)).catch(()=>{})));
+    (S.comments[id]||[]).forEach(c=>jobs.push(deleteDoc(doc(fs,"devotionals",id,"comments",c.id)).catch(()=>{})));
+    try{ await Promise.all(jobs); await deleteDoc(doc(fs,"devotionals",id)); S.storyMenu=null; toast("Devotional deleted."); }catch(e){ writeFailed(e); }
+    return;
+  }
   if(t.dataset.storyMenu){ S.storyMenu = S.storyMenu===t.dataset.storyMenu ? null : t.dataset.storyMenu; renderStories(); return; }
   if(t.dataset.cmtMenu){ S.cmtMenu = S.cmtMenu===t.dataset.cmtMenu ? null : t.dataset.cmtMenu; renderStories(); return; }
   if(t.dataset.myStoryEdit){ openStoryEditor(); return; }
@@ -1765,7 +1857,7 @@ document.addEventListener("click", async ev=>{
   if(t.dataset.cmtDel){
     const [sid,cid]=t.dataset.cmtDel.split("|");
     if(!confirm("Delete this comment?")) return;
-    try{ await deleteDoc(doc(fs,"stories",sid,"comments",cid)); }catch(e){ writeFailed(e); }
+    try{ await deleteDoc(doc(fs,threadCol(sid),sid,"comments",cid)); }catch(e){ writeFailed(e); }
     return;
   }
   if(t.dataset.bbReq){
@@ -2228,6 +2320,7 @@ function loadFail(e){ console.error(e); S.loadError=true; render(); }
 onSnapshot(collection(fs,"events"), s=>{ S.events=mergeEvents(s.docs.map(d=>({id:d.id, ...d.data()}))); S.ready=true; S.loadError=false; render(); }, loadFail);
 onSnapshot(collection(fs,"rsvps"), s=>{ S.rsvps=toMap(s); render(); }, e=>console.error(e));
 onSnapshot(collection(fs,"stories"), s=>{ S.stories=toMap(s); render(); }, e=>console.error(e));
+onSnapshot(collection(fs,"devotionals"), s=>{ S.devos=toMap(s); renderStories(); }, e=>console.error("devotionals", e.code));
 onSnapshot(collection(fs,"partners"), s=>{ S.partners=mergePartners(s.docs.map(d=>({id:d.id, ...d.data()}))); render(); }, e=>console.error(e));
 onSnapshot(doc(fs,"config","site"), d=>{
   S.config=d.exists() ? d.data() : {};

@@ -118,6 +118,26 @@ service cloud.firestore {
       allow delete: if isMe(uid) || isAdmin();
     }
 
+    // Weekly devotional pinned in the Fox Hole: admins post; members salute and comment.
+    match /devotionals/{id} {
+      allow read: if true;
+      allow create, update: if isAdmin() && request.resource.data.body is string && request.resource.data.body.size() <= 5000;
+      allow delete: if isAdmin();
+      match /salutes/{uid} {
+        allow create: if isMe(uid) && isMember() && request.resource.data.keys().hasOnly(['at']);
+        allow delete: if isMe(uid) || isAdmin();
+      }
+      match /comments/{cid} {
+        allow create: if isMember()
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.keys().hasOnly(['uid','name','text','at'])
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 500;
+        allow delete: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      }
+    }
+
     match /buddies/{id} {
       // Members see their own connections; admins can see all of them.
       allow read: if signedIn() && (request.auth.uid in resource.data.users || isAdmin());
