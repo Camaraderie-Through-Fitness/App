@@ -1271,7 +1271,7 @@ function renderReimbAdmin(){
       <div style="flex:1;min-width:0"><b class="tap" data-person="${esc(id)}">${esc(nm)}</b> ${ver?vBadge(id):`<span class="tag">Not verified</span>`}
       <span class="meta">${esc(GYMS[r.gym]||r.gym||"")}${r.plan?` · ${esc(GHF_PLANS[r.plan]||r.plan)}`:""} · member #${esc(r.memberNo||"?")}</span>
       <span class="meta">Joined ${esc(r.joined||"?")}${r.joined&&r.at?` (requested ${Math.max(0,Math.round((r.at-parseDate(r.joined).getTime())/86400000))} days later)`:""} · paid ${money(r.paid)} · ${esc(PAY[r.method]||"")} ${esc(r.handle||"")}</span>
-      <span class="meta"><b>${st}</b></span></div></div>${acts?`<div class="actions">${acts}</div>`:""}</div>`;
+      <span class="meta"><b>${st}</b></span></div></div><div class="actions">${acts}<button class="btn small ghost" data-reimb-remove="${esc(id)}">Delete</button></div></div>`;
   }).join("") : `<p class="hint">No requests yet.</p>`;
   // one-off awards
   const sel=$("#awWho");
@@ -1694,6 +1694,12 @@ document.addEventListener("click", async ev=>{
       S.reimbOpen=false; reimbPhoto=undefined; $("#reimbBox").innerHTML=""; renderReimb();
       toast(isVerified(uid()) ? "Request sent. An admin will review it." : "Request sent. It'll be approved after you're verified at a workout.");
     }catch(e){ writeFailed(e); } finally{ t.disabled=false; }
+    return;
+  }
+  if(t.dataset.reimbRemove){
+    const id=t.dataset.reimbRemove, r=(S.reimbAll||{})[id]||{};
+    if(!confirm(`Delete ${(S.members[id]||{}).name||r.name||"this"}'s request? This removes it and its receipt for good. Use it for test or duplicate requests.`)) return;
+    try{ await deleteDoc(doc(fs,"reimb",id)); toast("Request deleted."); }catch(e){ writeFailed(e); }
     return;
   }
   if(t.dataset.reimbDel){
