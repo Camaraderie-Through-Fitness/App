@@ -1159,7 +1159,7 @@ document.querySelectorAll(".drop").forEach(d=>d.addEventListener("toggle",()=>{
   if(d.open) document.querySelectorAll(".drop").forEach(o=>{ if(o!==d) o.open=false; });
 }));
 // ---------- Verified veteran badge + gym start-fee reimbursement ----------
-const REIMB_CAP=52.68, REIMB_DAYS=30, GYMS={GHF:"Gainesville Health & Fitness", DBC:"Diaz Boxing Club"}, PAY={venmo:"Venmo", cashapp:"Cash App"};
+const REIMB_CAP=55, REIMB_DAYS=30, GYMS={GHF:"Gainesville Health & Fitness", DBC:"Diaz Boxing Club"}, PAY={venmo:"Venmo", cashapp:"Cash App"};
 const GHF_PLANS={LTD:"LTD (12 months)", VIP:"VIP (24 months)", M2M:"Month to month"};
 const daysSince = ymd => { const d=parseDate(ymd); const t=new Date(); t.setHours(0,0,0,0); return Math.round((t-d)/86400000); };
 const money = n => "$"+(Math.round((+n||0)*100)/100).toFixed(2);

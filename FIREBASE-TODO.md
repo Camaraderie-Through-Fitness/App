@@ -33,7 +33,7 @@ full app review that includes Firebase changes.
       and "donation" wording (check with whoever does CTF's books).
 - [x] **Gym membership reimbursement program** (built Oct 19; publish the latest rules to turn it on):
       veterans joining a partner gym (GHF, Diaz Boxing Club) get a one-time
-      start-fee reimbursement, capped at $52.68 per veteran, within 30 days of
+      start-fee reimbursement, capped at $55 per veteran, within 30 days of
       joining; receipt must show name, member number, and date; GHF members pick
       a membership type (LTD 12 mo / VIP 24 mo / month to month). Must attend one CTF
       monthly workout first; an admin verifies veteran status in person there
