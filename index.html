@@ -170,6 +170,23 @@ h2 .tip{width:22px;height:22px;font-size:.85rem;vertical-align:4px}
 .filter .tip{align-self:center;margin-left:2px}
 .tip-pop{position:fixed;z-index:60;background:var(--ink);color:var(--bg);border-radius:12px;padding:12px 14px;box-shadow:0 8px 30px rgba(0,0,0,.3);font-size:.92rem;line-height:1.45}
 .tip-pop p{margin:4px 0 0}
+#onboard{position:fixed;inset:0;z-index:50;background:var(--bg);overflow:auto;padding:calc(24px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px))}
+body.onboarding nav.tabs, body.onboarding .wrap{display:none}
+.ob-inner{max-width:480px;margin:0 auto}
+.ob-dots{display:flex;gap:6px;justify-content:center;margin-bottom:20px}
+.ob-dots span{width:28px;height:5px;border-radius:99px;background:var(--line)}
+.ob-dots span.on{background:var(--green)}
+.ob-logo{display:block;width:120px;height:120px;border-radius:50%;margin:8px auto 16px}
+#onboard h1{font-size:2rem;text-align:center;margin-bottom:8px}
+#onboard .ob-sub{text-align:center;color:var(--muted);margin:0 0 18px}
+.ob-list{list-style:none;padding:0;margin:0 0 22px}
+.ob-list li{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line)}
+.ob-list li:first-child{border-top:0}
+.ob-list .em{font-size:1.4rem;line-height:1;flex:none}
+.ob-actions{display:flex;gap:10px;margin-top:22px}
+.ob-actions .btn{flex:1}
+.ob-photo{display:flex;flex-direction:column;align-items:center;gap:12px;margin:10px 0}
+.ob-photo .avatar-xl{margin:0}
 .cmt .x{background:none;border:0;color:var(--muted);font-size:.85rem;cursor:pointer;padding:0;margin-top:2px}
 .cmt-form{display:flex;gap:8px;margin-top:8px;align-items:flex-end}
 .cmt-form textarea{min-height:44px;height:44px;flex:1}
@@ -687,6 +704,12 @@ nav.tabs button{position:relative}
   <img id="receiptImg" alt="Receipt photo" style="display:block;width:100%;margin-top:12px;border-radius:10px">
 </dialog>
 
+<section id="onboard" hidden aria-labelledby="obHead">
+  <div class="ob-inner">
+    <div class="ob-dots" id="obDots" aria-hidden="true"></div>
+    <div id="obStep"></div>
+  </div>
+</section>
 <div class="tip-pop" id="tipPop" role="tooltip" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -798,8 +821,91 @@ let welcomeShown=false;
 function maybeWelcome(){
   if(welcomeShown || !S.user || !S.myPrivLoaded) return;
   const mine=S.members[uid()]; if(!mine || mine.status) return;
-  welcomeShown=true; openProfile(true);
+  welcomeShown=true; startOnboarding();
 }
+// ---------- First-time onboarding: required before the rest of the app ----------
+const OB={step:0, name:"", status:"", branch:"", photo:"", listed:true, remind:true};
+function startOnboarding(){
+  const m=S.members[uid()]||{};
+  Object.assign(OB,{step:0, name:m.name||myName()||"", status:"", branch:m.branch||"", photo:m.photo||"", listed:m.listed!==false, remind:(S.contact||{}).remind!==false});
+  document.body.classList.add("onboarding"); $("#onboard").hidden=false; renderOnboarding();
+}
+function endOnboarding(){ document.body.classList.remove("onboarding"); $("#onboard").hidden=true; }
+function renderOnboarding(){
+  const steps=4, st=OB.step, mil=MILITARY.includes(OB.status);
+  $("#obDots").innerHTML=Array.from({length:steps},(_,i)=>`<span class="${i<=st?"on":""}"></span>`).join("");
+  const first=esc((OB.name||"").split(" ")[0]);
+  let h="";
+  if(st===0) h=`<img class="ob-logo" src="logo.png" alt="">
+    <h1 id="obHead">Welcome${first?`, ${first}`:""}</h1>
+    <p class="ob-sub">Let's set up your profile. It takes about a minute.</p>
+    <ul class="ob-list">
+      <li><span class="em" aria-hidden="true">🏋️</span><div><b>Train together</b><br><span class="hint">RSVP to monthly workouts at GHF and Diaz Boxing Club.</span></div></li>
+      <li><span class="em" aria-hidden="true">🤝</span><div><b>Find your people</b><br><span class="hint">Connect with veterans and supporters, and add battle buddies ${tipBtn("battle","battle buddy")}.</span></div></li>
+      <li><span class="em" aria-hidden="true">🫡</span><div><b>Speak freely</b><br><span class="hint">Share what's on your mind in the Fox Hole.</span></div></li>
+    </ul>
+    <div class="ob-actions"><button class="btn" data-ob="next">Get started</button></div>`;
+  else if(st===1) h=`<h1 id="obHead">Tell us about you</h1>
+    <p class="ob-sub">All members see your name and whether you're a veteran or supporter.</p>
+    <label for="obName">Your name</label><input id="obName" type="text" maxlength="60" autocomplete="name" value="${esc(OB.name)}">
+    <label for="obStatus">I am a ${tipBtn("status","Active duty and Guard / Reserve")}</label>
+    <select id="obStatus"><option value="">Choose</option>${["Veteran","Active duty","Guard / Reserve","Military family","Supporter"].map(o=>`<option${OB.status===o?" selected":""}>${o}</option>`).join("")}</select>
+    <div id="obBranchWrap"${mil?"":" hidden"}><label for="obBranch">Branch</label><select id="obBranch"><option value="">Choose</option>${["Army","Marine Corps","Navy","Air Force","Space Force","Coast Guard"].map(o=>`<option${OB.branch===o?" selected":""}>${o}</option>`).join("")}</select></div>
+    <div class="ob-actions"><button class="btn ghost" data-ob="back">Back</button><button class="btn" data-ob="next">Next</button></div>`;
+  else if(st===2) h=`<h1 id="obHead">Add a photo</h1>
+    <p class="ob-sub">Helps people recognize you at workouts. You can skip this and add one later.</p>
+    <div class="ob-photo">${OB.photo?`<img class="avatar-xl" src="${OB.photo}" alt="Your photo">`:`<div class="avatar-xl" aria-hidden="true">${esc(initials(OB.name))}</div>`}
+      <span class="btn small ghost file-btn">${OB.photo?"Change photo":"Choose a photo"}<input id="obPhotoFile" type="file" accept="image/*" aria-label="Choose a profile photo"></span>
+      ${OB.photo?`<button class="linkish" data-ob="nophoto">Remove photo</button>`:""}</div>
+    <div class="ob-actions"><button class="btn ghost" data-ob="back">Back</button><button class="btn" data-ob="next">${OB.photo?"Next":"Skip for now"}</button></div>`;
+  else h=`<h1 id="obHead">Your settings</h1>
+    <p class="ob-sub">You can change these any time in your profile.</p>
+    <label class="check"><input type="checkbox" id="obListed"${OB.listed?" checked":""}> Show me in the member list</label>
+    <p class="hint" style="margin:4px 0 0 30px">Turn this off to stay hidden. Battle buddies and admins can still see you.</p>
+    <label class="check"><input type="checkbox" id="obRemind"${OB.remind?" checked":""}> Email me a reminder the day before workouts I RSVP to</label>
+    <div class="ob-actions"><button class="btn ghost" data-ob="back">Back</button><button class="btn" data-ob="finish">Finish</button></div>
+    <p style="text-align:center;margin-top:18px"><button class="linkish" data-ob="signout">Not you? Sign out</button></p>`;
+  $("#obStep").innerHTML=h; $("#onboard").scrollTop=0;
+}
+function obCollect(){
+  if($("#obName")) OB.name=$("#obName").value.trim().slice(0,60);
+  if($("#obStatus")) OB.status=$("#obStatus").value;
+  if($("#obBranch")) OB.branch=MILITARY.includes(OB.status) ? $("#obBranch").value : "";
+  if($("#obListed")) OB.listed=$("#obListed").checked;
+  if($("#obRemind")) OB.remind=$("#obRemind").checked;
+}
+document.addEventListener("change", async e=>{
+  if(e.target.id==="obStatus"){ $("#obBranchWrap").hidden=!MILITARY.includes(e.target.value); return; }
+  if(e.target.id==="obPhotoFile"){
+    const f=e.target.files && e.target.files[0]; if(!f) return;
+    try{ OB.photo=await resizePhoto(f); renderOnboarding(); }catch{ toast("That photo didn't work. Try a JPG or PNG."); }
+  }
+});
+document.addEventListener("click", async e=>{
+  const b=e.target.closest("[data-ob]"); if(!b) return;
+  const a=b.dataset.ob; obCollect();
+  if(a==="back"){ OB.step=Math.max(0,OB.step-1); renderOnboarding(); return; }
+  if(a==="nophoto"){ OB.photo=""; renderOnboarding(); return; }
+  if(a==="signout"){ endOnboarding(); signOut(auth); return; }
+  if(a==="next"){
+    if(OB.step===1){
+      if(!OB.name){ toast("Add your name."); $("#obName").focus(); return; }
+      if(!OB.status){ toast("Choose whether you're a veteran, service member, family, or supporter."); $("#obStatus").focus(); return; }
+    }
+    OB.step=Math.min(3,OB.step+1); renderOnboarding(); return;
+  }
+  if(a==="finish"){
+    b.disabled=true;
+    try{
+      await setDoc(doc(fs,"members",uid()), {name:OB.name, status:OB.status, branch:OB.branch, photo:OB.photo||"", listed:OB.listed});
+      if(OB.name && S.user && S.user.displayName!==OB.name){ try{ await updateProfile(S.user,{displayName:OB.name}); }catch{} }
+      await syncContact(OB.remind);
+      endOnboarding(); showTab("workouts"); render();
+      toast(`You're all set${OB.name?`, ${OB.name.split(" ")[0]}`:""}. Welcome to CTF.`);
+    }catch(err){ writeFailed(err); }
+    finally{ b.disabled=false; }
+  }
+});
 document.querySelectorAll("nav.tabs button").forEach(b=>b.addEventListener("click",()=>{
   if(!okToLeaveProfile()) return;
   lastTab=b.dataset.tab;
@@ -2496,6 +2602,7 @@ function subscribeMembers(){
 
 onAuthStateChanged(auth, async u=>{
   ensured=false; ensuring=false; S.contact=null; welcomeShown=false; welcoming=false;
+  endOnboarding(); welcomeShown=false;
   S.user=u; S.admin=false; S.realAdmin=false; S.memberView=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.allBuddies=null; S.allBuddiesErr=false; S.verified={}; S.seen={}; S.cache={}; S.cacheSetting=null; S.otherCache=null; S.reimbAll={}; S.myReimb=null; S.awards={}; S.reimbErr=false; S.reimbOpen=false; reimbPhoto=undefined; S.myPrivLoaded=false; S.salutes={}; S.comments={}; S.photos={}; sPhotoDraft=undefined;
   clearSubs();
   renderMembers.filled=false; renderStories.filled=false; $("#storyEditor").hidden=true; S.storyMenu=null; S.cmtMenu=null;
