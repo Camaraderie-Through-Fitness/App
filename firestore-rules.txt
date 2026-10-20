@@ -67,6 +67,38 @@ service cloud.firestore {
       allow delete: if isMe(id) || isAdmin();
     }
 
+    // Verified veteran badge: set by an admin after checking status in person at a CTF workout.
+    match /verified/{id} {
+      allow read: if signedIn();
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasOnly(['by','byName','at']);
+      allow delete: if isAdmin();
+    }
+
+    // Gym start-fee reimbursement: one request per veteran (doc ID = their user ID).
+    // The veteran submits and can edit while it's waiting or was declined; admins approve, pay, decline.
+    match /reimb/{id} {
+      function ownerFields() {
+        return request.resource.data.keys().hasOnly(['gym','joined','paid','receipt','method','handle','name','status','at'])
+          && request.resource.data.status == 'submitted'
+          && request.resource.data.gym in ['GHF','DBC']
+          && request.resource.data.method in ['venmo','cashapp']
+          && request.resource.data.paid is number && request.resource.data.paid > 0 && request.resource.data.paid < 5000
+          && request.resource.data.receipt is string && request.resource.data.receipt.size() < 900000
+          && request.resource.data.handle is string && request.resource.data.handle.size() < 60;
+      }
+      allow read: if isMe(id) || isAdmin();
+      allow create: if isMe(id) && ownerFields();
+      allow update: if isAdmin()
+        || (isMe(id) && resource.data.status in ['submitted','declined'] && ownerFields());
+      allow delete: if isAdmin() || (isMe(id) && resource.data.status == 'submitted');
+    }
+
+    // One-off awards admins record by hand (for example, an annual membership paid by CTF).
+    match /awards/{id} {
+      allow read, write: if isAdmin();
+    }
+
     match /buddies/{id} {
       // Members see their own connections; admins can see all of them.
       allow read: if signedIn() && (request.auth.uid in resource.data.users || isAdmin());

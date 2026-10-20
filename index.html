@@ -133,6 +133,19 @@ blockquote{margin:0;font-size:1.08rem;line-height:1.6}
 .bb-admin-panel summary{cursor:pointer}
 .bb-pair{padding:8px 0;border-top:1px solid var(--line)}.bb-pair:first-of-type{margin-top:8px}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.vbadge{background:var(--green) !important;color:var(--green-ink) !important}
+.reimb h3,.reimb-admin h3{margin-bottom:6px}
+.reimb .state{margin:10px 0 0;padding:10px 12px;border-radius:10px;background:var(--bg);font-size:.95rem}
+.reimb .state.ok{background:var(--brass-soft)}
+.reimb form label{margin-top:10px}
+.reimb select,.reimb input{width:100%}
+.rq{padding:12px 0;border-top:1px solid var(--line)}
+.rq:first-of-type{border-top:0}
+.rq .rq-top{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.rq .rq-top b{font-size:1.05rem}
+.rq .meta{display:block;margin-top:4px}
+.rq img.thumb{width:64px;height:64px;object-fit:cover;border-radius:8px;cursor:pointer;flex:none;border:1px solid var(--line)}
+.rq .actions{margin-top:8px}
 .cmt .x{background:none;border:0;color:var(--muted);font-size:.85rem;cursor:pointer;padding:0;margin-top:2px}
 .cmt-form{display:flex;gap:8px;margin-top:8px;align-items:flex-end}
 .cmt-form textarea{min-height:44px;height:44px;flex:1}
@@ -499,6 +512,8 @@ nav.tabs button{position:relative}
       <h3>In crisis right now?</h3>
       <p>Call the Veterans Crisis Line: dial <a href="tel:988">988</a> and press 1. Or text <a href="sms:838255">838255</a>. Free, confidential, 24/7.</p>
     </div>
+    <div class="panel reimb" id="reimbBox" hidden></div>
+    <div class="panel admin" id="reimbAdmin" hidden></div>
     <p class="hint" style="margin-top:22px">Partner organizations. Tap a section to see who's in it, then reach out to them directly.</p>
     <div class="drops">
       <details class="drop" name="partners" id="dSupport"><summary><span class="drop-title">Counseling and care</span><span class="drop-count" id="cSupport"></span><span class="chev" aria-hidden="true"></span></summary><div class="list" id="supportList"></div></details>
@@ -630,6 +645,12 @@ nav.tabs button{position:relative}
   <div id="installBody"></div>
   <p class="install-btns"><button class="btn small ghost" id="installLater">Not now</button><button class="btn small" id="installDone">Done, it's added</button></p>
 </div>
+
+<dialog id="receiptDlg">
+  <button class="dlg-close" id="receiptClose" aria-label="Close">×</button>
+  <h3 id="receiptHead">Receipt</h3>
+  <img id="receiptImg" alt="Receipt photo" style="display:block;width:100%;margin-top:12px;border-radius:10px">
+</dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -912,14 +933,14 @@ function memberRow(id, _m, extra){
   const links = full ? [["LinkedIn",m.linkedin],["Facebook",m.facebook],["Instagram",m.instagram]]
     .map(([l,u])=>[l,safeUrl(u)]).filter(([,u])=>u)
     .map(([l,u])=>`<a class="btn small ghost" href="${esc(u)}" target="_blank" rel="noopener">${l}</a>`).join("") : "";
-  const actions = [bbButtons(id), extra].filter(Boolean).join("");
+  const actions = [bbButtons(id), extra, adminVerifyBtn(id)].filter(Boolean).join("");
   const hiddenTag = S.admin && !m.listed && st!=="self" ? `<span class="tag" style="background:var(--line)">Hidden from list</span>` : "";
   const noProfile = S.admin && !status && st!=="self" ? `<span class="tag" style="background:var(--line)">Profile not filled in</span>` : "";
   return `<div class="row"><div class="member-head" style="flex:1">
     <span class="tap" data-person="${esc(id)}" role="button" aria-label="Open ${esc(m.name||"member")}'s page">${avatarHTML(m,"avatar-md")}</span>
     <div class="body">
       <h3 class="tap" data-person="${esc(id)}" tabindex="0">${mil && full && m.rank ? esc(m.rank)+" " : ""}${esc(m.name||"Member")}${st==="self"?" (you)":""}</h3>
-      <div>${hiddenTag}${noProfile}${st==="buddy"?`<span class="tag bb-tag">Battle buddy</span>`:""}${status?`<span class="tag">${esc(status)}</span>`:""}${mil && m.branch && m.branch!=="Family / supporter"?`<span class="tag">${esc(m.branch)}</span>`:""}</div>
+      <div>${hiddenTag}${noProfile}${st==="buddy"?`<span class="tag bb-tag">Battle buddy</span>`:""}${vBadge(id)}${status?`<span class="tag">${esc(status)}</span>`:""}${mil && m.branch && m.branch!=="Family / supporter"?`<span class="tag">${esc(m.branch)}</span>`:""}</div>
       ${svc?`<div class="svc">${svc}</div>`:""}
       ${full && m.about?`<p style="margin-top:6px">${esc(m.about)}</p>`:""}
       ${links?`<div class="links">${links}</div>`:""}
@@ -947,13 +968,13 @@ function renderPerson(){
   const empty = full && st!=="self" && !facts.length && !m.about && !links;
   $("#personBody").innerHTML = `<div class="person-card">${av}
     <h2>${mil && full && m.rank ? esc(m.rank)+" " : ""}${esc(m.name||"Member")}</h2>
-    <div>${st==="buddy"?`<span class="tag bb-tag">Battle buddy</span>`:""}${status?`<span class="tag">${esc(status)}</span>`:""}${mil && m.branch && !full?`<span class="tag">${esc(m.branch)}</span>`:""}</div>
+    <div>${st==="buddy"?`<span class="tag bb-tag">Battle buddy</span>`:""}${vBadge(id)}${status?`<span class="tag">${esc(status)}</span>`:""}${mil && m.branch && !full?`<span class="tag">${esc(m.branch)}</span>`:""}</div>
     ${full && m.about?`<p style="margin-top:14px">${esc(m.about)}</p>`:""}
     ${facts.length?`<dl class="facts">${facts.map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(String(v))}</dd></div>`).join("")}</dl>`:""}
     ${links?`<div class="links" style="margin-top:14px">${links}</div>`:""}
     ${empty?`<p class="hint" style="margin-top:14px">${esc((m.name||"They").split(" ")[0])} hasn't filled in their profile details yet.</p>`:""}
     ${!full?`<p class="locked" style="margin-top:14px">Connect as battle buddies to see their full profile.</p>`:""}
-    ${st==="self"?`<p style="margin-top:14px"><button class="btn small" data-welcome="profile">Edit my profile</button></p>`:`<div class="actions" style="margin-top:14px">${bbButtons(id)}</div>`}
+    ${st==="self"?`<p style="margin-top:14px"><button class="btn small" data-welcome="profile">Edit my profile</button></p>`:`<div class="actions" style="margin-top:14px">${bbButtons(id)}${adminVerifyBtn(id)}</div>`}
   </div>`;
 }
 function openPerson(id){ personId=id; renderPerson(); showTab("person"); }
@@ -1130,7 +1151,142 @@ function partnerRow(p){
 document.querySelectorAll(".drop").forEach(d=>d.addEventListener("toggle",()=>{
   if(d.open) document.querySelectorAll(".drop").forEach(o=>{ if(o!==d) o.open=false; });
 }));
+// ---------- Verified veteran badge + gym start-fee reimbursement ----------
+const REIMB_CAP=52.68, GYMS={GHF:"Gainesville Health & Fitness", DBC:"Diaz Boxing Club"}, PAY={venmo:"Venmo", cashapp:"Cash App"};
+const money = n => "$"+(Math.round((+n||0)*100)/100).toFixed(2);
+let reimbPhoto;
+function isVerified(id){ return !!(S.verified||{})[id]; }
+function vBadge(id){ return isVerified(id) ? `<span class="tag vbadge">✓ Verified veteran</span>` : ""; }
+function adminVerifyBtn(id){
+  if(!S.admin) return "";
+  const m=S.members[id]||{}; if(!MILITARY.includes(statusOf(m))) return "";
+  return isVerified(id) ? `<button class="btn small ghost" data-unverify="${esc(id)}">Remove verified badge</button>`
+                        : `<button class="btn small ghost" data-verify="${esc(id)}">Verify veteran</button>`;
+}
+function localYmd(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+function nextWorkoutText(){
+  const t=localYmd(new Date());
+  const e=S.events.filter(x=>x.date && x.date>=t).sort((a,b)=>(a.date+(a.time||"")).localeCompare(b.date+(b.time||"")))[0];
+  if(!e) return "";
+  const d=parseDate(e.date);
+  return `${DOW[d.getDay()]}, ${MON[d.getMonth()]} ${d.getDate()}: ${e.title}, ${fmtTime(e.time)}`;
+}
+function myReimb(){ return S.admin ? (S.reimbAll||{})[uid()] || null : S.myReimb || null; }
+function reimbFormHTML(r){
+  r=r||{};
+  return `<form id="reimbForm" onsubmit="return false">
+    <label for="rGym">Gym you joined</label><select id="rGym"><option value="GHF"${r.gym==="GHF"?" selected":""}>${GYMS.GHF}</option><option value="DBC"${r.gym==="DBC"?" selected":""}>${GYMS.DBC}</option></select>
+    <label for="rJoined">Date you joined</label><input id="rJoined" type="date" value="${esc(r.joined||"")}">
+    <label for="rPaid">Starting fee you paid ($)</label><input id="rPaid" type="number" inputmode="decimal" step="0.01" min="0" value="${r.paid!=null?esc(String(r.paid)):""}">
+    <p class="hint">CTF reimburses up to ${money(REIMB_CAP)}.</p>
+    <label>Receipt photo</label>
+    <div class="s-photo-prev" id="rReceiptPrev">${r.receipt?`<img src="${r.receipt}" alt="Your receipt">`:""}</div>
+    <p style="margin-top:8px"><span class="btn small ghost file-btn">${r.receipt?"Change photo":"Add receipt photo"}<input id="rReceiptFile" type="file" accept="image/*" aria-label="Add a photo of your receipt"></span></p>
+    <label for="rMethod">Pay me back by</label><select id="rMethod"><option value="venmo"${r.method!=="cashapp"?" selected":""}>Venmo</option><option value="cashapp"${r.method==="cashapp"?" selected":""}>Cash App</option></select>
+    <label for="rHandle">Your Venmo username or $Cashtag</label><input id="rHandle" type="text" autocomplete="off" placeholder="@username or $cashtag" value="${esc(r.handle||"")}">
+    <p style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-reimb-send="1">Send request</button><button class="btn ghost" data-reimb-cancel="1">Cancel</button></p>
+  </form>`;
+}
+function renderReimb(){
+  const box=$("#reimbBox"); const me=uid();
+  if(!me){ box.hidden=true; return; }
+  if(S.reimbOpen && $("#reimbForm")) return; // keep what they're typing
+  const m=S.members[me]||{}, status=statusOf(m), mil=MILITARY.includes(status), r=myReimb();
+  if(!mil && !r){
+    if(status){ box.hidden=true; return; }
+    box.hidden=false;
+    box.innerHTML=`<h3>Gym membership help for veterans</h3><p>CTF reimburses a veteran's starting fee at Gainesville Health & Fitness or Diaz Boxing Club, once, up to ${money(REIMB_CAP)}.</p><p style="margin-top:10px"><button class="btn small" data-welcome="profile">Set my status in my profile</button></p>`;
+    return;
+  }
+  box.hidden=false;
+  const ver=isVerified(me), next=nextWorkoutText();
+  const verLine = ver ? `<p class="state ok">✓ You're a verified veteran.</p>`
+    : `<p class="state"><b>Get verified first.</b> Come to one CTF monthly workout, where an admin will check your veteran status in person and turn on your verified badge.${next?` Next workout: ${esc(next)}.`:""} You can send your request now. It's approved once you're verified.</p>`;
+  let body="";
+  if(S.reimbOpen) body=reimbFormHTML(r && r.status!=="paid" && r.status!=="approved" ? r : null);
+  else if(!r) body=`<p style="margin-top:12px"><button class="btn" data-reimb-open="1">Request reimbursement</button></p>`;
+  else {
+    const where=`${GYMS[r.gym]||r.gym}`, how=`${PAY[r.method]||""} ${esc(r.handle||"")}`;
+    if(r.status==="submitted") body=`<p class="state">Request sent: ${money(r.paid)} starting fee at ${esc(where)}. ${ver?"Waiting for an admin to review it.":"It'll be reviewed after you're verified at a workout."}</p>
+      <p style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn small ghost" data-reimb-open="1">Edit request</button><button class="btn small danger" data-reimb-del="1">Withdraw</button></p>`;
+    else if(r.status==="approved") body=`<p class="state ok">Approved: ${money(r.amount)}. Payment is on the way by ${how}.</p>`;
+    else if(r.status==="paid") body=`<p class="state ok">Paid: ${money(r.amount)} by ${how}${r.paidAt?` on ${esc(fmtDay(r.paidAt))}`:""}. Thanks for training with CTF.</p>`;
+    else if(r.status==="declined") body=`<p class="state">Not approved${r.adminNote?`: ${esc(r.adminNote)}`:"."}</p><p style="margin-top:10px"><button class="btn small" data-reimb-open="1">Edit and resend</button></p>`;
+  }
+  box.innerHTML=`<h3>Gym membership help</h3>
+    <p>Joining Gainesville Health & Fitness or Diaz Boxing Club? CTF reimburses your starting fee once, up to ${money(REIMB_CAP)}.</p>
+    ${verLine}${body}`;
+}
+function payLink(r){
+  const amt=(Math.round((+r.amount||0)*100)/100).toFixed(2), h=String(r.handle||"").trim();
+  if(!h) return "";
+  if(r.method==="cashapp") return `<a class="btn small" href="https://cash.app/$${encodeURIComponent(h.replace(/^\$/,""))}/${amt}" target="_blank" rel="noopener">Pay ${money(amt)} in Cash App</a>`;
+  return `<a class="btn small" href="https://venmo.com/${encodeURIComponent(h.replace(/^@/,""))}?txn=pay&amount=${amt}&note=${encodeURIComponent("CTF gym start-fee reimbursement")}" target="_blank" rel="noopener">Pay ${money(amt)} in Venmo</a>`;
+}
+function renderReimbAdmin(){
+  const w=$("#reimbAdmin");
+  if(!S.admin){ w.hidden=true; return; }
+  w.hidden=false;
+  if(!$("#reimbList")){
+    w.innerHTML=`<h3>Reimbursement requests</h3>
+      <p class="hint">One-time starting fee, up to ${money(REIMB_CAP)} per veteran. Verify veterans in person at a workout before approving.</p>
+      <div id="reimbList"></div>
+      <details style="margin-top:14px"><summary><b>Record a one-off award</b> <span class="meta">(for example, an annual membership)</span></summary>
+        <label for="awWho">Veteran</label><select id="awWho"></select>
+        <label for="awAmt">Amount ($)</label><input id="awAmt" type="number" inputmode="decimal" step="0.01" min="0">
+        <label for="awNote">What it's for</label><input id="awNote" type="text" placeholder="Annual membership at GHF">
+        <label for="awMethod">Paid by</label><select id="awMethod"><option value="venmo">Venmo</option><option value="cashapp">Cash App</option><option value="other">Other (check, paid gym directly)</option></select>
+        <p style="margin-top:12px"><button class="btn small" data-award-save="1">Save award</button></p>
+        <div id="awardList" style="margin-top:10px"></div>
+      </details>`;
+  }
+  if(S.reimbErr){ $("#reimbList").innerHTML=`<p class="hint">Couldn't load requests. The latest Firestore rules may not be published yet.</p>`; return; }
+  const order={submitted:0, approved:1, declined:2, paid:3};
+  const rows=Object.entries(S.reimbAll||{}).sort((a,b)=>(order[a[1].status]??9)-(order[b[1].status]??9) || (b[1].at||0)-(a[1].at||0));
+  $("#reimbList").innerHTML = rows.length ? rows.map(([id,r])=>{
+    const nm=(S.members[id]||{}).name||r.name||"Member", ver=isVerified(id), cap=Math.min(+r.paid||0, REIMB_CAP);
+    let acts="";
+    if(r.status==="submitted") acts = (ver ? `<button class="btn small" data-reimb-approve="${esc(id)}">Approve ${money(cap)}</button>`
+        : `<button class="btn small" data-verify="${esc(id)}">Verify veteran</button><span class="meta" style="display:inline">Verify in person before approving.</span>`)
+        + `<button class="btn small danger" data-reimb-decline="${esc(id)}">Decline</button>`;
+    else if(r.status==="approved") acts = payLink(r) + `<button class="btn small ghost" data-reimb-paid="${esc(id)}">Mark paid</button>`;
+    const st = r.status==="paid" ? `Paid ${money(r.amount)}${r.paidAt?` on ${fmtDay(r.paidAt)}`:""}${r.paidRef?` · ${esc(r.paidRef)}`:""}`
+      : r.status==="approved" ? `Approved ${money(r.amount)} by ${esc(r.decidedBy||"admin")}`
+      : r.status==="declined" ? `Declined${r.adminNote?`: ${esc(r.adminNote)}`:""}` : `Waiting${ver?" for approval":" for verification"}`;
+    return `<div class="rq"><div class="rq-top">${r.receipt?`<img class="thumb" src="${r.receipt}" alt="Receipt from ${esc(nm)}" data-receipt="${esc(id)}">`:""}
+      <div style="flex:1;min-width:0"><b class="tap" data-person="${esc(id)}">${esc(nm)}</b> ${ver?vBadge(id):`<span class="tag">Not verified</span>`}
+      <span class="meta">${esc(GYMS[r.gym]||r.gym||"")} · joined ${esc(r.joined||"?")} · paid ${money(r.paid)} · ${esc(PAY[r.method]||"")} ${esc(r.handle||"")}</span>
+      <span class="meta"><b>${st}</b></span></div></div>${acts?`<div class="actions">${acts}</div>`:""}</div>`;
+  }).join("") : `<p class="hint">No requests yet.</p>`;
+  // one-off awards
+  const sel=$("#awWho");
+  if(document.activeElement!==sel){
+    const keep=sel.value;
+    const ids=Object.keys(S.members).filter(id=>MILITARY.includes(statusOf(S.members[id]))).sort((a,b)=>String(S.members[a].name||"").localeCompare(String(S.members[b].name||"")));
+    sel.innerHTML=`<option value="">Choose a member</option>`+ids.map(id=>`<option value="${esc(id)}">${esc(S.members[id].name||"Member")}${isVerified(id)?" ✓":""}</option>`).join("");
+    sel.value=keep;
+  }
+  const aw=Object.values(S.awards||{}).sort((a,b)=>(b.at||0)-(a.at||0));
+  $("#awardList").innerHTML = aw.length ? aw.map(a=>`<div class="rq"><b>${esc(a.name||"Member")}</b> · ${money(a.amount)}<span class="meta">${esc(a.note||"")} · ${esc(PAY[a.method]||"Other")} · ${esc(fmtDay(a.at||0))} · by ${esc(a.by||"admin")}</span></div>`).join("") : `<p class="hint">No awards recorded yet.</p>`;
+}
+document.addEventListener("change", async e=>{
+  if(e.target.id!=="rReceiptFile") return;
+  const f=e.target.files && e.target.files[0]; if(!f) return;
+  try{ reimbPhoto=await resizeStoryPhoto(f); $("#rReceiptPrev").innerHTML=`<img src="${reimbPhoto}" alt="Your receipt">`; }
+  catch{ toast("That photo didn't work. Try a JPG or PNG."); }
+  e.target.value="";
+});
+$("#receiptClose").addEventListener("click", ()=>$("#receiptDlg").close());
+document.addEventListener("click", e=>{
+  const im=e.target.closest("img[data-receipt]"); if(!im) return;
+  const r=(S.reimbAll||{})[im.dataset.receipt]; if(!r) return;
+  $("#receiptHead").textContent=`Receipt from ${(S.members[im.dataset.receipt]||{}).name||r.name||"member"}`;
+  $("#receiptImg").src=r.receipt; const d=$("#receiptDlg");
+  if(typeof d.showModal==="function") d.showModal(); else d.setAttribute("open","");
+});
+
 function renderSupport(){
+  renderReimb(); renderReimbAdmin();
   const sup=S.partners.filter(p=>p.category==="support"), np=S.partners.filter(p=>p.category==="nonprofit"), biz=S.partners.filter(p=>p.category==="business");
   // Empty sections are hidden from members; admins still see them so they know where things go.
   const fill=(list, box, count, items, empty)=>{
@@ -1472,6 +1628,69 @@ document.addEventListener("click", async ev=>{
     try{ await addDoc(collection(fs,"stories",sid,"comments"), {uid:uid(), name:myName(), text, at:Date.now()}); S.cmtDrafts[sid]=""; if(el) el.value=""; }
     catch(e){ writeFailed(e); }
     t.disabled=false; return;
+  }
+  if(t.dataset.verify){
+    const id=t.dataset.verify, nm=(S.members[id]||{}).name||"this member";
+    if(!confirm(`Mark ${nm} as a verified veteran? Only do this after checking their status in person.`)) return;
+    try{ await setDoc(doc(fs,"verified",id), {by:uid(), byName:myName(), at:Date.now()}); toast("Verified badge on."); }catch(e){ writeFailed(e); }
+    return;
+  }
+  if(t.dataset.unverify){
+    const id=t.dataset.unverify;
+    if(!confirm(`Remove the verified badge from ${(S.members[id]||{}).name||"this member"}?`)) return;
+    try{ await deleteDoc(doc(fs,"verified",id)); toast("Verified badge removed."); }catch(e){ writeFailed(e); }
+    return;
+  }
+  if(t.dataset.reimbOpen){ reimbPhoto=undefined; S.reimbOpen=true; $("#reimbBox").innerHTML=""; renderReimb(); return; }
+  if(t.dataset.reimbCancel){ S.reimbOpen=false; reimbPhoto=undefined; $("#reimbBox").innerHTML=""; renderReimb(); return; }
+  if(t.dataset.reimbSend){
+    if(needSignIn()) return;
+    const r=myReimb()||{}, gym=$("#rGym").value, joined=$("#rJoined").value, paid=Math.round(parseFloat($("#rPaid").value)*100)/100;
+    const method=$("#rMethod").value, handle=$("#rHandle").value.trim().replace(/\s+/g,""), receipt=reimbPhoto || r.receipt || "";
+    if(!joined){ toast("Add the date you joined."); return; }
+    if(!(paid>0)){ toast("Add the starting fee you paid."); return; }
+    if(!receipt){ toast("Add a photo of your receipt."); return; }
+    if(!handle){ toast(method==="cashapp" ? "Add your $Cashtag." : "Add your Venmo username."); return; }
+    t.disabled=true;
+    try{
+      await setDoc(doc(fs,"reimb",uid()), {gym, joined, paid, receipt, method, handle, name:myName(), status:"submitted", at:Date.now()});
+      S.reimbOpen=false; reimbPhoto=undefined; $("#reimbBox").innerHTML=""; renderReimb();
+      toast(isVerified(uid()) ? "Request sent. An admin will review it." : "Request sent. It'll be approved after you're verified at a workout.");
+    }catch(e){ writeFailed(e); } finally{ t.disabled=false; }
+    return;
+  }
+  if(t.dataset.reimbDel){
+    if(!confirm("Withdraw your reimbursement request?")) return;
+    try{ await deleteDoc(doc(fs,"reimb",uid())); toast("Request withdrawn."); }catch(e){ writeFailed(e); }
+    return;
+  }
+  if(t.dataset.reimbApprove){
+    const id=t.dataset.reimbApprove, r=(S.reimbAll||{})[id]; if(!r) return;
+    if(!isVerified(id)){ toast("Verify this veteran in person first."); return; }
+    const amount=Math.round(Math.min(+r.paid||0, REIMB_CAP)*100)/100;
+    if(!confirm(`Approve ${money(amount)} for ${(S.members[id]||{}).name||r.name}?`)) return;
+    try{ await updateDoc(doc(fs,"reimb",id), {status:"approved", amount, decidedBy:myName(), decidedAt:Date.now()}); toast("Approved. Use the pay button to send it."); }catch(e){ writeFailed(e); }
+    return;
+  }
+  if(t.dataset.reimbDecline){
+    const id=t.dataset.reimbDecline, why=prompt("Reason (the veteran will see this):","");
+    if(why===null) return;
+    try{ await updateDoc(doc(fs,"reimb",id), {status:"declined", adminNote:why.trim().slice(0,300), decidedBy:myName(), decidedAt:Date.now()}); toast("Declined."); }catch(e){ writeFailed(e); }
+    return;
+  }
+  if(t.dataset.reimbPaid){
+    const id=t.dataset.reimbPaid, ref=prompt("Payment note or transaction ID (optional):","");
+    if(ref===null) return;
+    try{ await updateDoc(doc(fs,"reimb",id), {status:"paid", paidAt:Date.now(), paidRef:ref.trim().slice(0,120), paidBy:myName()}); toast("Marked paid."); }catch(e){ writeFailed(e); }
+    return;
+  }
+  if(t.dataset.awardSave){
+    const who=$("#awWho").value, amount=Math.round(parseFloat($("#awAmt").value)*100)/100, note=$("#awNote").value.trim().slice(0,200), method=$("#awMethod").value;
+    if(!who){ toast("Choose who the award is for."); return; }
+    if(!(amount>0)){ toast("Add the amount."); return; }
+    try{ await addDoc(collection(fs,"awards"), {uid:who, name:(S.members[who]||{}).name||"", amount, note, method, by:myName(), at:Date.now()});
+      $("#awAmt").value=""; $("#awNote").value=""; toast("Award recorded."); }catch(e){ writeFailed(e); }
+    return;
   }
   if(t.dataset.storyMenu){ S.storyMenu = S.storyMenu===t.dataset.storyMenu ? null : t.dataset.storyMenu; renderStories(); return; }
   if(t.dataset.cmtMenu){ S.cmtMenu = S.cmtMenu===t.dataset.cmtMenu ? null : t.dataset.cmtMenu; renderStories(); return; }
@@ -1986,9 +2205,15 @@ function subscribeMembers(){
   }
   if(S.admin){
     subs.push(onSnapshot(collection(fs,"private"), s=>{ S.priv=toMap(s); S.myPrivLoaded=true; migrateMine(); render(); }, e=>{ console.error(e); S.myPrivLoaded=true; }));
+    subs.push(onSnapshot(collection(fs,"reimb"), s=>{ S.reimbAll=toMap(s); S.reimbErr=false; renderSupport(); }, e=>{ console.error("reimb", e.code); S.reimbErr=true; renderSupport(); }));
+    subs.push(onSnapshot(collection(fs,"awards"), s=>{ S.awards=toMap(s); renderSupport(); }, e=>console.error("awards", e.code)));
     // Admins see every battle buddy connection (needs the admin read rule on /buddies).
     subs.push(onSnapshot(collection(fs,"buddies"), s=>{ S.allBuddies=toMap(s); S.allBuddiesErr=false; renderMembers(); }, e=>{ console.error("all buddies", e.code); S.allBuddiesErr=true; renderMembers(); }));
-  } else watchPriv(u.uid);
+  } else {
+    watchPriv(u.uid);
+    subs.push(onSnapshot(doc(fs,"reimb",u.uid), d=>{ S.myReimb=d.exists()?d.data():null; renderSupport(); }, e=>console.error("my reimb", e.code)));
+  }
+  subs.push(onSnapshot(collection(fs,"verified"), s=>{ S.verified=toMap(s); render(); }, e=>console.error("verified", e.code)));
   if(S.approved){
     subs.push(onSnapshot(collection(fs,"members"), s=>{ S.members=toMap(s); migrateMine(); ensureMine(); render(); }, e=>console.error(e)));
     subs.push(onSnapshot(collection(fs,"approved"), s=>{ S.approvedIds=toMap(s); render(); }, e=>console.error(e)));
@@ -2000,7 +2225,7 @@ function subscribeMembers(){
 
 onAuthStateChanged(auth, async u=>{
   ensured=false; ensuring=false; S.contact=null; welcomeShown=false; welcoming=false;
-  S.user=u; S.admin=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.allBuddies=null; S.allBuddiesErr=false; S.myPrivLoaded=false; S.salutes={}; S.comments={}; S.photos={}; sPhotoDraft=undefined;
+  S.user=u; S.admin=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.allBuddies=null; S.allBuddiesErr=false; S.verified={}; S.reimbAll={}; S.myReimb=null; S.awards={}; S.reimbErr=false; S.reimbOpen=false; reimbPhoto=undefined; S.myPrivLoaded=false; S.salutes={}; S.comments={}; S.photos={}; sPhotoDraft=undefined;
   clearSubs();
   renderMembers.filled=false; renderStories.filled=false; $("#storyEditor").hidden=true; S.storyMenu=null; S.cmtMenu=null;
   resetEventForm(); resetPartnerForm();
