@@ -286,6 +286,8 @@ body.booting{overflow:hidden}
 .gh[aria-expanded="true"]::after{content:" ▴"}
 .gh-body{margin-top:10px;padding:12px 14px;border:1.5px solid var(--brass);border-radius:12px;font-size:.93rem;line-height:1.45}
 .gh-body p{margin:0 0 8px}.gh-body p:last-child{margin:0}
+.view-note{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--green);color:var(--green-ink);border-radius:14px;padding:10px 14px;margin:8px 0 4px;font-size:.92rem;font-weight:600}
+.view-note .btn{background:var(--green-ink);color:var(--green);border-color:var(--green-ink)}
 .verify-note{background:var(--brass-soft);color:var(--ink);border-radius:14px;padding:14px 16px;margin:8px 0 4px;font-size:.95rem}
 .verify-note p{margin:0}.verify-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px !important}
 .ios-note{background:var(--brass-soft);color:var(--ink);border-radius:12px;padding:12px 14px;font-size:.93rem;margin-bottom:14px}
@@ -372,6 +374,7 @@ nav.tabs button{position:relative}
     <a class="ig" href="https://www.instagram.com/camaraderie_through_fitness/" target="_blank" rel="noopener" aria-label="CTF on Instagram" title="CTF on Instagram"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg></a>
     <button class="acct" id="acctBtn">Sign in</button>
   </header>
+  <div class="view-note" id="viewNote" hidden><span>Viewing the app as a member. Admin tools are hidden.</span><button class="btn small" data-view-set="admin">Back to admin view</button></div>
   <div class="verify-note" id="verifyNote" hidden>
     <p id="verifyText"></p>
     <p class="verify-btns"><button class="btn small" id="verifyDone">I've confirmed</button><button class="btn small ghost" id="verifyResend">Send link</button></p>
@@ -570,6 +573,9 @@ nav.tabs button{position:relative}
     <div class="menu">
       <button class="mi" id="editProfileBtn"><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span><span class="mi-txt"><b>Edit profile</b><small>Photo, service details, privacy</small></span><span class="chev-r" aria-hidden="true"></span></button>
       <button class="mi" id="inviteBtn"><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-5.5 6.5-5.5s6.5 2 6.5 5.5"/><path d="M19 8v6M16 11h6"/></svg></span><span class="mi-txt"><b>Build the community</b><small>Invite a friend to the app</small></span><span class="chev-r" aria-hidden="true"></span></button>
+      <div class="mi mi-static" id="viewRow" hidden><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="mi-txt"><b>App view</b><small id="viewHint">Seeing admin tools</small></span>
+        <div class="seg" role="radiogroup" aria-label="App view"><button role="radio" data-view-set="admin">Admin</button><button role="radio" data-view-set="member">Member</button></div>
+      </div>
       <div class="mi mi-static"><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></span><span class="mi-txt"><b>Night mode</b><small id="themeHint">Follows your phone's setting</small></span>
         <div class="seg" role="radiogroup" aria-label="Night mode"><button role="radio" data-theme-set="auto">Auto</button><button role="radio" data-theme-set="dark">On</button><button role="radio" data-theme-set="light">Off</button></div>
       </div>
@@ -684,7 +690,7 @@ S.priv={}; S.buddies={}; S.myPrivLoaded=false;
 S.salutes={}; S.comments={}; S.openCmts=new Set(); S.cmtDrafts={};
 S.photos={}; let sPhotoDraft; // undefined = no change, "" = remove, data URL = new photo
 const paywallOn = () => S.config.paywall === true;
-const computeApproved = mine => S.admin || !paywallOn() || isActive(mine);
+const computeApproved = mine => S.realAdmin || !paywallOn() || isActive(mine);
 S.dir = (()=>{ try{ return localStorage.getItem("ctfDir")==="mil" ? "mil" : "all"; }catch{ return "all"; } })();
 const YEAR = 365*24*60*60*1000;
 const activeUntil = a => (a && typeof a.until === "number") ? a.until : 0;
@@ -793,6 +799,7 @@ document.querySelector('nav.tabs button[data-tab="stories"]').addEventListener("
 // ---------- Render ----------
 function render(){
   renderVerify();
+  $("#viewNote").hidden = !(S.realAdmin && S.memberView);
   { const me=S.members[uid()]||{name:myName()};
     $("#acctBtn").innerHTML = S.user ? `${avatarHTML({...me,name:me.name||myName()},"acct-av")}<span>${esc(myName().split(" ")[0])}</span>` : ""; }
   renderWorkouts(); renderMembers(); renderPerson(); renderStories(); renderSupport(); renderGive();
@@ -1173,7 +1180,7 @@ function nextWorkoutText(){
   const d=parseDate(e.date);
   return `${DOW[d.getDay()]}, ${MON[d.getMonth()]} ${d.getDate()}: ${e.title}, ${fmtTime(e.time)}`;
 }
-function myReimb(){ return S.admin ? (S.reimbAll||{})[uid()] || null : S.myReimb || null; }
+function myReimb(){ return (S.reimbAll||{})[uid()] || S.myReimb || null; }
 function reimbFormHTML(r){
   r=r||{};
   return `<form id="reimbForm" onsubmit="return false">
@@ -1324,7 +1331,8 @@ function openAuth(){
   {
     $("#whoName").textContent = myName(); $("#whoEmail").textContent = S.user.email || "";
     $("#whoId").textContent = S.user.uid;
-    $("#adminNote").hidden = !S.admin;
+    $("#adminNote").hidden = !S.realAdmin;
+    $("#viewRow").hidden = !S.realAdmin; syncViewSeg();
     $("#whoAv").innerHTML = avatarHTML({...(S.members[uid()]||{}), name: myName()}, "me-av");
   }
   if(typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open","");
@@ -1353,6 +1361,20 @@ $("#verifyResend").addEventListener("click", async e=>{
   catch(err){ toast(err.code==="auth/too-many-requests" ? "Already sent recently. Wait a few minutes and try again." : "Couldn't send it. Try again in a bit."); }
   setTimeout(()=>{ b.disabled=false; }, 30000);
 });
+
+// ---------- Admin: switch between admin view and member view ----------
+function memberViewPref(){ try{ return localStorage.getItem("ctfMemberView")==="1"; }catch{ return false; } }
+function syncViewSeg(){
+  document.querySelectorAll("#viewRow [data-view-set]").forEach(b=>b.setAttribute("aria-checked", (b.dataset.viewSet==="member")===!!S.memberView));
+  $("#viewHint").textContent = S.memberView ? "Seeing what members see" : "Seeing admin tools";
+}
+function setMemberView(on){
+  if(!S.realAdmin) return;
+  S.memberView=!!on; S.admin=S.realAdmin && !S.memberView;
+  try{ on ? localStorage.setItem("ctfMemberView","1") : localStorage.removeItem("ctfMemberView"); }catch{}
+  syncViewSeg(); render(); toast(on ? "Member view: admin tools hidden." : "Admin view: tools are back.");
+}
+document.addEventListener("click", e=>{ const b=e.target.closest("[data-view-set]"); if(b) setMemberView(b.dataset.viewSet==="member"); });
 
 // ---------- Night mode (Auto follows the phone) ----------
 function themePref(){ try{ const t=localStorage.getItem("ctfTheme"); return t==="dark"||t==="light" ? t : "auto"; }catch{ return "auto"; } }
@@ -2210,7 +2232,7 @@ function subscribeMembers(){
     const m={}; s.docs.forEach(d=>{ const sid=d.ref.parent.parent.id; (m[sid]=m[sid]||[]).push({id:d.id, ...d.data()}); });
     Object.values(m).forEach(a=>a.sort((x,y)=>(x.at||0)-(y.at||0))); S.comments=m; renderStories();
   }, e=>console.error(e)));
-  if(S.admin){
+  if(S.realAdmin){
     subs.push(onSnapshot(collection(fs,"storyPhotos"), s=>{ S.photos=toMap(s); renderStories(); }, e=>console.error(e)));
   } else {
     let approvedPh={}, minePh=null;
@@ -2218,7 +2240,7 @@ function subscribeMembers(){
     subs.push(onSnapshot(query(collection(fs,"storyPhotos"), where("status","==","approved")), s=>{ approvedPh=toMap(s); merge(); }, e=>console.error(e)));
     subs.push(onSnapshot(doc(fs,"storyPhotos",u.uid), d=>{ minePh=d.exists()?d.data():null; merge(); }, e=>console.error(e)));
   }
-  if(S.admin){
+  if(S.realAdmin){
     subs.push(onSnapshot(collection(fs,"private"), s=>{ S.priv=toMap(s); S.myPrivLoaded=true; migrateMine(); render(); }, e=>{ console.error(e); S.myPrivLoaded=true; }));
     subs.push(onSnapshot(collection(fs,"reimb"), s=>{ S.reimbAll=toMap(s); S.reimbErr=false; renderSupport(); }, e=>{ console.error("reimb", e.code); S.reimbErr=true; renderSupport(); }));
     subs.push(onSnapshot(collection(fs,"awards"), s=>{ S.awards=toMap(s); renderSupport(); }, e=>console.error("awards", e.code)));
@@ -2240,13 +2262,14 @@ function subscribeMembers(){
 
 onAuthStateChanged(auth, async u=>{
   ensured=false; ensuring=false; S.contact=null; welcomeShown=false; welcoming=false;
-  S.user=u; S.admin=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.allBuddies=null; S.allBuddiesErr=false; S.verified={}; S.reimbAll={}; S.myReimb=null; S.awards={}; S.reimbErr=false; S.reimbOpen=false; reimbPhoto=undefined; S.myPrivLoaded=false; S.salutes={}; S.comments={}; S.photos={}; sPhotoDraft=undefined;
+  S.user=u; S.admin=false; S.realAdmin=false; S.memberView=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.allBuddies=null; S.allBuddiesErr=false; S.verified={}; S.reimbAll={}; S.myReimb=null; S.awards={}; S.reimbErr=false; S.reimbOpen=false; reimbPhoto=undefined; S.myPrivLoaded=false; S.salutes={}; S.comments={}; S.photos={}; sPhotoDraft=undefined;
   clearSubs();
   renderMembers.filled=false; renderStories.filled=false; $("#storyEditor").hidden=true; S.storyMenu=null; S.cmtMenu=null;
   resetEventForm(); resetPartnerForm();
   if(!u){ setView(); setMode("in"); $("#aPass").value=""; showTab("workouts"); }
   if(u){
-    try{ S.admin = (await getDoc(doc(fs,"admins",u.uid))).exists(); }catch(e){ console.error(e); }
+    try{ S.realAdmin = (await getDoc(doc(fs,"admins",u.uid))).exists(); }catch(e){ console.error(e); }
+    S.memberView = S.realAdmin && memberViewPref(); S.admin = S.realAdmin && !S.memberView;
     try{ const d=await getDoc(doc(fs,"approved",u.uid)); S.approvedIds[u.uid]=d.exists()?d.data():undefined; S.approved = computeApproved(S.approvedIds[u.uid]); }catch(e){ console.error(e); S.approved = computeApproved(undefined); }
     try{ const c=await getDoc(doc(fs,"contacts",u.uid)); S.contact=c.exists()?c.data():null; }catch(e){ S.contact=null; }
     syncContact();
