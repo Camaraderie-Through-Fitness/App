@@ -165,6 +165,11 @@ blockquote{margin:0;font-size:1.08rem;line-height:1.6}
 .devo-past{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
 .devo-past summary{cursor:pointer}
 .devo-old{padding:8px 0;border-top:1px solid var(--line)}.devo-old:first-of-type{border-top:0}
+.tip{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;border:1.5px solid currentColor;background:none;color:var(--muted);font:italic 700 .72rem/1 Georgia,serif;padding:0;margin:0 2px;vertical-align:middle;cursor:pointer;flex:none}
+h2 .tip{width:22px;height:22px;font-size:.85rem;vertical-align:4px}
+.filter .tip{align-self:center;margin-left:2px}
+.tip-pop{position:fixed;z-index:60;background:var(--ink);color:var(--bg);border-radius:12px;padding:12px 14px;box-shadow:0 8px 30px rgba(0,0,0,.3);font-size:.92rem;line-height:1.45}
+.tip-pop p{margin:4px 0 0}
 .cmt .x{background:none;border:0;color:var(--muted);font-size:.85rem;cursor:pointer;padding:0;margin-top:2px}
 .cmt-form{display:flex;gap:8px;margin-top:8px;align-items:flex-end}
 .cmt-form textarea{min-height:44px;height:44px;flex:1}
@@ -430,7 +435,7 @@ nav.tabs button{position:relative}
       <p class="hint" id="paywallState" style="margin:8px 0 0"></p>
     </div>
     <div id="approvalNote"></div>
-    <div class="filter" id="dirFilter" role="group" aria-label="Filter members" hidden><button data-dir="all" aria-pressed="true">Everyone</button><button data-dir="mil" aria-pressed="false">Veterans &amp; military</button><button data-dir="bb" aria-pressed="false">Battle buddies</button></div>
+    <div class="filter" id="dirFilter" role="group" aria-label="Filter members" hidden><button data-dir="all" aria-pressed="true">Everyone</button><button data-dir="mil" aria-pressed="false">Veterans &amp; military</button><button data-dir="bb" aria-pressed="false">Battle buddies</button><button type="button" class="tip" data-tip="battle" aria-label="What does battle buddy mean?">i</button></div>
     <div class="dir-search" id="dirSearchWrap" hidden><input id="dirSearch" type="search" placeholder="Search by name, branch, or unit" aria-label="Search members" autocomplete="off"></div>
     <div id="bbRequests"></div>
     <div id="pendingWrap" class="panel admin" hidden><h3>Waiting on payment</h3><p class="hint">Check your payment platform, then tap Activate 1 year.</p><div class="list" id="pendingList" style="border-top:0"></div><div id="renewWrap"></div></div>
@@ -465,8 +470,8 @@ nav.tabs button{position:relative}
       </div>
 
       <label for="pName">Your name</label><input id="pName" type="text" maxlength="60" autocomplete="name">
-      <div class="privacy-note">All members see your <b>name, photo, and whether you're a veteran or supporter</b> (plus branch). Everything else is only for your <b>battle buddies</b>.</div>
-      <label for="pStatus">I am a</label>
+      <div class="privacy-note">All members see your <b>name, photo, and whether you're a veteran or supporter</b> (plus branch). Everything else is only for your <b>battle buddies</b> <button type="button" class="tip" data-tip="battle" aria-label="What does battle buddy mean?">i</button>.</div>
+      <label for="pStatus">I am a <button type="button" class="tip" data-tip="status" aria-label="What does Active duty and Guard / Reserve mean?">i</button></label>
       <select id="pStatus"><option value="">Choose</option><option>Veteran</option><option>Active duty</option><option>Guard / Reserve</option><option>Military family</option><option>Supporter</option></select>
 
       <div id="svcGroup" class="form-group" hidden>
@@ -475,10 +480,10 @@ nav.tabs button{position:relative}
         <select id="pBranch"><option value="">Choose</option><option>Army</option><option>Marine Corps</option><option>Navy</option><option>Air Force</option><option>Space Force</option><option>Coast Guard</option></select>
         <div class="two">
           <p class="hint" style="grid-column:1/-1;margin:10px 0 0">Below here: battle buddies only.</p>
-          <div><label for="pRank">Rank</label><input id="pRank" type="text" placeholder="SSG" maxlength="40"></div>
-          <div><label for="pMos" id="pMosLabel">MOS</label><input id="pMos" type="text" placeholder="11B Infantry" maxlength="60"></div>
+          <div><label for="pRank">Rank <button type="button" class="tip" data-tip="rank" aria-label="What does rank mean?">i</button></label><input id="pRank" type="text" placeholder="SSG" maxlength="40"></div>
+          <div><label for="pMos"><span id="pMosLabel">MOS</span> <button type="button" class="tip" data-tip="mos" aria-label="What does MOS mean?">i</button></label><input id="pMos" type="text" placeholder="11B Infantry" maxlength="60"></div>
         </div>
-        <label for="pUnit">Unit</label><input id="pUnit" type="text" placeholder="3rd Ranger Battalion" maxlength="120">
+        <label for="pUnit">Unit <button type="button" class="tip" data-tip="unit" aria-label="What does unit mean?">i</button></label><input id="pUnit" type="text" placeholder="3rd Ranger Battalion" maxlength="120">
         <div class="two">
           <div><label for="pStart">Years served: from</label><input id="pStart" type="number" inputmode="numeric" min="1940" max="2100" placeholder="2012"></div>
           <div><label for="pEnd">to</label><input id="pEnd" type="number" inputmode="numeric" min="1940" max="2100" placeholder="Present"></div>
@@ -511,8 +516,8 @@ nav.tabs button{position:relative}
 
   <!-- STORIES -->
   <section id="tab-stories" hidden>
-    <h2>The Fox Hole</h2>
-    <p class="hint">A place to speak freely with people who get it. Everyone signed in can read what's posted here.</p>
+    <h2>The Fox Hole <button type="button" class="tip" data-tip="foxhole" aria-label="What does the Fox Hole mean?">i</button></h2>
+    <p class="hint">A place to speak freely with people who get it. Everyone signed in can read what's posted here. Tap 🫡 Salute on a post to show respect <button type="button" class="tip" data-tip="salute" aria-label="What does salute mean?">i</button>.</p>
     <div class="panel admin" id="photoQueue" hidden></div>
     <div id="devoBox"></div>
     <p id="shareStoryWrap" hidden style="margin:4px 0 14px"><button class="btn" id="shareStoryBtn">Jump in</button></p>
@@ -682,6 +687,7 @@ nav.tabs button{position:relative}
   <img id="receiptImg" alt="Receipt photo" style="display:block;width:100%;margin-top:12px;border-radius:10px">
 </dialog>
 
+<div class="tip-pop" id="tipPop" role="tooltip" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script type="module">
@@ -983,6 +989,33 @@ function memberRow(id, _m, extra){
     </div></div></div>`;
 }
 let personId=null;
+// ---------- Plain-English explanations for military terms ----------
+const TIPS={
+  battle:["Battle buddy","In the military, your battle buddy is the person you look out for, and who looks out for you. Here, battle buddies are members who've agreed to connect. They can see each other's full profiles."],
+  foxhole:["Fox hole","A small trench soldiers share in the field. It stands for trust: the people you'd want beside you when things get hard. Here, it's where members talk openly."],
+  salute:["Salute","A sign of respect between service members. Tap it to show respect or support for someone's post."],
+  status:["Active duty and Guard / Reserve","Active duty means serving full time in the military right now. Guard and Reserve members serve part time, training regularly, and can be called up to active duty."],
+  rank:["Rank","A service member's level, like SSG (Staff Sergeant) or LT (Lieutenant)."],
+  mos:["MOS, Rating, AFSC","The code for a service member's job. The Army and Marines call it an MOS, the Navy and Coast Guard a Rating, and the Air Force and Space Force an AFSC. For example, 11B is Army infantry."],
+  unit:["Unit","The group someone served with, like a battalion, squadron, or ship."]
+};
+const FACT_TIP={Rank:"rank", MOS:"mos", Rating:"mos", AFSC:"mos", Unit:"unit"};
+function tipBtn(k,label){ return `<button type="button" class="tip" data-tip="${k}" aria-label="What does ${esc(label)} mean?">i</button>`; }
+document.addEventListener("click", e=>{
+  const b=e.target.closest("[data-tip]"), pop=$("#tipPop");
+  if(!b){ if(!e.target.closest("#tipPop")) pop.hidden=true; return; }
+  e.preventDefault(); e.stopPropagation();
+  const t=TIPS[b.dataset.tip]; if(!t) return;
+  if(!pop.hidden && pop.dataset.for===b.dataset.tip && pop._btn===b){ pop.hidden=true; return; }
+  pop.innerHTML=`<b>${esc(t[0])}</b><p>${esc(t[1])}</p>`; pop.dataset.for=b.dataset.tip; pop._btn=b; pop.hidden=false;
+  const r=b.getBoundingClientRect(), w=Math.min(300, innerWidth-24);
+  pop.style.width=w+"px";
+  pop.style.left=Math.max(12, Math.min(innerWidth-w-12, r.left+r.width/2-w/2))+"px";
+  const below=r.bottom+8, h=pop.offsetHeight;
+  pop.style.top=(below+h>innerHeight-90 ? Math.max(12, r.top-h-8) : below)+"px";
+}, true);
+addEventListener("scroll", ()=>{ const p=$("#tipPop"); if(p) p.hidden=true; }, {passive:true});
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") $("#tipPop").hidden=true; });
 function renderPerson(){
   if(!personId) return;
   const id=personId, m=fullProfile(id), full=canSeeFull(id), st=buddyState(id), status=statusOf(m), mil=MILITARY.includes(status);
@@ -1002,11 +1035,11 @@ function renderPerson(){
     <h2>${mil && full && m.rank ? esc(m.rank)+" " : ""}${esc(m.name||"Member")}</h2>
     <div>${st==="buddy"?`<span class="tag bb-tag">Battle buddy</span>`:""}${vBadge(id)}${status?`<span class="tag">${esc(status)}</span>`:""}${mil && m.branch && !full?`<span class="tag">${esc(m.branch)}</span>`:""}</div>
     ${full && m.about?`<p style="margin-top:14px">${esc(m.about)}</p>`:""}
-    ${facts.length?`<dl class="facts">${facts.map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(String(v))}</dd></div>`).join("")}</dl>`:""}
+    ${facts.length?`<dl class="facts">${facts.map(([k,v])=>`<div><dt>${esc(k)}${FACT_TIP[k]?` ${tipBtn(FACT_TIP[k],k)}`:""}</dt><dd>${esc(String(v))}</dd></div>`).join("")}</dl>`:""}
     ${links?`<div class="links" style="margin-top:14px">${links}</div>`:""}
     ${empty?`<p class="hint" style="margin-top:14px">${esc((m.name||"They").split(" ")[0])} hasn't filled in their profile details yet.</p>`:""}
     ${!full?`<p class="locked" style="margin-top:14px">Connect as battle buddies to see their full profile.</p>`:""}
-    ${st==="self"?`<p style="margin-top:14px"><button class="btn small" data-welcome="profile">Edit my profile</button></p>${cacheHTML()}`:`<div class="actions" style="margin-top:14px">${bbButtons(id)}${adminVerifyBtn(id)}</div>${cacheHTML(id)}`}
+    ${st==="self"?`<p style="margin-top:14px"><button class="btn small" data-welcome="profile">Edit my profile</button></p>${cacheHTML()}`:`<div class="actions" style="margin-top:14px">${bbButtons(id)}${tipBtn("battle","battle buddy")}${adminVerifyBtn(id)}</div>${cacheHTML(id)}`}
   </div>`;
 }
 function openPerson(id){ personId=id; watchOtherCache(id); renderPerson(); showTab("person"); }
@@ -1045,7 +1078,7 @@ function renderMembers(){
     if(S.admin) note.innerHTML += `<p class="hint">Admin view: you see all ${Object.keys(S.members).length} accounts, including people who chose to stay hidden.</p>`;
     document.querySelectorAll("#dirFilter button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.dir===S.dir));
     const incoming = Object.keys(S.members).filter(id=>buddyState(id)==="incoming");
-    $("#bbRequests").innerHTML = incoming.length ? `<div class="panel"><h3>Battle buddy requests</h3><div class="list" style="border-top:0">${incoming.map(id=>memberRow(id,S.members[id],"")).join("")}</div></div>` : "";
+    $("#bbRequests").innerHTML = incoming.length ? `<div class="panel"><h3>Battle buddy requests ${tipBtn("battle","battle buddy")}</h3><div class="list" style="border-top:0">${incoming.map(id=>memberRow(id,S.members[id],"")).join("")}</div></div>` : "";
     const inDir = id => S.dir==="mil" ? MILITARY.includes(statusOf(S.members[id])) : S.dir==="bb" ? buddyState(id)==="buddy" : true;
     // Search covers what this viewer can see: name, status, branch, plus rank/MOS/unit for buddies.
     const q = ($("#dirSearch").value||"").trim().toLowerCase();
