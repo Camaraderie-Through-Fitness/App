@@ -493,20 +493,21 @@ nav.tabs button{position:relative}
   <!-- STORIES -->
   <section id="tab-stories" hidden>
     <h2>The Fox Hole</h2>
-    <p class="hint">Stories from the people beside you in the fight. Everyone signed in can read them.</p>
+    <p class="hint">A place to speak freely with people who get it. Everyone signed in can read what's posted here.</p>
     <div class="panel admin" id="photoQueue" hidden></div>
-    <p id="shareStoryWrap" hidden style="margin:4px 0 14px"><button class="btn" id="shareStoryBtn">Jump in: share your story</button></p>
-    <p class="hint" id="shareStoryHint" style="margin:-6px 0 14px">What brought you to CTF, and what's changed since?</p>
+    <p id="shareStoryWrap" hidden style="margin:4px 0 14px"><button class="btn" id="shareStoryBtn">Jump in</button></p>
+    <p class="hint" id="shareStoryHint" style="margin:-6px 0 14px">Wins, struggles, a shout-out, or whatever's on your mind.</p>
     <div class="panel" id="storyEditor" hidden>
-      <h3 id="storyHead">Share your story</h3>
-      <label for="sText">Your story</label><textarea id="sText" placeholder="What brought you to CTF, and what's changed since?"></textarea>
+      <h3 id="storyHead">Jump in</h3>
+      <label for="sText">What's on your mind?</label><textarea id="sText" placeholder="Wins, struggles, a shout-out, whatever you want to say."></textarea>
+      <p class="hint">Having a hard time? Call 988 and press 1, or text 838255, to reach the Veterans Crisis Line any time.</p>
       <div class="s-photo-prev" id="sPhotoPrev"></div>
       <p style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <span class="btn small ghost file-btn" id="sPhotoAddBtn">Add a photo<input id="sPhotoFile" type="file" accept="image/*" aria-label="Add a photo to your story"></span>
         <button class="btn small ghost" id="sPhotoRemove" hidden>Remove photo</button>
       </p>
       <p class="hint">Photos show up after a CTF admin approves them.</p>
-      <p style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="sSave">Post story</button><button class="btn ghost" id="sCancel">Cancel</button></p>
+      <p style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="sSave">Post</button><button class="btn ghost" id="sCancel">Cancel</button></p>
     </div>
     <div id="storyList"></div>
   </section>
@@ -1090,8 +1091,8 @@ function renderStories(){
         ${id===uid() || S.admin?`<button class="more" data-story-menu="${esc(id)}" aria-expanded="${S.storyMenu===id}" aria-label="Story options">⋯</button>`:""}
       </div>
       ${S.storyMenu===id?`<div class="own-acts">${id===uid()
-        ? `<button class="btn small ghost" data-my-story-edit="1">Edit story</button><button class="btn small danger" data-my-story-del="1">Remove story</button>`
-        : `<button class="btn small danger" data-del-story="${esc(id)}">Remove story</button>`}</div>`:""}
+        ? `<button class="btn small ghost" data-my-story-edit="1">Edit post</button><button class="btn small danger" data-my-story-del="1">Remove post</button>`
+        : `<button class="btn small danger" data-del-story="${esc(id)}">Remove post</button>`}</div>`:""}
       ${showPh?`<div class="photo-wrap"><img class="story-photo" src="${ph.photo}" alt="Photo shared with this story" loading="lazy">${flag?`<span class="photo-flag">${flag}</span>`:""}</div>`:""}
       <blockquote>${esc(s.text)}</blockquote>
       <div class="story-acts">
@@ -1125,8 +1126,8 @@ function renderStories(){
     }).join("");
   }
   const mine = S.stories[uid()];
-  $("#storyHead").textContent = mine ? "Edit your story" : "Share your story";
-  $("#sSave").textContent = mine ? "Update story" : "Post story";
+  $("#storyHead").textContent = mine ? "Edit your post" : "Jump in";
+  $("#sSave").textContent = mine ? "Update post" : "Post";
   $("#shareStoryWrap").hidden = !(S.user && !mine && $("#storyEditor").hidden); $("#shareStoryHint").hidden = $("#shareStoryWrap").hidden;
 }
 
@@ -1787,7 +1788,7 @@ document.addEventListener("click", async ev=>{
   }
   if(t.dataset.delPartner && confirm("Delete this partner?")){ const id=t.dataset.delPartner;
     try{ if(BUILTIN_PARTNER_IDS.has(id)) await setDoc(doc(fs,"partners",id),{deleted:true}); else await deleteDoc(doc(fs,"partners",id)); }catch(e){ writeFailed(e); } }
-  if(t.dataset.delStory && confirm("Remove this story?")){ try{ await deleteDoc(doc(fs,"stories",t.dataset.delStory)); deleteDoc(doc(fs,"storyPhotos",t.dataset.delStory)).catch(()=>{}); }catch(e){ writeFailed(e); } }
+  if(t.dataset.delStory && confirm("Remove this post?")){ try{ await deleteDoc(doc(fs,"stories",t.dataset.delStory)); deleteDoc(doc(fs,"storyPhotos",t.dataset.delStory)).catch(()=>{}); }catch(e){ writeFailed(e); } }
   if(t.dataset.photoOk){ try{ await updateDoc(doc(fs,"storyPhotos",t.dataset.photoOk), {status:"approved", reviewedAt:Date.now(), reviewedBy:uid()}); toast("Photo approved."); }catch(e){ writeFailed(e); } return; }
   if(t.dataset.photoNo){ if(!confirm("Reject this photo? The member will see it wasn't approved.")) return;
     try{ await updateDoc(doc(fs,"storyPhotos",t.dataset.photoNo), {status:"rejected", reviewedAt:Date.now(), reviewedBy:uid()}); toast("Photo rejected."); }catch(e){ writeFailed(e); } return; }
@@ -1923,12 +1924,12 @@ $("#sSave").addEventListener("click", async ()=>{
   if(needSignIn()) return;
   if(!S.approved){ toast("Sharing your story is for members. See the Members tab to join."); return; }
   const text=$("#sText").value.trim().slice(0,2000);
-  if(!text){ toast("Write your story first."); return; }
+  if(!text){ toast("Write something first."); return; }
   const branch = (S.members[uid()]||{}).branch || "";
   const had = !!S.stories[uid()];
   try{
     await setDoc(doc(fs,"stories",uid()), {text, name:myName(), branch, updatedAt:Date.now()});
-    let msg = had ? "Story updated." : "Story posted.";
+    let msg = had ? "Post updated." : "Posted.";
     if(sPhotoDraft===""){ await deleteDoc(doc(fs,"storyPhotos",uid())); }
     else if(sPhotoDraft){ await setDoc(doc(fs,"storyPhotos",uid()), {photo:sPhotoDraft, status:"pending", at:Date.now()}); msg += " Your photo will show once an admin approves it."; }
     closeStoryEditor(); toast(msg);
@@ -1954,14 +1955,14 @@ function resizeStoryPhoto(file){
 }
 $("#sPhotoFile").addEventListener("change", async e=>{
   const f=e.target.files && e.target.files[0]; if(!f) return;
-  try{ sPhotoDraft = await resizeStoryPhoto(f); renderStories(); toast("Photo added. Tap Post story to send it for approval."); }
+  try{ sPhotoDraft = await resizeStoryPhoto(f); renderStories(); toast("Photo added. Tap Post to send it for approval."); }
   catch{ toast("That photo didn't work. Try a JPG or PNG."); }
   e.target.value="";
 });
 $("#sPhotoRemove").addEventListener("click", ()=>{ sPhotoDraft = ""; renderStories(); });
 async function removeMyStory(){
-  if(!confirm("Remove your story?")) return;
-  try{ await deleteDoc(doc(fs,"stories",uid())); deleteDoc(doc(fs,"storyPhotos",uid())).catch(()=>{}); S.storyMenu=null; closeStoryEditor(); toast("Story removed."); }catch(e){ writeFailed(e); }
+  if(!confirm("Remove your post?")) return;
+  try{ await deleteDoc(doc(fs,"stories",uid())); deleteDoc(doc(fs,"storyPhotos",uid())).catch(()=>{}); S.storyMenu=null; closeStoryEditor(); toast("Post removed."); }catch(e){ writeFailed(e); }
 }
 function openStoryEditor(){
   if(needSignIn()) return;
