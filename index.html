@@ -455,6 +455,49 @@ nav.tabs button{position:relative}
 .stat-edit{display:grid;grid-template-columns:5.5rem 1fr;gap:8px;margin-top:8px}
 @media (max-width:420px){ .help-grid{grid-template-columns:1fr} .help-card{min-height:56px;flex-direction:row;justify-content:space-between;align-items:center;text-align:left;padding:10px 14px} }
 @media (max-width:400px){ nav.tabs .tab-lbl{font-size:.74rem} }
+/* ===== Depth & sharpness ===== */
+:root{ --edge:rgba(30,36,25,.14); --lift:0 1px 0 rgba(255,255,255,.7) inset, 0 1px 2px rgba(30,36,25,.10), 0 6px 18px -6px rgba(30,36,25,.22); }
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){ --edge:rgba(0,0,0,.55); --lift:0 1px 0 rgba(255,255,255,.06) inset, 0 1px 2px rgba(0,0,0,.5), 0 8px 22px -8px rgba(0,0,0,.7); } }
+:root[data-theme="dark"]{ --edge:rgba(0,0,0,.55); --lift:0 1px 0 rgba(255,255,255,.06) inset, 0 1px 2px rgba(0,0,0,.5), 0 8px 22px -8px rgba(0,0,0,.7); }
+body{background:linear-gradient(180deg, var(--bg) 0%, color-mix(in srgb, var(--bg) 88%, var(--green)) 100%) fixed}
+h1,h2{letter-spacing:-.015em}
+h2{font-size:2.15rem}
+/* header: frosted, sticky, crisp hairline */
+header.top{position:sticky;top:0;z-index:9;margin:0 -16px;padding:14px 16px 10px;background:color-mix(in srgb, var(--bg) 82%, transparent);-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);border-bottom:1px solid var(--edge)}
+.mark{box-shadow:0 0 0 2px var(--brass), 0 3px 8px rgba(0,0,0,.25)}
+/* cards: stamped plates */
+.panel,.drop,.devo,.myrsvps{border:1px solid var(--edge);box-shadow:var(--lift);border-radius:14px}
+.story{background:var(--surface);border:1px solid var(--edge);border-radius:14px;box-shadow:var(--lift);padding:16px;margin:0 0 12px}
+.row{background:var(--surface);border:1px solid var(--edge);border-radius:14px;box-shadow:var(--lift);padding:14px;margin:0 0 10px}
+.list{border-top:0}
+/* the hero: challenge-coin card */
+.muster{background:
+   radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,.14), transparent 55%),
+   repeating-linear-gradient(135deg, rgba(255,255,255,.035) 0 2px, transparent 2px 9px),
+   linear-gradient(160deg, color-mix(in srgb, var(--green) 85%, #fff) 0%, var(--green) 45%, color-mix(in srgb, var(--green) 70%, #000) 100%);
+  border-radius:20px;box-shadow:0 0 0 1px rgba(0,0,0,.35), 0 0 0 4px color-mix(in srgb, var(--brass) 55%, transparent), 0 18px 40px -14px rgba(20,26,14,.65), 0 1px 0 rgba(255,255,255,.25) inset}
+.muster::after{content:"";position:absolute;inset:7px;border:1px solid color-mix(in srgb, var(--brass) 60%, transparent);border-radius:14px;pointer-events:none}
+.muster .day{text-shadow:0 2px 0 rgba(0,0,0,.25)}
+.muster h1{text-shadow:0 1px 0 rgba(0,0,0,.25)}
+/* buttons: pressable */
+.btn{box-shadow:0 1px 0 rgba(255,255,255,.22) inset, 0 -2px 0 rgba(0,0,0,.18) inset, 0 2px 4px rgba(0,0,0,.18);transition:transform .08s, box-shadow .08s}
+.btn:active{transform:translateY(1px);box-shadow:0 1px 2px rgba(0,0,0,.2) inset}
+.btn.ghost,.btn.danger{box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.muster .btn{background:linear-gradient(180deg, color-mix(in srgb, var(--brass) 80%, #fff), var(--brass));box-shadow:0 1px 0 rgba(255,255,255,.45) inset, 0 -2px 0 rgba(0,0,0,.2) inset, 0 3px 8px rgba(0,0,0,.35)}
+.pill{box-shadow:0 1px 2px rgba(0,0,0,.08)}
+/* bottom nav: raised bar, inset active tab */
+nav.tabs{background:color-mix(in srgb, var(--surface) 88%, transparent);-webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) saturate(1.4);border-top:1px solid var(--edge);box-shadow:0 -10px 30px -12px rgba(0,0,0,.25)}
+nav.tabs button[aria-current="page"]{background:linear-gradient(180deg, color-mix(in srgb, var(--green) 88%, #fff), var(--green));box-shadow:0 1px 0 rgba(255,255,255,.25) inset, 0 3px 8px -2px rgba(0,0,0,.35)}
+/* inputs: recessed */
+input[type=text],input[type=url],input[type=number],input[type=date],input[type=search],select,textarea{box-shadow:0 1px 2px rgba(0,0,0,.08) inset;border-color:var(--edge)}
+.tag{box-shadow:0 0 0 1px rgba(0,0,0,.06) inset}
+.home-hero{box-shadow:0 0 0 1px rgba(0,0,0,.18), 0 16px 36px -16px rgba(20,26,14,.6)}
+.home-hero.fallback{background:radial-gradient(90% 120% at 50% 0%, color-mix(in srgb, var(--green) 75%, #fff) 0%, var(--green) 55%, color-mix(in srgb, var(--green) 70%, #000) 100%)}
+.home-hero.fallback img{width:150px;height:150px;box-shadow:0 0 0 3px color-mix(in srgb, var(--brass) 70%, transparent), 0 10px 24px rgba(0,0,0,.45)}
+.home-title{letter-spacing:-.02em}
+.stats>*{box-shadow:var(--lift)}
+.devo{border-left:4px solid var(--brass)}
+
 </style>
 </head>
 <body class="booting">
@@ -625,7 +668,7 @@ nav.tabs button{position:relative}
   <!-- COMMUNITY: Fox Hole -->
   <section id="tab-stories" hidden>
     <div class="comm-seg" role="tablist" aria-label="Community"><button role="tab" data-comm="stories" aria-selected="true">The Fox Hole</button><button role="tab" data-comm="members" aria-selected="false">Members<span class="badge seg-badge" id="bbSegBadge2" hidden></span></button></div>
-    <h2>The Fox Hole <button type="button" class="tip" data-tip="foxhole" aria-label="What does the Fox Hole mean?">i</button></h2>
+    <h2>The Fox Hole</h2>
     <p class="hint">A place to speak freely with people who get it. Everyone signed in can read what's posted here. Tap 🫡 Salute on a post to show respect <button type="button" class="tip" data-tip="salute" aria-label="What does salute mean?">i</button>.</p>
     <p class="crisis-mini"><b>Having a rough time?</b> Veterans Crisis Line: <a href="tel:988">call 988, press 1</a> or <a href="sms:838255">text 838255</a>. Free and confidential, 24/7.</p>
     <div id="devoBox"></div>
@@ -674,7 +717,7 @@ nav.tabs button{position:relative}
     <p>CTF is all-volunteer. Donations pay for gym memberships, gear, and events for veterans.</p>
     <div class="panel give-box">
       <h3>What your gift does</h3>
-      <div class="impact"><span class="amt">$22</span><span>Sponsors a year of CTF membership for a veteran</span></div>
+      <div class="impact"><span class="amt">$20</span><span>A contribution to making our community events happen</span></div>
       <div class="impact"><span class="amt">$55</span><span>Covers one veteran's gym start fee at Gainesville Health &amp; Fitness or Diaz Boxing Club</span></div>
       <p id="giveAction" style="margin:16px 0 0"></p>
       <p class="hint" id="giveWhere" style="margin:8px 0 0;text-align:center"></p>
