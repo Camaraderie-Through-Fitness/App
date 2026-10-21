@@ -187,6 +187,15 @@ body.onboarding nav.tabs, body.onboarding .wrap{display:none}
 .ob-actions .btn{flex:1}
 .ob-photo{display:flex;flex-direction:column;align-items:center;gap:12px;margin:10px 0}
 .ob-photo .avatar-xl{margin:0}
+.merch{display:flex;gap:14px;align-items:flex-start;margin-top:12px;padding:14px;background:var(--surface);border:1px solid var(--edge, var(--line));border-left:4px solid var(--brass);border-radius:14px;box-shadow:var(--lift, none)}
+.merch-img{flex:none;width:96px;height:96px;border-radius:10px;overflow:hidden;background:var(--bg);box-shadow:0 0 0 1px var(--line)}
+.merch-img img{width:100%;height:100%;object-fit:cover;display:block}
+.merch-txt{flex:1;min-width:0}
+.merch-tag{font-size:.82rem;font-weight:700;color:var(--brass)}
+.merch h3{font-size:1.2rem;margin:2px 0 4px}
+.merch .meta{display:block;margin:0 0 10px;font-size:.88rem}
+.merch-hide{display:block;margin-top:8px;font-size:.82rem;color:var(--muted)}
+.merch-note{margin:6px 2px 0;font-size:.8rem}
 .cmt .x{background:none;border:0;color:var(--muted);font-size:.85rem;cursor:pointer;padding:0;margin-top:2px}
 .cmt-form{display:flex;gap:8px;margin-top:8px;align-items:flex-end}
 .cmt-form textarea{min-height:44px;height:44px;flex:1}
@@ -555,6 +564,7 @@ input[type=text],input[type=url],input[type=number],input[type=date],input[type=
 
   <!-- HOME -->
   <section id="tab-home">
+    <div id="homeMerch"></div>
     <div id="homeHero"></div>
     <h1 class="home-title" id="homeTitle"></h1>
     <p class="home-mission" id="homeMission"></p>
@@ -1312,7 +1322,29 @@ function quoteHTML(){
   const h=S.home||{}; if(!h.quote) return "";
   return `<figure class="quote"><blockquote>${esc(h.quote)}</blockquote>${h.quoteBy?`<figcaption>${esc(h.quoteBy)}</figcaption>`:""}</figure>`;
 }
+// ---------- Shirt presale card (Home). Hides itself after the presale ends. ----------
+const MERCH={ title:"Military Appreciation Game Tee", price:"$25", sizes:"M, L, XL",
+  url:"https://freedomcoastapparel.store/products/military-appreciation-game-tee",
+  img:"https://freedomcoastapparel.store/cdn/shop/files/348E1182-A9B8-4CE9-A190-C0360EF77BD2.png?v=1792427431&width=400",
+  ends:new Date("2026-11-01T00:00:00-04:00").getTime(), endsLabel:"Oct 31" };
+function renderMerch(){
+  const box=$("#homeMerch"); if(!box) return;
+  const hidden = !!(S.config||{}).merchHidden;
+  if(Date.now()>=MERCH.ends || (hidden && !S.admin)){ box.innerHTML=""; return; }
+  if(hidden){ box.innerHTML=`<p class="hint" style="margin:12px 0 0">Shirt presale card is hidden. <button class="linkish" data-merch-hide="0">Show it</button></p>`; return; }
+  box.innerHTML=`<div class="merch">
+    <a class="merch-img" href="${MERCH.url}" target="_blank" rel="noopener" aria-label="See the shirt"><img src="${MERCH.img}" alt="${esc(MERCH.title)}" loading="lazy" onerror="this.src='logo.png'"></a>
+    <div class="merch-txt">
+      <div class="merch-tag">Shirt presale · ends ${MERCH.endsLabel}</div>
+      <h3>${esc(MERCH.title)}</h3>
+      <p class="meta">${MERCH.price} · ${MERCH.sizes} · pick up at the Nov 5 workout or Nov 7 tailgate</p>
+      <a class="btn small brass" href="${MERCH.url}" target="_blank" rel="noopener">Shop the presale</a>
+      ${S.admin?`<button class="linkish merch-hide" data-merch-hide="1">Hide card</button>`:""}
+    </div></div>
+    <p class="hint merch-note">Net proceeds support CTF. This is a purchase, not a tax-deductible donation.</p>`;
+}
 function renderHome(){
+  renderMerch();
   const h=S.home||{}, ph=homePhoto();
   $("#homeHero").innerHTML = ph ? `<div class="home-hero"><img src="${ph}" alt="CTF members at a recent event"></div>`
     : `<div class="home-hero fallback"><img src="logo.png" alt="Camaraderie Through Fitness badge"></div>`;
@@ -2346,6 +2378,11 @@ document.addEventListener("click", async ev=>{
     (S.salutes[id]||new Set()).forEach(u=>jobs.push(deleteDoc(doc(fs,"devotionals",id,"salutes",u)).catch(()=>{})));
     (S.comments[id]||[]).forEach(c=>jobs.push(deleteDoc(doc(fs,"devotionals",id,"comments",c.id)).catch(()=>{})));
     try{ await Promise.all(jobs); await deleteDoc(doc(fs,"devotionals",id)); S.storyMenu=null; toast("Devotional deleted."); }catch(e){ writeFailed(e); }
+    return;
+  }
+  if(t.dataset.merchHide){
+    const hide=t.dataset.merchHide==="1";
+    try{ await setDoc(doc(fs,"config","site"), {...S.config, merchHidden:hide}); toast(hide ? "Presale card hidden." : "Presale card showing."); }catch(e){ writeFailed(e); }
     return;
   }
   if(t.dataset.storyMenu){ S.storyMenu = S.storyMenu===t.dataset.storyMenu ? null : t.dataset.storyMenu; renderStories(); return; }
