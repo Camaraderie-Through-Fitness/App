@@ -1014,6 +1014,7 @@ function showTab(name){
   document.querySelectorAll("section[id^=tab-]").forEach(s=>s.hidden = s.id !== "tab-"+name);
   document.querySelectorAll("[data-comm]").forEach(b=>b.setAttribute("aria-selected", String(b.dataset.comm===name)));
   if(name!=="profile" && name!=="person" && name!=="admin") lastTab=name;
+  try{ sessionStorage.setItem("ctfTab", (name==="profile"||name==="person") ? lastTab : name); }catch{}
   window.scrollTo(0,0);
   if(name==="stories") setTimeout(updateStoryDot,0);
 }
@@ -1135,6 +1136,7 @@ document.addEventListener("click", async e=>{
     finally{ b.disabled=false; }
   }
 });
+addEventListener("pagehide", ()=>{ try{ sessionStorage.setItem("ctfScroll", String(Math.round(scrollY))); }catch{} });
 document.querySelectorAll("nav.tabs button").forEach(b=>b.addEventListener("click",()=>{
   if(!okToLeaveProfile()) return;
   showTab(b.dataset.tab);
@@ -3065,6 +3067,12 @@ onAuthStateChanged(auth, async u=>{
     syncContact(); markSeen();
     subscribeMembers();
     setView(); window.scrollTo(0,0);
+    // After a reload, go back to the page they were on (and roughly where they were on it).
+    try{
+      const t=sessionStorage.getItem("ctfTab"), y=+sessionStorage.getItem("ctfScroll")||0;
+      if(t && t!=="home" && document.getElementById("tab-"+t) && !$("#onboard:not([hidden])")){ showTab(t); if(y) setTimeout(()=>window.scrollTo(0,y), 400); }
+      else if(y && t==="home") setTimeout(()=>window.scrollTo(0,y), 400);
+    }catch{}
   }
   render();
 });
