@@ -2807,6 +2807,9 @@ const BUILTIN_PARTNERS = [
   {id:"hard-target-solutions", name:"Hard Target Solutions", category:"business",
    offer:"Emergency preparedness and self-defense training: handgun, rifle, and shotgun courses, trauma first aid, CPR/AED, and Stop the Bleed, plus security consulting for schools, businesses, and churches.",
    contact:"", website:"https://hardtarget.org"},
+  {id:"ghf", name:GHF, category:"business",
+   offer:"Home gym for CTF's monthly workouts, including HYROX training. Partner gym for CTF's veteran membership start-fee reimbursement. "+GHF_ADDR+".",
+   contact:"", website:"https://www.ghfc.com"},
   {id:"diaz", name:DIAZ, category:"business",
    offer:"Hosts CTF's monthly boxing sessions: boxing fundamentals and cardio-intensive training. "+DIAZ_ADDR+".",
    contact:"", website:"https://diazboxingclub.com"},
@@ -2820,6 +2823,7 @@ function mergePartners(dbDocs){
   dbDocs.forEach(p=>{
     // Ignore the old placeholder Atlas entry from "Load partners" so the updated built-in shows.
     if(p.id==="atlas" && !p.deleted && p.offer==="Veteran wellness care." && !p.website) return;
+    if(p.id==="ghf" && !p.deleted && p.offer==="Home gym for CTF's monthly workouts." && !p.website) return;
     byId.set(p.id,{...(byId.get(p.id)||{}), ...p});
   });
   return [...byId.values()].filter(p=>!p.deleted);
