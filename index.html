@@ -194,6 +194,9 @@ body.onboarding nav.tabs, body.onboarding .wrap{display:none}
 .hooks-kicker{font-size:.82rem;font-weight:700;color:#2E6E8E}
 .hooks-call h3{font-size:1.2rem;margin:2px 0 2px}
 .hooks-call .meta{display:block;margin:0 0 10px}
+.ev-flash{animation:evflash 2.4s ease-out}
+@keyframes evflash{0%,30%{box-shadow:0 0 0 3px var(--brass)}100%{box-shadow:var(--lift, none)}}
+@media (prefers-reduced-motion:reduce){.ev-flash{animation:none;outline:3px solid var(--brass)}}
 .merch{display:flex;gap:14px;align-items:flex-start;margin-top:12px;padding:14px;background:var(--surface);border:1px solid var(--edge, var(--line));border-left:4px solid var(--brass);border-radius:14px;box-shadow:var(--lift, none)}
 .merch-img{flex:none;width:96px;height:96px;border-radius:10px;overflow:hidden;background:var(--bg);box-shadow:0 0 0 1px var(--line)}
 .merch-img img{width:100%;height:100%;object-fit:cover;display:block}
@@ -1138,7 +1141,7 @@ document.addEventListener("click", async e=>{
       await setDoc(doc(fs,"members",uid()), {name:OB.name, status:OB.status, branch:OB.branch, photo:OB.photo||"", listed:OB.listed});
       if(OB.name && S.user && S.user.displayName!==OB.name){ try{ await updateProfile(S.user,{displayName:OB.name}); }catch{} }
       await syncContact(OB.remind);
-      endOnboarding(); showTab("home"); render();
+      endOnboarding(); render(); if(!openSharedEvent()) showTab("home");
       toast(`You're all set${OB.name?`, ${OB.name.split(" ")[0]}`:""}. Welcome to CTF.`);
     }catch(err){ writeFailed(err); }
     finally{ b.disabled=false; }
@@ -1246,12 +1249,12 @@ function evMenuRow(e, onDark){ return S.evMenu===e.id ? `<div class="own-acts">$
 
 function eventRow(e){
   const d=parseDate(e.date), n=goingCount(e.id);
-  return `<div class="row">
+  return `<div class="row" id="ev-${esc(e.id)}">
       <div class="date"><b>${d.getDate()}</b><span>${MON[d.getMonth()]}</span></div>
       <div class="body">${typeTag(e)}<h3 style="margin-top:4px">${esc(e.title)}</h3><div class="meta">${DOW[d.getDay()]}, ${esc(fmtTime(e.time))} · ${esc(e.location||"Location TBD")}</div>
       ${e.description?`<p class="meta" style="margin-top:4px">${esc(e.description)}</p>`:""}
       <div class="going-row">${facesGoing(e.id)}<span class="meta">${n ? `${n} going` : "Be one of the first to RSVP"}</span></div>${whoGoing(e.id)}
-      <div class="actions">${rsvpButton(e,"small ghost")}<button class="btn small ghost" data-cal="${esc(e.id)}">Add to calendar</button>${evMenuBtn(e)}</div>${evMenuRow(e)}</div></div>`;
+      <div class="actions">${rsvpButton(e,"small ghost")}<button class="btn small ghost" data-cal="${esc(e.id)}">Add to calendar</button><button class="btn small ghost" data-ev-share="${esc(e.id)}">Share</button>${evMenuBtn(e)}</div>${evMenuRow(e)}</div></div>`;
 }
 // The big green card: pinned event, or the next one up.
 function featureHTML(e){
@@ -1261,7 +1264,7 @@ function featureHTML(e){
     <h1>${esc(e.title)}</h1><div class="meta">${esc(fmtTime(e.time))} at ${esc(e.location||"location TBD")}</div>
     <div class="going-row count">${facesGoing(e.id,true)}<span>${n ? `${n} going` : "Be one of the first to RSVP"}</span></div>${whoGoing(e.id,true)}
     ${e.description?`<p class="meta" style="margin-top:8px">${esc(e.description)}</p>`:""}
-    <div class="ev-acts">${rsvpButton(e,"",on)}<button class="btn small ghost" data-cal="${esc(e.id)}">Add to calendar</button>${evMenuBtn(e,true)}</div>${evMenuRow(e,true)}`;
+    <div class="ev-acts">${rsvpButton(e,"",on)}<button class="btn small ghost" data-cal="${esc(e.id)}">Add to calendar</button><button class="btn small ghost" data-ev-share="${esc(e.id)}">Share</button>${evMenuBtn(e,true)}</div>${evMenuRow(e,true)}`;
 }
 // Old welcome card retired: the full "Set up your profile" page (maybeWelcome) now
 // shows every visit until a status is picked.
@@ -2489,6 +2492,7 @@ document.addEventListener("click", async ev=>{
   if(t.dataset.dir){ S.dir=t.dataset.dir; try{ localStorage.setItem("ctfDir",S.dir); }catch{} renderMembers(); return; }
   if(t.dataset.setdate){ openDateDlg(t.dataset.setdate); return; }
   if(t.dataset.cal){ addToCalendar(t.dataset.cal); return; }
+  if(t.dataset.evShare){ shareEvent(t.dataset.evShare); return; }
   if(t.dataset.editEvent){ startEditEvent(t.dataset.editEvent); return; }
   if(t.dataset.editPartner){ startEditPartner(t.dataset.editPartner); return; }
   if(t.dataset.approve){
@@ -2962,6 +2966,31 @@ function downloadIcs(events, name){
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=>URL.revokeObjectURL(url),5000);
 }
+// ---------- Share an event: invite someone to RSVP ----------
+async function shareEvent(id){
+  const e=S.events.find(x=>x.id===id); if(!e) return;
+  const d=parseDate(e.date);
+  const url=APP_URL+"?event="+encodeURIComponent(id);
+  const text=`Join me at ${e.title}: ${DOW[d.getDay()]}, ${MON[d.getMonth()]} ${d.getDate()}, ${fmtTime(e.time)}${e.location?` at ${e.location}`:""}. RSVP in the CTF app (free to join):\n${url}`;
+  if(navigator.share){ try{ await navigator.share({title:e.title, text}); return; }catch(err){ if(err && err.name==="AbortError") return; } }
+  try{ await navigator.clipboard.writeText(text); toast("Invite copied. Paste it into a text or message."); }
+  catch{ prompt("Copy this invite:", text); }
+}
+// Opening a shared event link: go to that event once signed in.
+const SHARED_EVENT=(()=>{ try{ const q=new URLSearchParams(location.search).get("event"); if(q){ sessionStorage.setItem("ctfOpenEvent", q); history.replaceState(null,"",location.pathname); } return sessionStorage.getItem("ctfOpenEvent"); }catch{ return null; } })();
+function openSharedEvent(){
+  let id=null; try{ id=sessionStorage.getItem("ctfOpenEvent"); }catch{}
+  if(!id || !S.user || document.body.classList.contains("onboarding")) return false;
+  const pin=featuredOf ? (()=>{ try{ return featuredOf(upcoming()); }catch{ return null; } })() : null;
+  showTab("events");
+  setTimeout(()=>{
+    const el=document.getElementById("ev-"+id) || (pin && pin.id===id ? document.querySelector("#tab-events .muster") : null);
+    if(el){ el.scrollIntoView({behavior:"smooth", block:"center"}); el.classList.add("ev-flash"); setTimeout(()=>el.classList.remove("ev-flash"), 2400); }
+    // Keep it for after onboarding if setup screens popped up in the meantime.
+    if(!document.body.classList.contains("onboarding")){ try{ sessionStorage.removeItem("ctfOpenEvent"); }catch{} }
+  }, 350);
+  return true;
+}
 function addToCalendar(id){
   const e=S.events.find(x=>x.id===id); if(!e) return;
   downloadIcs([e], "ctf-"+id+".ics");
@@ -3136,7 +3165,8 @@ onAuthStateChanged(auth, async u=>{
     syncContact(); markSeen();
     subscribeMembers();
     setView(); window.scrollTo(0,0);
-    // After a reload, go back to the page they were on (and roughly where they were on it).
+    // A shared event link wins over restoring the last page.
+    if(openSharedEvent()){} else
     try{
       const t=sessionStorage.getItem("ctfTab"), y=+sessionStorage.getItem("ctfScroll")||0;
       if(t && t!=="home" && document.getElementById("tab-"+t) && !$("#onboard:not([hidden])")){ showTab(t); if(y) setTimeout(()=>window.scrollTo(0,y), 400); }
