@@ -161,6 +161,8 @@ blockquote{margin:0;font-size:1.08rem;line-height:1.6}
 .devo-kicker{font-size:.8rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--brass)}
 .devo h3{font-size:1.4rem;margin:6px 0 2px}
 .devo-verse{font-style:italic;color:var(--muted);margin-bottom:8px}
+.esv-note{margin:10px 0 0;font-size:.74rem;line-height:1.4;color:var(--muted)}
+.esv-note a{color:inherit}
 .devo-body{white-space:pre-wrap;line-height:1.55}
 .devo-past{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
 .devo-past summary{cursor:pointer}
@@ -1630,6 +1632,8 @@ function threadHTML(id, what){
     </div>`:""}`;
 }
 // ---------- Weekly devotional (pinned at the top of the Fox Hole) ----------
+// ESV terms: credit line + link to esv.org wherever ESV text is shown.
+const ESV_NOTE=`<p class="esv-note">Scripture quotations marked ESV are from the ESV® Bible (The Holy Bible, English Standard Version®), © 2001 by Crossway, a publishing ministry of Good News Publishers. Used by permission. All rights reserved. <a href="https://www.esv.org" target="_blank" rel="noopener">esv.org</a></p>`;
 const threadCol = id => (S.devos||{})[id] ? "devotionals" : "stories";
 function devoForm(d){
   d=d||{};
@@ -1667,6 +1671,7 @@ function renderDevo(){
       ${cur.scripture?`<div class="devo-verse">${esc(cur.scripture)}</div>`:""}
       ${devoBody(cur, exp)}
       ${cur.author?`<div class="meta" style="margin-top:8px">${esc(cur.author)}</div>`:""}
+      ${/\bESV\b/i.test((cur.scripture||"")+" "+(cur.body||""))?ESV_NOTE:""}
       ${threadHTML(cur.id,"devotional")}
       ${past.length?`<details class="devo-past"><summary class="meta">Past weeks (${past.length})</summary>${past.map(d=>`<details class="devo-old"><summary><b>${esc(d.title||"Devotional")}</b> <span class="meta">${esc(fmtDay(d.at||0))}${d.scripture?` · ${esc(d.scripture)}`:""}</span></summary>
         <div class="devo-body" style="margin-top:6px">${esc(d.body||"")}</div>${d.author?`<div class="meta" style="margin-top:6px">${esc(d.author)}</div>`:""}
