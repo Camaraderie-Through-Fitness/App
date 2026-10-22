@@ -189,6 +189,11 @@ body.onboarding nav.tabs, body.onboarding .wrap{display:none}
 .ob-actions .btn{flex:1}
 .ob-photo{display:flex;flex-direction:column;align-items:center;gap:12px;margin:10px 0}
 .ob-photo .avatar-xl{margin:0}
+.hook-mark{font-size:.9em;margin-left:4px}
+.hooks-call{margin-top:12px;padding:14px 16px;background:var(--surface);border:1px solid var(--edge, var(--line));border-left:4px solid #2E6E8E;border-radius:14px;box-shadow:var(--lift, none)}
+.hooks-kicker{font-size:.82rem;font-weight:700;color:#2E6E8E}
+.hooks-call h3{font-size:1.2rem;margin:2px 0 2px}
+.hooks-call .meta{display:block;margin:0 0 10px}
 .merch{display:flex;gap:14px;align-items:flex-start;margin-top:12px;padding:14px;background:var(--surface);border:1px solid var(--edge, var(--line));border-left:4px solid var(--brass);border-radius:14px;box-shadow:var(--lift, none)}
 .merch-img{flex:none;width:96px;height:96px;border-radius:10px;overflow:hidden;background:var(--bg);box-shadow:0 0 0 1px var(--line)}
 .merch-img img{width:100%;height:100%;object-fit:cover;display:block}
@@ -566,6 +571,7 @@ input[type=text],input[type=url],input[type=number],input[type=date],input[type=
 
   <!-- HOME -->
   <section id="tab-home">
+    <div id="homeHooks"></div>
     <div id="homeMerch"></div>
     <div id="homeHero"></div>
     <h1 class="home-title" id="homeTitle"></h1>
@@ -1348,7 +1354,7 @@ function renderMerch(){
     <p class="hint merch-note">Net proceeds support CTF. This is a purchase, not a tax-deductible donation.</p>`;
 }
 function renderHome(){
-  renderMerch();
+  renderHooksCall(); renderMerch();
   const h=S.home||{}, ph=homePhoto();
   $("#homeHero").innerHTML = ph ? `<div class="home-hero"><img src="${ph}" alt="CTF members at a recent event"></div>`
     : `<div class="home-hero fallback"><img src="logo.png" alt="Camaraderie Through Fitness badge"></div>`;
@@ -1465,13 +1471,13 @@ function memberRow(id, _m, extra){
   const links = full ? [["LinkedIn",m.linkedin],["Facebook",m.facebook],["Instagram",m.instagram]]
     .map(([l,u])=>[l,safeUrl(u)]).filter(([,u])=>u)
     .map(([l,u])=>`<a class="btn small ghost" href="${esc(u)}" target="_blank" rel="noopener">${l}</a>`).join("") : "";
-  const actions = [bbButtons(id), extra, adminVerifyBtn(id)].filter(Boolean).join("");
+  const actions = [bbButtons(id), extra, adminVerifyBtn(id), adminHookBtn(id)].filter(Boolean).join("");
   const hiddenTag = S.admin && !m.listed && st!=="self" ? `<span class="tag" style="background:var(--line)">Hidden from list</span>` : "";
   const noProfile = S.admin && !status && st!=="self" ? `<span class="tag" style="background:var(--line)">Profile not filled in</span>` : "";
   return `<div class="row"><div class="member-head" style="flex:1">
     <span class="tap" data-person="${esc(id)}" role="button" aria-label="Open ${esc(m.name||"member")}'s page">${avatarHTML(m,"avatar-md")}</span>
     <div class="body">
-      <h3 class="tap" data-person="${esc(id)}" tabindex="0">${mil && full && m.rank ? esc(m.rank)+" " : ""}${esc(m.name||"Member")}${st==="self"?" (you)":""}</h3>
+      <h3 class="tap" data-person="${esc(id)}" tabindex="0">${mil && full && m.rank ? esc(m.rank)+" " : ""}${esc(m.name||"Member")}${hookMark(id)}${st==="self"?" (you)":""}</h3>
       <div>${hiddenTag}${noProfile}${st==="buddy"?`<span class="tag bb-tag">Battle buddy</span>`:""}${vBadge(id)}${status?`<span class="tag">${esc(status)}</span>`:""}${mil && m.branch && m.branch!=="Family / supporter"?`<span class="tag">${esc(m.branch)}</span>`:""}</div>
       ${svc?`<div class="svc">${svc}</div>`:""}
       ${full && m.about?`<p style="margin-top:6px">${esc(m.about)}</p>`:""}
@@ -1527,14 +1533,14 @@ function renderPerson(){
     .map(([l,u])=>`<a class="btn small ghost" href="${esc(u)}" target="_blank" rel="noopener">${l}</a>`).join("") : "";
   const empty = full && st!=="self" && !facts.length && !m.about && !links;
   $("#personBody").innerHTML = `<div class="person-card">${av}
-    <h2>${mil && full && m.rank ? esc(m.rank)+" " : ""}${esc(m.name||"Member")}</h2>
+    <h2>${mil && full && m.rank ? esc(m.rank)+" " : ""}${esc(m.name||"Member")}${hookMark(id)}</h2>
     <div>${st==="buddy"?`<span class="tag bb-tag">Battle buddy</span>`:""}${vBadge(id)}${status?`<span class="tag">${esc(status)}</span>`:""}${mil && m.branch && !full?`<span class="tag">${esc(m.branch)}</span>`:""}</div>
     ${full && m.about?`<p style="margin-top:14px">${esc(m.about)}</p>`:""}
     ${facts.length?`<dl class="facts">${facts.map(([k,v])=>`<div><dt>${esc(k)}${FACT_TIP[k]?` ${tipBtn(FACT_TIP[k],k)}`:""}</dt><dd>${esc(String(v))}</dd></div>`).join("")}</dl>`:""}
     ${links?`<div class="links" style="margin-top:14px">${links}</div>`:""}
     ${empty?`<p class="hint" style="margin-top:14px">${esc((m.name||"They").split(" ")[0])} hasn't filled in their profile details yet.</p>`:""}
     ${!full?`<p class="locked" style="margin-top:14px">Connect as battle buddies to see their full profile.</p>`:""}
-    ${st==="self"?`<p style="margin-top:14px"><button class="btn small" data-welcome="profile">Edit my profile</button></p>${cacheHTML()}`:`<div class="actions" style="margin-top:14px">${bbButtons(id)}${tipBtn("battle","battle buddy")}${adminVerifyBtn(id)}</div>${cacheHTML(id)}`}
+    ${st==="self"?`<p style="margin-top:14px"><button class="btn small" data-welcome="profile">Edit my profile</button></p>${cacheHTML()}`:`<div class="actions" style="margin-top:14px">${bbButtons(id)}${tipBtn("battle","battle buddy")}${adminVerifyBtn(id)}${adminHookBtn(id)}</div>${cacheHTML(id)}`}
   </div>`;
 }
 function openPerson(id){ personId=id; watchOtherCache(id); renderPerson(); showTab("person"); }
@@ -1699,7 +1705,7 @@ function renderStories(){
       <div class="story-head">
         <span${canOpen?` class="tap" data-person="${esc(id)}" role="button" aria-label="Open ${esc(auName)}'s page"`:""}>${avatarHTML({...au,name:auName},"avatar-md")}</span>
         <div style="min-width:0;flex:1">
-          <div class="story-author${canOpen?" tap":""}"${canOpen?` data-person="${esc(id)}" tabindex="0"`:""}>${esc(auName)}${id===uid()?" (you)":""}${buddyState(id)==="buddy"?` <span class="tag bb-tag">Battle buddy</span>`:""}</div>
+          <div class="story-author${canOpen?" tap":""}"${canOpen?` data-person="${esc(id)}" tabindex="0"`:""}>${esc(auName)}${hookMark(id)}${id===uid()?" (you)":""}${buddyState(id)==="buddy"?` <span class="tag bb-tag">Battle buddy</span>`:""}</div>
           ${auSub?`<div class="meta">${esc(auSub)}</div>`:""}
         </div>
         ${id===uid() || S.admin?`<button class="more" data-story-menu="${esc(id)}" aria-expanded="${S.storyMenu===id}" aria-label="Story options">⋯</button>`:""}
@@ -1775,6 +1781,45 @@ const money = n => "$"+(Math.round((+n||0)*100)/100).toFixed(2);
 let reimbPhoto;
 function isVerified(id){ return !!(S.verified||{})[id]; }
 function vBadge(id){ return isVerified(id) ? `<span class="tag vbadge">✓ Verified veteran</span>` : ""; }
+// ---------- Hooks of Hope retreat alumni: hook badge + Thursday Zoom call ----------
+function isHook(id){ return !!(S.hooks||{})[id]; }
+function hookMark(id){ return isHook(id) ? ` <span class="hook-mark" title="Hooks of Hope retreat alum" aria-label="Hooks of Hope retreat alum">🪝</span>` : ""; }
+let hooksCallSub=null;
+function watchHooksCall(){
+  const ok = S.user && (S.realAdmin || isHook(uid()));
+  if(ok && !hooksCallSub){ hooksCallSub=onSnapshot(doc(fs,"hooksCall","current"), d=>{ S.hooksCall=d.exists()?d.data():null; renderHooksCall(); }, e=>console.warn("hooks call", e.code)); }
+  if(!ok && hooksCallSub){ hooksCallSub(); hooksCallSub=null; S.hooksCall=null; }
+}
+function adminHookBtn(id){
+  if(!S.admin || !S.members[id]) return "";
+  return isHook(id) ? `<button class="btn small ghost" data-unhook="${esc(id)}">Remove 🪝 Hooks alum</button>`
+                    : `<button class="btn small ghost" data-hook="${esc(id)}">Mark 🪝 Hooks alum</button>`;
+}
+function nextThursday8(){
+  const d=new Date(); d.setSeconds(0,0);
+  const add=(4-d.getDay()+7)%7; const t=new Date(d); t.setDate(d.getDate()+add); t.setHours(8,0,0,0);
+  if(t.getTime()+60*60*1000 < Date.now()) t.setDate(t.getDate()+7); // after 9 AM Thursday, show next week
+  return t;
+}
+function renderHooksCall(){
+  const box=$("#homeHooks"); if(!box) return;
+  const me=uid(); if(!me || !(isHook(me) || S.admin)){ box.innerHTML=""; return; }
+  if(S.hookEdit && $("#hkUrl")) return;
+  const call=S.hooksCall||{}, url=safeUrl(call.url), t=nextThursday8();
+  const live = Date.now()>=t.getTime()-15*60*1000 && Date.now()<=t.getTime()+60*60*1000;
+  const when = `${DOW[t.getDay()]}, ${MON[t.getMonth()]} ${t.getDate()} · 8:00 AM`;
+  box.innerHTML=`<div class="hooks-call">
+    <div class="hooks-kicker">🪝 Hooks of Hope alumni</div>
+    <h3>Weekly Zoom call</h3>
+    <p class="meta">Every Thursday at 8:00 AM. Next: ${esc(when)}</p>
+    ${url?`<a class="btn small${live?" brass":""}" href="${esc(url)}" target="_blank" rel="noopener">${live?"Join now":"Join on Zoom"}</a>`:`<p class="hint">The Zoom link hasn't been added yet.</p>`}
+    ${call.note?`<p class="hint" style="margin-top:8px">${esc(call.note)}</p>`:""}
+    ${S.admin?(S.hookEdit?`<div style="margin-top:12px"><label for="hkUrl">Zoom link</label><input id="hkUrl" type="url" placeholder="https://zoom.us/j/..." value="${esc(call.url||"")}">
+        <label for="hkNote">Note (optional, like the passcode)</label><input id="hkNote" type="text" maxlength="200" value="${esc(call.note||"")}">
+        <p style="margin-top:10px;display:flex;gap:8px"><button class="btn small" data-hook-save="1">Save</button><button class="btn small ghost" data-hook-cancel="1">Cancel</button></p></div>`
+      :`<p style="margin-top:8px"><button class="linkish" data-hook-edit="1">${url?"Change Zoom link":"Add Zoom link"}</button> <span class="hint">· only 🪝 members and admins see this card</span></p>`):""}
+  </div>`;
+}
 function adminVerifyBtn(id){
   if(!S.admin) return "";
   const m=S.members[id]||{}; if(!MILITARY.includes(statusOf(m))) return "";
@@ -2385,6 +2430,20 @@ document.addEventListener("click", async ev=>{
     (S.salutes[id]||new Set()).forEach(u=>jobs.push(deleteDoc(doc(fs,"devotionals",id,"salutes",u)).catch(()=>{})));
     (S.comments[id]||[]).forEach(c=>jobs.push(deleteDoc(doc(fs,"devotionals",id,"comments",c.id)).catch(()=>{})));
     try{ await Promise.all(jobs); await deleteDoc(doc(fs,"devotionals",id)); S.storyMenu=null; toast("Devotional deleted."); }catch(e){ writeFailed(e); }
+    return;
+  }
+  if(t.dataset.hook || t.dataset.unhook){
+    const id=t.dataset.hook||t.dataset.unhook, nm=(S.members[id]||{}).name||"this member", on=!!t.dataset.hook;
+    if(!confirm(on ? `Mark ${nm} as a Hooks of Hope retreat alum? They'll get the 🪝 next to their name and see the Thursday Zoom call.` : `Remove ${nm}'s Hooks alum status and Zoom access?`)) return;
+    try{ on ? await setDoc(doc(fs,"hooks",id), {by:myName(), at:Date.now()}) : await deleteDoc(doc(fs,"hooks",id)); toast(on ? "Marked as Hooks alum." : "Hooks alum status removed."); }catch(e){ writeFailed(e); }
+    return;
+  }
+  if(t.dataset.hookEdit){ S.hookEdit=true; $("#homeHooks").innerHTML=""; renderHooksCall(); return; }
+  if(t.dataset.hookCancel){ S.hookEdit=false; $("#homeHooks").innerHTML=""; renderHooksCall(); return; }
+  if(t.dataset.hookSave){
+    const url=$("#hkUrl").value.trim(), note=$("#hkNote").value.trim().slice(0,200);
+    if(url && !safeUrl(url)){ toast("That link doesn't look right. Start it with https://"); return; }
+    try{ await setDoc(doc(fs,"hooksCall","current"), {url, note}); S.hookEdit=false; $("#homeHooks").innerHTML=""; renderHooksCall(); toast("Zoom link saved."); }catch(e){ writeFailed(e); }
     return;
   }
   if(t.dataset.merchHide){
@@ -3051,6 +3110,7 @@ function subscribeMembers(){
   subs.push(onSnapshot(collection(fs,"cache",u.uid,"posts"), s=>{ S.cache=toMap(s); renderPerson(); }, e=>console.error("cache", e.code)));
   subs.push(onSnapshot(doc(fs,"cache",u.uid), d=>{ S.cacheSetting=d.exists()?d.data():null; renderPerson(); }, e=>console.error("cache setting", e.code)));
   subs.push(onSnapshot(collection(fs,"verified"), s=>{ S.verified=toMap(s); render(); }, e=>console.error("verified", e.code)));
+  subs.push(onSnapshot(collection(fs,"hooks"), s=>{ S.hooks=toMap(s); watchHooksCall(); render(); }, e=>console.error("hooks", e.code)));
   if(S.approved){
     subs.push(onSnapshot(collection(fs,"members"), s=>{ S.members=toMap(s); migrateMine(); ensureMine(); render(); }, e=>console.error(e)));
     subs.push(onSnapshot(collection(fs,"approved"), s=>{ S.approvedIds=toMap(s); render(); }, e=>console.error(e)));
@@ -3063,7 +3123,7 @@ function subscribeMembers(){
 onAuthStateChanged(auth, async u=>{
   ensured=false; ensuring=false; S.contact=null; welcomeShown=false; welcoming=false;
   endOnboarding(); welcomeShown=false;
-  S.user=u; S.admin=false; S.realAdmin=false; S.memberView=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.allBuddies=null; S.allBuddiesErr=false; S.verified={}; S.seen={}; S.cache={}; S.cacheSetting=null; S.otherCache=null; S.reimbAll={}; S.myReimb=null; S.awards={}; S.reimbErr=false; S.reimbOpen=false; reimbPhoto=undefined; S.myPrivLoaded=false; S.salutes={}; S.comments={}; S.photos={}; sPhotoDraft=undefined;
+  S.user=u; S.admin=false; S.realAdmin=false; S.memberView=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.allBuddies=null; S.allBuddiesErr=false; S.verified={}; S.hooks={}; S.hooksCall=null; S.hookEdit=false; if(hooksCallSub){ hooksCallSub(); hooksCallSub=null; } S.seen={}; S.cache={}; S.cacheSetting=null; S.otherCache=null; S.reimbAll={}; S.myReimb=null; S.awards={}; S.reimbErr=false; S.reimbOpen=false; reimbPhoto=undefined; S.myPrivLoaded=false; S.salutes={}; S.comments={}; S.photos={}; sPhotoDraft=undefined;
   clearSubs();
   renderMembers.filled=false; renderStories.filled=false; $("#storyEditor").hidden=true; S.storyMenu=null; S.cmtMenu=null;
   resetEventForm(); resetPartnerForm();

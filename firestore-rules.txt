@@ -138,6 +138,17 @@ service cloud.firestore {
       }
     }
 
+    // Hooks of Hope retreat alumni: admins mark them; everyone signed in can see the hook badge.
+    match /hooks/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+    // Weekly Zoom link: only Hooks alumni and admins can read it.
+    match /hooksCall/{doc} {
+      allow read: if isAdmin() || (signedIn() && exists(/databases/$(database)/documents/hooks/$(request.auth.uid)));
+      allow write: if isAdmin();
+    }
+
     match /buddies/{id} {
       // Members see their own connections; admins can see all of them.
       allow read: if signedIn() && (request.auth.uid in resource.data.users || isAdmin());
