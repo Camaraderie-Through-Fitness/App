@@ -208,7 +208,7 @@ body.onboarding nav.tabs, body.onboarding .wrap{display:none}
 .pc-tile{flex:none;width:120px;margin-right:12px;display:flex;flex-direction:column;align-items:center;gap:8px;background:none;border:0;padding:0;cursor:pointer;color:var(--ink)}
 .pc-logo{width:120px;height:84px;border-radius:14px;background:#fff;border:1px solid var(--edge, var(--line));box-shadow:var(--lift, 0 1px 2px rgba(0,0,0,.08));display:grid;place-items:center;overflow:hidden;padding:10px}
 .pc-logo img{max-width:100%;max-height:100%;object-fit:contain}
-.pc-logo b{font:700 1.6rem var(--display);color:var(--green)}
+.pc-word{font:700 1rem/1.15 var(--display);color:var(--green);text-align:center;padding:10px 12px}
 .pc-name{font-size:.78rem;font-weight:600;line-height:1.2;text-align:center;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 @media (prefers-reduced-motion:reduce){ .pc{overflow-x:auto;-webkit-mask-image:none;mask-image:none;padding-left:16px} .pc-track{animation:none} .pc-dup{display:none} }
 .pt-logo-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -1398,18 +1398,17 @@ function renderHome(){
 
 // ---------- Partner logo carousel (Home) ----------
 function partnerLogoSrc(p){
-  if(p.logo && /^data:image\/(png|jpeg|webp);base64,/.test(p.logo)) return p.logo;
-  const u=safeUrl(p.website); if(!u) return "";
-  try{ return "https://www.google.com/s2/favicons?sz=128&domain="+encodeURIComponent(new URL(u).hostname); }catch{ return ""; }
+  return p.logo && /^data:image\/(png|jpeg|webp);base64,/.test(p.logo) ? p.logo : "";
 }
 function renderPartnerCarousel(){
   const box=$("#homePartners"); if(!box) return;
   const seen=new Set(), list=S.partners.filter(p=>p.name && !seen.has(p.name) && seen.add(p.name));
   if(!list.length){ box.innerHTML=""; return; }
   const tile=p=>{ const src=partnerLogoSrc(p);
-    return `<button class="pc-tile" data-go="support" title="${esc(p.name)}">
-      <span class="pc-logo">${src?`<img src="${src}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('b'),{textContent:'${esc(initials(p.name)).replace(/'/g,"")}'}))">`:`<b>${esc(initials(p.name))}</b>`}</span>
-      <span class="pc-name">${esc(p.name)}</span></button>`; };
+    return src ? `<button class="pc-tile" data-go="support" title="${esc(p.name)}">
+      <span class="pc-logo"><img src="${src}" alt="" loading="lazy"></span>
+      <span class="pc-name">${esc(p.name)}</span></button>`
+      : `<button class="pc-tile" data-go="support"><span class="pc-logo pc-word">${esc(p.name)}</span></button>`; };
   const tiles=list.map(tile).join("");
   const dur=Math.max(18, list.length*4);
   box.innerHTML=`<h2 style="margin-bottom:10px">Our partners</h2>
