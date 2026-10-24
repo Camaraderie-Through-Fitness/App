@@ -143,6 +143,11 @@ service cloud.firestore {
       allow read: if signedIn();
       allow write: if isAdmin();
     }
+    // Atlas Clinics participants: admins mark them; everyone signed in can see the atlas stone badge.
+    match /atlasParticipants/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
     // Weekly Zoom link: only Hooks alumni and admins can read it.
     match /hooksCall/{doc} {
       allow read: if isAdmin() || (signedIn() && exists(/databases/$(database)/documents/hooks/$(request.auth.uid)));

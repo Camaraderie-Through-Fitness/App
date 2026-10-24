@@ -190,6 +190,9 @@ body.onboarding nav.tabs, body.onboarding .wrap{display:none}
 .ob-photo{display:flex;flex-direction:column;align-items:center;gap:12px;margin:10px 0}
 .ob-photo .avatar-xl{margin:0}
 .hook-mark{font-size:.9em;margin-left:4px}
+.atlas-mark{display:inline-block;width:.9em;height:.9em;margin-left:4px;vertical-align:-.1em}
+.atlas-mark svg{width:100%;height:100%;display:block}
+.btn .atlas-mark{margin:0 2px 0 0}
 .hooks-call{margin-top:12px;padding:14px 16px;background:var(--surface);border:1px solid var(--edge, var(--line));border-left:4px solid #2E6E8E;border-radius:14px;box-shadow:var(--lift, none)}
 .hooks-kicker{font-size:.82rem;font-weight:700;color:#2E6E8E}
 .hooks-call h3{font-size:1.2rem;margin:2px 0 2px}
@@ -1474,13 +1477,13 @@ function memberRow(id, _m, extra){
   const links = full ? [["LinkedIn",m.linkedin],["Facebook",m.facebook],["Instagram",m.instagram]]
     .map(([l,u])=>[l,safeUrl(u)]).filter(([,u])=>u)
     .map(([l,u])=>`<a class="btn small ghost" href="${esc(u)}" target="_blank" rel="noopener">${l}</a>`).join("") : "";
-  const actions = [bbButtons(id), extra, adminVerifyBtn(id), adminHookBtn(id)].filter(Boolean).join("");
+  const actions = [bbButtons(id), extra, adminVerifyBtn(id), adminHookBtn(id), adminAtlasBtn(id)].filter(Boolean).join("");
   const hiddenTag = S.admin && !m.listed && st!=="self" ? `<span class="tag" style="background:var(--line)">Hidden from list</span>` : "";
   const noProfile = S.admin && !status && st!=="self" ? `<span class="tag" style="background:var(--line)">Profile not filled in</span>` : "";
   return `<div class="row"><div class="member-head" style="flex:1">
     <span class="tap" data-person="${esc(id)}" role="button" aria-label="Open ${esc(m.name||"member")}'s page">${avatarHTML(m,"avatar-md")}</span>
     <div class="body">
-      <h3 class="tap" data-person="${esc(id)}" tabindex="0">${mil && full && m.rank ? esc(m.rank)+" " : ""}${esc(m.name||"Member")}${hookMark(id)}${st==="self"?" (you)":""}</h3>
+      <h3 class="tap" data-person="${esc(id)}" tabindex="0">${mil && full && m.rank ? esc(m.rank)+" " : ""}${esc(m.name||"Member")}${hookMark(id)}${atlasMark(id)}${st==="self"?" (you)":""}</h3>
       <div>${hiddenTag}${noProfile}${st==="buddy"?`<span class="tag bb-tag">Battle buddy</span>`:""}${vBadge(id)}${status?`<span class="tag">${esc(status)}</span>`:""}${mil && m.branch && m.branch!=="Family / supporter"?`<span class="tag">${esc(m.branch)}</span>`:""}</div>
       ${svc?`<div class="svc">${svc}</div>`:""}
       ${full && m.about?`<p style="margin-top:6px">${esc(m.about)}</p>`:""}
@@ -1536,14 +1539,14 @@ function renderPerson(){
     .map(([l,u])=>`<a class="btn small ghost" href="${esc(u)}" target="_blank" rel="noopener">${l}</a>`).join("") : "";
   const empty = full && st!=="self" && !facts.length && !m.about && !links;
   $("#personBody").innerHTML = `<div class="person-card">${av}
-    <h2>${mil && full && m.rank ? esc(m.rank)+" " : ""}${esc(m.name||"Member")}${hookMark(id)}</h2>
+    <h2>${mil && full && m.rank ? esc(m.rank)+" " : ""}${esc(m.name||"Member")}${hookMark(id)}${atlasMark(id)}</h2>
     <div>${st==="buddy"?`<span class="tag bb-tag">Battle buddy</span>`:""}${vBadge(id)}${status?`<span class="tag">${esc(status)}</span>`:""}${mil && m.branch && !full?`<span class="tag">${esc(m.branch)}</span>`:""}</div>
     ${full && m.about?`<p style="margin-top:14px">${esc(m.about)}</p>`:""}
     ${facts.length?`<dl class="facts">${facts.map(([k,v])=>`<div><dt>${esc(k)}${FACT_TIP[k]?` ${tipBtn(FACT_TIP[k],k)}`:""}</dt><dd>${esc(String(v))}</dd></div>`).join("")}</dl>`:""}
     ${links?`<div class="links" style="margin-top:14px">${links}</div>`:""}
     ${empty?`<p class="hint" style="margin-top:14px">${esc((m.name||"They").split(" ")[0])} hasn't filled in their profile details yet.</p>`:""}
     ${!full?`<p class="locked" style="margin-top:14px">Connect as battle buddies to see their full profile.</p>`:""}
-    ${st==="self"?`<p style="margin-top:14px"><button class="btn small" data-welcome="profile">Edit my profile</button></p>${cacheHTML()}`:`<div class="actions" style="margin-top:14px">${bbButtons(id)}${tipBtn("battle","battle buddy")}${adminVerifyBtn(id)}${adminHookBtn(id)}</div>${cacheHTML(id)}`}
+    ${st==="self"?`<p style="margin-top:14px"><button class="btn small" data-welcome="profile">Edit my profile</button></p>${cacheHTML()}`:`<div class="actions" style="margin-top:14px">${bbButtons(id)}${tipBtn("battle","battle buddy")}${adminVerifyBtn(id)}${adminHookBtn(id)}${adminAtlasBtn(id)}</div>${cacheHTML(id)}`}
   </div>`;
 }
 function openPerson(id){ personId=id; watchOtherCache(id); renderPerson(); showTab("person"); }
@@ -1708,7 +1711,7 @@ function renderStories(){
       <div class="story-head">
         <span${canOpen?` class="tap" data-person="${esc(id)}" role="button" aria-label="Open ${esc(auName)}'s page"`:""}>${avatarHTML({...au,name:auName},"avatar-md")}</span>
         <div style="min-width:0;flex:1">
-          <div class="story-author${canOpen?" tap":""}"${canOpen?` data-person="${esc(id)}" tabindex="0"`:""}>${esc(auName)}${hookMark(id)}${id===uid()?" (you)":""}${buddyState(id)==="buddy"?` <span class="tag bb-tag">Battle buddy</span>`:""}</div>
+          <div class="story-author${canOpen?" tap":""}"${canOpen?` data-person="${esc(id)}" tabindex="0"`:""}>${esc(auName)}${hookMark(id)}${atlasMark(id)}${id===uid()?" (you)":""}${buddyState(id)==="buddy"?` <span class="tag bb-tag">Battle buddy</span>`:""}</div>
           ${auSub?`<div class="meta">${esc(auSub)}</div>`:""}
         </div>
         ${id===uid() || S.admin?`<button class="more" data-story-menu="${esc(id)}" aria-expanded="${S.storyMenu===id}" aria-label="Story options">⋯</button>`:""}
@@ -1822,6 +1825,16 @@ function renderHooksCall(){
         <p style="margin-top:10px;display:flex;gap:8px"><button class="btn small" data-hook-save="1">Save</button><button class="btn small ghost" data-hook-cancel="1">Cancel</button></p></div>`
       :`<p style="margin-top:8px"><button class="linkish" data-hook-edit="1">${url?"Change Zoom link":"Add Zoom link"}</button> <span class="hint">· only 🪝 members and admins see this card</span></p>`):""}
   </div>`;
+}
+// ---------- Atlas Clinics participants: atlas stone badge ----------
+const ATLAS_STONE=`<svg viewBox="0 0 20 20" aria-hidden="true"><defs><radialGradient id="atlasStoneG" cx="36%" cy="30%" r="72%"><stop offset="0" stop-color="#D4D0C8"/><stop offset=".5" stop-color="#97928A"/><stop offset="1" stop-color="#4F4B45"/></radialGradient></defs><ellipse cx="10" cy="18.6" rx="6.8" ry="1.1" fill="#000" opacity=".2"/><circle cx="10" cy="10" r="8.2" fill="url(#atlasStoneG)"/><circle cx="7" cy="12.5" r=".55" fill="#3E3B36" opacity=".45"/><circle cx="12.6" cy="13.4" r=".45" fill="#3E3B36" opacity=".4"/><circle cx="13.3" cy="7.6" r=".4" fill="#3E3B36" opacity=".35"/></svg>`;
+function atlasIcon(){ return `<span class="atlas-mark">${ATLAS_STONE}</span>`; }
+function isAtlas(id){ return !!(S.atlas||{})[id]; }
+function atlasMark(id){ return isAtlas(id) ? ` <span class="atlas-mark" title="Atlas Clinics participant" aria-label="Atlas Clinics participant" role="img">${ATLAS_STONE}</span>` : ""; }
+function adminAtlasBtn(id){
+  if(!S.admin || !S.members[id]) return "";
+  return isAtlas(id) ? `<button class="btn small ghost" data-unatlas="${esc(id)}">Remove ${atlasIcon()} Atlas participant</button>`
+                     : `<button class="btn small ghost" data-atlas="${esc(id)}">Mark ${atlasIcon()} Atlas participant</button>`;
 }
 function adminVerifyBtn(id){
   if(!S.admin) return "";
@@ -2433,6 +2446,12 @@ document.addEventListener("click", async ev=>{
     (S.salutes[id]||new Set()).forEach(u=>jobs.push(deleteDoc(doc(fs,"devotionals",id,"salutes",u)).catch(()=>{})));
     (S.comments[id]||[]).forEach(c=>jobs.push(deleteDoc(doc(fs,"devotionals",id,"comments",c.id)).catch(()=>{})));
     try{ await Promise.all(jobs); await deleteDoc(doc(fs,"devotionals",id)); S.storyMenu=null; toast("Devotional deleted."); }catch(e){ writeFailed(e); }
+    return;
+  }
+  if(t.dataset.atlas || t.dataset.unatlas){
+    const id=t.dataset.atlas||t.dataset.unatlas, nm=(S.members[id]||{}).name||"this member", on=!!t.dataset.atlas;
+    if(!confirm(on ? `Mark ${nm} as an Atlas Clinics participant? They'll get the atlas stone next to their name, visible to all members.` : `Remove ${nm}'s Atlas participant badge?`)) return;
+    try{ on ? await setDoc(doc(fs,"atlasParticipants",id), {by:myName(), at:Date.now()}) : await deleteDoc(doc(fs,"atlasParticipants",id)); toast(on ? "Marked as Atlas participant." : "Atlas participant badge removed."); }catch(e){ writeFailed(e); }
     return;
   }
   if(t.dataset.hook || t.dataset.unhook){
@@ -3142,6 +3161,7 @@ function subscribeMembers(){
   subs.push(onSnapshot(collection(fs,"cache",u.uid,"posts"), s=>{ S.cache=toMap(s); renderPerson(); }, e=>console.error("cache", e.code)));
   subs.push(onSnapshot(doc(fs,"cache",u.uid), d=>{ S.cacheSetting=d.exists()?d.data():null; renderPerson(); }, e=>console.error("cache setting", e.code)));
   subs.push(onSnapshot(collection(fs,"verified"), s=>{ S.verified=toMap(s); render(); }, e=>console.error("verified", e.code)));
+  subs.push(onSnapshot(collection(fs,"atlasParticipants"), s=>{ S.atlas=toMap(s); render(); }, e=>console.error("atlas", e.code)));
   subs.push(onSnapshot(collection(fs,"hooks"), s=>{ S.hooks=toMap(s); watchHooksCall(); render(); }, e=>console.error("hooks", e.code)));
   if(S.approved){
     subs.push(onSnapshot(collection(fs,"members"), s=>{ S.members=toMap(s); migrateMine(); ensureMine(); render(); }, e=>console.error(e)));
@@ -3155,7 +3175,7 @@ function subscribeMembers(){
 onAuthStateChanged(auth, async u=>{
   ensured=false; ensuring=false; S.contact=null; welcomeShown=false; welcoming=false;
   endOnboarding(); welcomeShown=false;
-  S.user=u; S.admin=false; S.realAdmin=false; S.memberView=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.allBuddies=null; S.allBuddiesErr=false; S.verified={}; S.hooks={}; S.hooksCall=null; S.hookEdit=false; if(hooksCallSub){ hooksCallSub(); hooksCallSub=null; } S.seen={}; S.cache={}; S.cacheSetting=null; S.otherCache=null; S.reimbAll={}; S.myReimb=null; S.awards={}; S.reimbErr=false; S.reimbOpen=false; reimbPhoto=undefined; S.myPrivLoaded=false; S.salutes={}; S.comments={}; S.photos={}; sPhotoDraft=undefined;
+  S.user=u; S.admin=false; S.realAdmin=false; S.memberView=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.allBuddies=null; S.allBuddiesErr=false; S.verified={}; S.hooks={}; S.atlas={}; S.hooksCall=null; S.hookEdit=false; if(hooksCallSub){ hooksCallSub(); hooksCallSub=null; } S.seen={}; S.cache={}; S.cacheSetting=null; S.otherCache=null; S.reimbAll={}; S.myReimb=null; S.awards={}; S.reimbErr=false; S.reimbOpen=false; reimbPhoto=undefined; S.myPrivLoaded=false; S.salutes={}; S.comments={}; S.photos={}; sPhotoDraft=undefined;
   clearSubs();
   renderMembers.filled=false; renderStories.filled=false; $("#storyEditor").hidden=true; S.storyMenu=null; S.cmtMenu=null;
   resetEventForm(); resetPartnerForm();
