@@ -129,6 +129,19 @@ blockquote{margin:0;font-size:1.08rem;line-height:1.6}
 .more-sm{font-size:1.05rem;padding:2px 6px}
 .own-acts{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
 .cmt .x.x-del{color:var(--alert);font-weight:600}
+.cmt-acts{display:flex;gap:4px 14px;flex-wrap:wrap;margin-top:2px}
+.rep-reasons{border:0;padding:0;margin:12px 0 4px}
+.rep-reasons legend{font-weight:700;margin-bottom:4px}
+.rep-reasons .check{margin:6px 0}
+.rep-quote{margin:8px 0;padding:8px 12px;border-left:3px solid var(--line);white-space:pre-wrap;overflow-wrap:anywhere}
+.gate-note{display:block;font-size:.82rem;opacity:.8;margin-top:3px}
+.gate-legal{text-align:center;margin-top:12px;font-size:.88rem}
+.gate-legal a{color:#D5DACB}
+a.mi{text-decoration:none}
+.consent-list{margin:10px 0;padding-left:20px}.consent-list li{margin:6px 0}
+.ob-agree{margin-top:18px;align-items:flex-start}
+.ob-agree a{color:var(--green);font-weight:600}
+.fund-note{margin:10px 0 0;text-align:center}
 .bb-admin{margin:6px 0 0;font-size:.88rem}
 .bb-admin-panel summary{cursor:pointer}
 .bb-pair{padding:8px 0;border-top:1px solid var(--line)}.bb-pair:first-of-type{margin-top:8px}
@@ -571,8 +584,9 @@ input[type=text],input[type=url],input[type=number],input[type=date],input[type=
       <div class="err" id="authErr" role="alert"></div>
     </div>
     <p class="gate-free">Creating an account is free. Workouts, RSVPs, and support resources cost nothing.</p>
-    <p class="gate-give">Here to support veterans? <a id="gateDonate" href="https://www.camaraderietf.org/donate" target="_blank" rel="noopener">Donate to CTF</a></p>
+    <p class="gate-give">Here to support veterans? <a id="gateDonate" href="https://www.camaraderietf.org/donate" target="_blank" rel="noopener">Donate to CTF</a><span class="gate-note">CTF is the fundraiser, not Apple or Google.</span></p>
     <p class="gate-crisis">In crisis right now? Call <a href="tel:988">988</a> and press 1, or text <a href="sms:838255">838255</a>.</p>
+    <p class="gate-legal"><a href="privacy.html">Privacy policy &amp; community rules</a></p>
   </div>
 </section>
 
@@ -708,6 +722,7 @@ input[type=text],input[type=url],input[type=number],input[type=date],input[type=
     <div class="comm-seg" role="tablist" aria-label="Community"><button role="tab" data-comm="stories" aria-selected="true">The Fox Hole</button><button role="tab" data-comm="members" aria-selected="false">Members<span class="badge seg-badge" id="bbSegBadge2" hidden></span></button></div>
     <h2>The Fox Hole</h2>
     <p class="hint">A place to speak freely with people who get it. Everyone signed in can read what's posted here. Tap 🫡 Salute on a post to show respect <button type="button" class="tip" data-tip="salute" aria-label="What does salute mean?">i</button>.</p>
+    <p class="hint">No harassment, hate, threats, or explicit content. Tap ⋯ on a post or comment to report it or block someone. <a href="privacy.html#rules" target="_blank" rel="noopener">Community rules</a></p>
     <p class="crisis-mini"><b>Having a rough time?</b> Veterans Crisis Line: <a href="tel:988">call 988, press 1</a> or <a href="sms:838255">text 838255</a>. Free and confidential, 24/7.</p>
     <div id="devoBox"></div>
     <p id="shareStoryWrap" hidden style="margin:4px 0 14px"><button class="btn" id="shareStoryBtn">Jump in</button></p>
@@ -745,6 +760,7 @@ input[type=text],input[type=url],input[type=number],input[type=date],input[type=
       <details class="drop" name="partners" id="dBiz"><summary><span class="drop-title">Businesses that back us</span><span class="drop-count" id="cBiz"></span><span class="chev" aria-hidden="true"></span></summary><div class="list" id="bizList"></div></details>
     </div>
     <p><a class="btn ghost wide" href="mailto:CTF@camaraderietf.org">Need something else? Email the CTF team</a></p>
+    <p class="hint" style="text-align:center"><a href="privacy.html">Privacy policy &amp; community rules</a></p>
   </section>
 
   <!-- GIVE -->
@@ -759,6 +775,7 @@ input[type=text],input[type=url],input[type=number],input[type=date],input[type=
       <div class="impact"><span class="amt">$55</span><span>Covers one veteran's gym start fee at Gainesville Health &amp; Fitness or Diaz Boxing Club</span></div>
       <p id="giveAction" style="margin:16px 0 0"></p>
       <p class="hint" id="giveWhere" style="margin:8px 0 0;text-align:center"></p>
+      <p class="hint fund-note">Camaraderie Through Fitness, Inc. is the fundraiser. Apple and Google are not the fundraiser and don't collect or handle donations.</p>
     </div>
     <div id="giveQuote"></div>
     <h3 class="sec-head">Other ways to help</h3>
@@ -811,6 +828,7 @@ input[type=text],input[type=url],input[type=number],input[type=date],input[type=
       <p style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="evSave">Add event</button><button class="btn ghost" id="evCancel" hidden>Cancel</button></p>
     </div>
 
+    <div class="panel admin" id="reportQueue" hidden></div>
     <div class="panel admin" id="photoQueue" hidden></div>
     <div class="panel admin" id="reimbAdmin" hidden></div>
 
@@ -818,6 +836,7 @@ input[type=text],input[type=url],input[type=number],input[type=date],input[type=
       <h3>Membership</h3>
       <label class="check" style="margin-top:8px"><input type="checkbox" id="paywallToggle"> <span><b>Require paid membership</b> ($22/year) for the member directory and posting stories</span></label>
       <p class="hint" id="paywallState" style="margin:8px 0 0"></p>
+      <p class="hint" style="margin:8px 0 0"><b>App Store:</b> Apple doesn't allow unlocking features with an outside payment link. Keep this off in the App Store version unless membership moves to Apple's in-app purchase.</p>
     </div>
     <div id="pendingWrap" class="panel admin" hidden><h3>Waiting on payment</h3><p class="hint">Check your payment platform, then tap Activate 1 year.</p><div class="list" id="pendingList" style="border-top:0"></div><div id="renewWrap"></div></div>
     <div id="bbAdminWrap"></div>
@@ -841,7 +860,7 @@ input[type=text],input[type=url],input[type=number],input[type=date],input[type=
       <h3>Giving links</h3>
       <p class="hint">Paste the link from your donation platform (Zeffy, Givebutter, Donorbox).</p>
       <label for="gUrl">Link</label><input id="gUrl" type="url" placeholder="https://www.camaraderietf.org/donate">
-      <p class="hint">Leave blank to use the donate page on camaraderietf.org.</p>
+      <p class="hint">Leave blank to use the donate page on camaraderietf.org. For the App Store version, Apple requires donations to go through a page on CTF's own website, so put the Zeffy form on camaraderietf.org instead of pasting a Zeffy link here.</p>
       <label for="gMember">Membership payment link ($22/year)</label><input id="gMember" type="url" placeholder="https://">
       <p class="hint">Can be the same platform. Set it up as a $22 membership or ticket.</p>
       <p style="margin-top:14px"><button class="btn" id="gSave">Save links</button></p>
@@ -869,6 +888,8 @@ input[type=text],input[type=url],input[type=number],input[type=date],input[type=
       <button class="mi" id="editProfileBtn"><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span><span class="mi-txt"><b>Edit profile</b><small>Photo, service details, privacy</small></span><span class="chev-r" aria-hidden="true"></span></button>
       <button class="mi" id="adminBtn" hidden><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span><span class="mi-txt"><b>Admin tools</b><small id="adminBtnHint">Events, Home page, approvals, partners, links</small></span><span class="chev-r" aria-hidden="true"></span></button>
       <button class="mi" id="inviteBtn"><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-5.5 6.5-5.5s6.5 2 6.5 5.5"/><path d="M19 8v6M16 11h6"/></svg></span><span class="mi-txt"><b>Build the community</b><small>Invite a friend to the app</small></span><span class="chev-r" aria-hidden="true"></span></button>
+      <a class="mi" href="privacy.html" target="_blank" rel="noopener"><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg></span><span class="mi-txt"><b>Privacy &amp; community rules</b><small>What we collect and the rules here</small></span><span class="chev-r" aria-hidden="true"></span></a>
+      <button class="mi" id="blockListBtn" hidden><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M5.7 5.7l12.6 12.6"/></svg></span><span class="mi-txt"><b>Blocked members</b><small id="blockListHint"></small></span><span class="chev-r" aria-hidden="true"></span></button>
       <div class="mi mi-static" id="viewRow" hidden><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="mi-txt"><b>App view</b><small id="viewHint">Seeing admin tools</small></span>
         <div class="seg" role="radiogroup" aria-label="App view"><button role="radio" data-view-set="admin">Admin</button><button role="radio" data-view-set="member">Member</button></div>
       </div>
@@ -948,6 +969,46 @@ input[type=text],input[type=url],input[type=number],input[type=date],input[type=
   <p class="install-btns"><button class="btn small ghost" id="installLater">Not now</button><button class="btn small" id="installDone">Done, it's added</button></p>
 </div>
 
+<dialog id="reportDlg" aria-labelledby="reportHead">
+  <button class="dlg-close" id="reportClose" aria-label="Close">×</button>
+  <h3 id="reportHead">Report this <span id="reportWhat">post</span></h3>
+  <p class="hint" id="reportWho" style="margin-top:6px"></p>
+  <fieldset class="rep-reasons"><legend>What's wrong?</legend>
+    <label class="check"><input type="radio" name="repReason" value="Harassment or bullying"> Harassment or bullying</label>
+    <label class="check"><input type="radio" name="repReason" value="Hate or slurs"> Hate or slurs</label>
+    <label class="check"><input type="radio" name="repReason" value="Threats or violence"> Threats or violence</label>
+    <label class="check"><input type="radio" name="repReason" value="Sexual or explicit content"> Sexual or explicit content</label>
+    <label class="check"><input type="radio" name="repReason" value="Spam or scam"> Spam or scam</label>
+    <label class="check"><input type="radio" name="repReason" value="Someone may be in danger"> Someone may be in danger</label>
+    <label class="check"><input type="radio" name="repReason" value="Something else"> Something else</label>
+  </fieldset>
+  <label for="reportNote">Anything else admins should know? (optional)</label><textarea id="reportNote" maxlength="300"></textarea>
+  <label class="check" style="margin-top:10px"><input type="checkbox" id="reportBlock"> <span>Also block <span id="reportBlockName">them</span></span></label>
+  <p class="crisis-mini" style="margin-top:12px">If someone may hurt themselves or others, don't wait on a report. Call 911, or call <a href="tel:988">988 and press 1</a>.</p>
+  <div class="err" id="reportErr" role="alert"></div>
+  <p style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="reportSend">Send report</button><button class="btn ghost" id="reportCancel">Cancel</button></p>
+</dialog>
+
+<dialog id="blockDlg" aria-labelledby="blockHead">
+  <button class="dlg-close" id="blockClose" aria-label="Close">×</button>
+  <h3 id="blockHead">Blocked members</h3>
+  <p class="hint" style="margin-top:6px">You don't see their posts, comments, or profile. They aren't told you blocked them.</p>
+  <div class="list" id="blockList" style="margin-top:8px"></div>
+</dialog>
+
+<dialog id="consentDlg" aria-labelledby="consentHead">
+  <h3 id="consentHead">Privacy policy &amp; community rules</h3>
+  <p style="margin-top:8px">CTF has posted a privacy policy and community rules. Please read them and agree to keep using the app.</p>
+  <ul class="consent-list">
+    <li>We collect only what's needed to run the community. We never sell it or show ads.</li>
+    <li>Your full profile is only for you, your battle buddies, and CTF admins.</li>
+    <li>Zero tolerance for harassment, hate, threats, or explicit content. Report a post or block someone from the ⋯ menu.</li>
+  </ul>
+  <p><a href="privacy.html" target="_blank" rel="noopener"><b>Read the privacy policy and rules</b></a></p>
+  <div class="err" id="consentErr" role="alert"></div>
+  <p style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="consentOk">I agree</button><button class="btn ghost" id="consentOut">Sign out</button></p>
+</dialog>
+
 <dialog id="receiptDlg">
   <button class="dlg-close" id="receiptClose" aria-label="Close">×</button>
   <h3 id="receiptHead">Receipt</h3>
@@ -987,7 +1048,7 @@ const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
-const S = { events:[], rsvps:{}, members:{}, stories:{}, partners:[], config:{}, approvedIds:{}, user:null, admin:false, approved:false, ready:false, loadError:false };
+const S = { blocked:new Set(), reports:{}, events:[], rsvps:{}, members:{}, stories:{}, partners:[], config:{}, approvedIds:{}, user:null, admin:false, approved:false, ready:false, loadError:false };
 let editingEvent = null, editingPartner = null;
 S.priv={}; S.buddies={}; S.myPrivLoaded=false;
 S.salutes={}; S.comments={}; S.openCmts=new Set(); S.cmtDrafts={}; S.devos={}; S.devoOpen=new Set();
@@ -1014,7 +1075,7 @@ function goingIds(id){ return Object.keys(S.rsvps).filter(u=>S.rsvps[u].events &
 // directory (or your buddies); anyone who chose to stay hidden is just counted.
 function facesGoing(id, onDark){
   const ids=goingIds(id); if(!ids.length) return "";
-  const shown=ids.filter(u=>S.members[u] && (S.members[u].listed!==false || u===uid() || buddyState(u)==="buddy"))
+  const shown=ids.filter(u=>S.members[u] && !isBlocked(u) && (S.members[u].listed!==false || u===uid() || buddyState(u)==="buddy"))
     .sort((a,b)=>(a===uid()?-1:b===uid()?1:0)||(buddyState(b)==="buddy")-(buddyState(a)==="buddy"));
   const MAX=6, faces=shown.slice(0,MAX), extra=ids.length-faces.length;
   return `<div class="faces${onDark?" on-dark":""}" aria-label="${ids.length} going">${faces.map(u=>
@@ -1086,10 +1147,10 @@ function maybeWelcome(){
   welcomeShown=true; startOnboarding();
 }
 // ---------- First-time onboarding: required before the rest of the app ----------
-const OB={step:0, name:"", status:"", branch:"", photo:"", listed:true, remind:true};
+const OB={step:0, name:"", status:"", branch:"", photo:"", listed:true, remind:true, agree:false};
 function startOnboarding(){
   const m=S.members[uid()]||{};
-  Object.assign(OB,{step:0, name:m.name||myName()||"", status:"", branch:m.branch||"", photo:m.photo||"", listed:m.listed!==false, remind:(S.contact||{}).remind!==false});
+  Object.assign(OB,{step:0, name:m.name||myName()||"", status:"", branch:m.branch||"", photo:m.photo||"", listed:m.listed!==false, remind:(S.contact||{}).remind!==false, agree:false});
   document.body.classList.add("onboarding"); $("#onboard").hidden=false; renderOnboarding();
 }
 function endOnboarding(){ document.body.classList.remove("onboarding"); $("#onboard").hidden=true; }
@@ -1125,6 +1186,7 @@ function renderOnboarding(){
     <label class="check"><input type="checkbox" id="obListed"${OB.listed?" checked":""}> Show me in the member list</label>
     <p class="hint" style="margin:4px 0 0 30px">Turn this off to stay hidden. Battle buddies and admins can still see you.</p>
     <label class="check"><input type="checkbox" id="obRemind"${OB.remind?" checked":""}> Email me a reminder the day before events I RSVP to</label>
+    <label class="check ob-agree"><input type="checkbox" id="obAgree"${OB.agree?" checked":""}> <span>I agree to CTF's <a href="privacy.html" target="_blank" rel="noopener">privacy policy and community rules</a>, including zero tolerance for harassment, hate, threats, or explicit content.</span></label>
     <div class="ob-actions"><button class="btn ghost" data-ob="back">Back</button><button class="btn" data-ob="finish">Finish</button></div>
     <p style="text-align:center;margin-top:18px"><button class="linkish" data-ob="signout">Not you? Sign out</button></p>`;
   $("#obStep").innerHTML=h; $("#onboard").scrollTop=0;
@@ -1135,6 +1197,7 @@ function obCollect(){
   if($("#obBranch")) OB.branch=MILITARY.includes(OB.status) ? $("#obBranch").value : "";
   if($("#obListed")) OB.listed=$("#obListed").checked;
   if($("#obRemind")) OB.remind=$("#obRemind").checked;
+  if($("#obAgree")) OB.agree=$("#obAgree").checked;
 }
 document.addEventListener("change", async e=>{
   if(e.target.id==="obStatus"){ $("#obBranchWrap").hidden=!MILITARY.includes(e.target.value); return; }
@@ -1157,8 +1220,11 @@ document.addEventListener("click", async e=>{
     OB.step=Math.min(3,OB.step+1); renderOnboarding(); return;
   }
   if(a==="finish"){
+    if(!OB.agree){ toast("Check the box to agree to the privacy policy and community rules."); $("#obAgree").focus(); return; }
     b.disabled=true;
     try{
+      S.consent={terms:TERMS_VERSION};
+      await setDoc(doc(fs,"consent",uid()), {terms:TERMS_VERSION, at:Date.now()}).catch(e=>console.warn("consent", e.code));
       await setDoc(doc(fs,"members",uid()), {name:OB.name, status:OB.status, branch:OB.branch, photo:OB.photo||"", listed:OB.listed});
       if(OB.name && S.user && S.user.displayName!==OB.name){ try{ await updateProfile(S.user,{displayName:OB.name}); }catch{} }
       await syncContact(OB.remind);
@@ -1209,13 +1275,139 @@ function updateStoryDot(){
 function adminCounts(){
   const photos = Object.keys(S.photos||{}).filter(id=>S.photos[id].status==="pending" && S.stories[id]).length;
   const reimb = Object.values(S.reimbAll||{}).filter(r=>r.status==="submitted").length;
-  return {photos, reimb};
+  const reports = Object.keys(S.reports||{}).length;
+  return {photos, reimb, reports};
 }
 function updateAdminBadge(){
   const b=$("#adminBadge"); if(!b) return;
-  const c=adminCounts(), n=S.admin ? c.photos+c.reimb : 0;
+  const c=adminCounts(), n=S.admin ? c.photos+c.reimb+c.reports : 0;
   b.hidden=!n; b.textContent=n;
   const h=$("#adminBtnHint"); if(h) h.textContent = n ? `${n} thing${n===1?"":"s"} waiting on you` : "Events, Home page, approvals, partners, links";
+}
+
+// ---------- Privacy policy agreement ----------
+const TERMS_VERSION = "2026-10-26"; // change this when the policy changes to ask everyone to agree again
+function maybeConsent(){
+  const d=$("#consentDlg"); if(!d) return;
+  const mine=S.members[uid()];
+  const need = !!(S.user && !S.consentErr && S.consent!==undefined && mine && mine.status && $("#onboard").hidden
+    && !(S.consent && S.consent.terms===TERMS_VERSION));
+  if(need && !d.open){ $("#consentErr").textContent=""; if(typeof d.showModal==="function") d.showModal(); else d.setAttribute("open",""); }
+  else if(!need && d.open) d.close();
+}
+$("#consentDlg").addEventListener("cancel", e=>e.preventDefault());
+$("#consentOk").addEventListener("click", async ()=>{
+  const b=$("#consentOk"); b.disabled=true;
+  try{ await setDoc(doc(fs,"consent",uid()), {terms:TERMS_VERSION, at:Date.now()}); S.consent={terms:TERMS_VERSION}; $("#consentDlg").close(); toast("Thanks."); }
+  catch(e){ console.error(e); $("#consentErr").textContent="Couldn't save. Check your connection and try again."; }
+  finally{ b.disabled=false; }
+});
+$("#consentOut").addEventListener("click", ()=>{ $("#consentDlg").close(); signOut(auth); });
+
+// ---------- Report and block ----------
+function isBlocked(id){ return !!(id && id!==uid() && S.blocked && S.blocked.has(id)); }
+function whoName(id){
+  let n=(S.members[id]||{}).name || (S.stories[id]||{}).name || "";
+  if(!n) for(const l of Object.values(S.comments||{})){ const c=l.find(x=>x.uid===id && x.name); if(c){ n=c.name; break; } }
+  return n || "this member";
+}
+function firstOf(id){ const n=whoName(id); return n==="this member" ? n : n.split(" ")[0]; }
+async function setBlock(id, on, noAsk){
+  if(!S.user || !id || id===uid()) return false;
+  const nm=firstOf(id);
+  if(on && !noAsk && !confirm(`Block ${nm}? You won't see their posts, comments, or profile, and any battle buddy connection between you ends. They won't be told. You can unblock them from your account menu.`)) return false;
+  const ids=new Set(S.blocked); if(on) ids.add(id); else ids.delete(id);
+  try{
+    await setDoc(doc(fs,"blocks",uid()), {ids:[...ids].slice(0,500)});
+    if(on && S.buddies[pairId(uid(),id)]) await deleteDoc(doc(fs,"buddies",pairId(uid(),id))).catch(e=>console.warn("end buddy", e.code));
+    S.blocked=ids; S.storyMenu=null; S.cmtMenu=null; render(); renderBlockList();
+    toast(on ? `${nm} is blocked.` : `${nm} is unblocked.`);
+    return true;
+  }catch(e){ writeFailed(e); return false; }
+}
+function renderBlockList(){
+  const l=$("#blockList"); if(!l) return;
+  const ids=[...(S.blocked||[])];
+  l.innerHTML = ids.length ? ids.map(id=>`<div class="row"><div class="body" style="display:flex;align-items:center;gap:10px">${avatarHTML({...(S.members[id]||{}),name:whoName(id)},"acct-av")}<b style="flex:1;min-width:0">${esc(whoName(id))}</b><button class="btn small ghost" data-unblock="${esc(id)}">Unblock</button></div></div>`).join("")
+    : `<p class="hint">You haven't blocked anyone.</p>`;
+}
+$("#blockListBtn").addEventListener("click", ()=>{ closeAuth(); renderBlockList(); const d=$("#blockDlg"); if(typeof d.showModal==="function") d.showModal(); else d.setAttribute("open",""); });
+$("#blockClose").addEventListener("click", ()=>$("#blockDlg").close());
+function openReport(spec){
+  if(needSignIn()) return;
+  const [kind, sid, cid=""] = String(spec).split("|");
+  let author="", text="", col="stories";
+  if(kind==="post"){ const s=S.stories[sid]||{}; author=s.text?sid:""; text=s.text||""; }
+  else if(kind==="comment"){ col=threadCol(sid); const c=(S.comments[sid]||[]).find(x=>x.id===cid)||{}; author=c.uid||""; text=c.text||""; }
+  else if(kind==="cache"){ col="cache"; const p=((S.otherCache||{}).posts||{})[cid]||{}; author=p.text!==undefined?sid:""; text=p.text||""; }
+  if(!author){ toast("That's no longer here."); return; }
+  S.reportTarget={kind, col, sid, cid, author, authorName:whoName(author), text:String(text).slice(0,2000)};
+  const nm=firstOf(author);
+  $("#reportWhat").textContent = kind==="comment" ? "comment" : "post";
+  $("#reportWho").textContent = `From ${S.reportTarget.authorName}. CTF admins will see a copy. ${nm==="this member"?"They":nm} won't be told who reported it.`;
+  $("#reportBlockName").textContent = nm;
+  document.querySelectorAll('input[name="repReason"]').forEach(r=>{ r.checked=false; });
+  $("#reportNote").value=""; $("#reportBlock").checked=false; $("#reportErr").textContent="";
+  S.storyMenu=null; S.cmtMenu=null; renderStories();
+  const d=$("#reportDlg"); if(typeof d.showModal==="function") d.showModal(); else d.setAttribute("open","");
+}
+$("#reportClose").addEventListener("click", ()=>$("#reportDlg").close());
+$("#reportCancel").addEventListener("click", ()=>$("#reportDlg").close());
+$("#reportSend").addEventListener("click", async ()=>{
+  const r=S.reportTarget, pick=document.querySelector('input[name="repReason"]:checked');
+  if(!r) return;
+  if(!pick){ $("#reportErr").textContent="Pick what's wrong."; return; }
+  const b=$("#reportSend"); b.disabled=true;
+  try{
+    await addDoc(collection(fs,"reports"), {by:uid(), byName:myName().slice(0,80), kind:r.kind, col:r.col, sid:r.sid, cid:r.cid, author:r.author,
+      authorName:String(r.authorName).slice(0,80), text:r.text, reason:pick.value, note:$("#reportNote").value.trim().slice(0,300), at:Date.now()});
+    const alsoBlock=$("#reportBlock").checked;
+    $("#reportDlg").close(); S.reportTarget=null;
+    toast("Thanks. A CTF admin will review it within 24 hours.");
+    if(alsoBlock) setBlock(r.author, true, true);
+  }catch(e){ console.error(e); $("#reportErr").textContent = e && e.code==="permission-denied" ? "Reporting isn't switched on yet. Email CTF@camaraderietf.org about this post." : "Couldn't send. Check your connection and try again."; }
+  finally{ b.disabled=false; }
+});
+// Admin side: review queue.
+const REPORT_KIND={post:"Post", comment:"Comment", cache:"Cached post"};
+function reportedStillThere(r){
+  if(r.kind==="post") return !!(S.stories[r.sid] && S.stories[r.sid].text);
+  if(r.kind==="comment") return (S.comments[r.sid]||[]).some(c=>c.id===r.cid);
+  return true;
+}
+function renderReports(){
+  const box=$("#reportQueue"); if(!box) return;
+  const list=Object.entries(S.reports||{}).map(([id,r])=>({...r,id})).sort((a,b)=>(a.at||0)-(b.at||0));
+  box.hidden = !(S.admin && list.length);
+  if(!S.admin || !list.length){ box.innerHTML=""; return; }
+  box.innerHTML = `<h3>Reports to review</h3><p class="hint">Review within 24 hours. Remove anything that breaks the <a href="privacy.html#rules" target="_blank" rel="noopener">community rules</a>. To ban someone completely, disable their account in the Firebase console under Authentication.</p>`
+    + list.map(r=>{ const there=reportedStillThere(r);
+      return `<div class="row"><div class="body">
+        <div class="meta">${esc(REPORT_KIND[r.kind]||"Post")} by <b>${esc(r.authorName||"a member")}</b> · reported by ${esc(r.byName||"a member")} · ${esc(ago(r.at||0))}</div>
+        <p style="margin-top:6px"><span class="tag">${esc(r.reason||"")}</span>${there?"":`<span class="tag">Already gone</span>`}</p>
+        <blockquote class="rep-quote">${esc(String(r.text||"").slice(0,600))}${String(r.text||"").length>600?"…":""}</blockquote>
+        ${r.note?`<p class="meta">Note from reporter: ${esc(r.note)}</p>`:""}
+        <div class="actions">${there?`<button class="btn small danger" data-rep-remove="${esc(r.id)}">Remove it</button>`:""}<button class="btn small ghost" data-rep-dismiss="${esc(r.id)}">${there?"Keep it":"Clear"}</button>${S.members[r.author]?`<button class="btn small ghost" data-person="${esc(r.author)}">See member</button>`:""}</div>
+      </div></div>`; }).join("");
+}
+async function removeReported(r){
+  const del = ref => deleteDoc(ref).catch(e=>console.warn("skip", ref.path, e.code));
+  if(r.kind==="post"){
+    const jobs=[];
+    (S.salutes[r.sid]||new Set()).forEach(u=>jobs.push(del(doc(fs,"stories",r.sid,"salutes",u))));
+    (S.comments[r.sid]||[]).forEach(c=>jobs.push(del(doc(fs,"stories",r.sid,"comments",c.id))));
+    await Promise.all(jobs);
+    await deleteDoc(doc(fs,"stories",r.sid)); del(doc(fs,"storyPhotos",r.sid));
+  } else if(r.kind==="comment"){
+    await deleteDoc(doc(fs, r.col==="devotionals"?"devotionals":"stories", r.sid, "comments", r.cid));
+  } else if(r.kind==="cache"){
+    await deleteDoc(doc(fs,"cache",r.sid,"posts",r.cid));
+  }
+}
+async function clearReports(r){
+  const same=Object.entries(S.reports||{}).filter(([,x])=>x.kind===r.kind && x.sid===r.sid && (x.cid||"")===(r.cid||"")).map(([id])=>id);
+  if(!same.includes(r.id)) same.push(r.id);
+  await Promise.all(same.map(id=>deleteDoc(doc(fs,"reports",id)).catch(()=>{})));
 }
 
 // ---------- Render ----------
@@ -1224,11 +1416,12 @@ function render(){
   $("#viewNote").hidden = !(S.realAdmin && S.memberView);
   { const me=S.members[uid()]||{name:myName()};
     $("#acctBtn").innerHTML = S.user ? `${avatarHTML({...me,name:me.name||myName()},"acct-av")}<span>${esc(myName().split(" ")[0])}</span>` : ""; }
-  renderHome(); renderEvents(); renderMembers(); renderPerson(); renderStories(); renderSupport(); renderGive(); renderAdmin();
+  renderHome(); renderEvents(); renderMembers(); renderPerson(); renderStories(); renderSupport(); renderGive(); renderAdmin(); renderReports();
   ["#eventAdmin","#partnerAdmin","#giveAdmin","#homeAdmin"].forEach(s=>$(s).hidden=!S.admin);
   $("#adminBtn").hidden = !S.admin; $("#evAddBtn").hidden = !S.admin;
   if(!S.admin && !$("#tab-admin").hidden) showTab("home");
   $("#seedWrap").hidden = !(S.admin && S.ready && S.partners.every(p=>BUILTIN_PARTNER_IDS.has(p.id)));
+  maybeConsent();
 }
 
 function rsvpButton(e, cls, cantStyle){
@@ -1440,6 +1633,7 @@ function renderAdmin(){
   const c=adminCounts();
   const bbPend=Object.values(S.allBuddies||{}).filter(b=>b.status==="pending").length;
   const bits=[
+    c.reports ? `<button class="tag" data-focus-admin="reportQueue">${c.reports} report${c.reports===1?"":"s"} to review</button>` : "",
     c.photos ? `<button class="tag" data-focus-admin="photoQueue">${c.photos} photo${c.photos===1?"":"s"} to approve</button>` : "",
     c.reimb ? `<button class="tag" data-focus-admin="reimbAdmin">${c.reimb} reimbursement request${c.reimb===1?"":"s"}</button>` : "",
     bbPend ? `<span class="tag">${bbPend} battle buddy request${bbPend===1?"":"s"} pending</span>` : ""
@@ -1563,6 +1757,12 @@ function renderPerson(){
   if(!personId) return;
   const id=personId, m=fullProfile(id), full=canSeeFull(id), st=buddyState(id), status=statusOf(m), mil=MILITARY.includes(status);
   const av = m.photo && /^data:image\/(jpeg|png|webp);base64,/.test(m.photo) ? `<img class="avatar-xl" src="${m.photo}" alt="">` : `<div class="avatar-xl" aria-hidden="true">${esc(initials(m.name))}</div>`;
+  if(isBlocked(id)){
+    $("#personBody").innerHTML = `<div class="person-card">${av}<h2>${esc(m.name||"Member")}</h2>
+      <p class="hint" style="margin-top:10px">You blocked ${esc(firstOf(id))}. You won't see their posts, comments, or profile.</p>
+      <p style="margin-top:12px"><button class="btn small ghost" data-unblock="${esc(id)}">Unblock</button></p></div>`;
+    return;
+  }
   const facts = full ? [
     mil && m.branch ? ["Branch", m.branch] : null,
     mil && m.rank ? ["Rank", m.rank] : null,
@@ -1582,7 +1782,7 @@ function renderPerson(){
     ${links?`<div class="links" style="margin-top:14px">${links}</div>`:""}
     ${empty?`<p class="hint" style="margin-top:14px">${esc((m.name||"They").split(" ")[0])} hasn't filled in their profile details yet.</p>`:""}
     ${!full?`<p class="locked" style="margin-top:14px">Connect as battle buddies to see their full profile.</p>`:""}
-    ${st==="self"?`<p style="margin-top:14px"><button class="btn small" data-welcome="profile">Edit my profile</button></p>${cacheHTML()}`:`<div class="actions" style="margin-top:14px">${bbButtons(id)}${tipBtn("battle","battle buddy")}${adminVerifyBtn(id)}${adminHookBtn(id)}${adminAtlasBtn(id)}</div>${cacheHTML(id)}`}
+    ${st==="self"?`<p style="margin-top:14px"><button class="btn small" data-welcome="profile">Edit my profile</button></p>${cacheHTML()}`:`<div class="actions" style="margin-top:14px">${bbButtons(id)}${tipBtn("battle","battle buddy")}${adminVerifyBtn(id)}${adminHookBtn(id)}${adminAtlasBtn(id)}${S.user?`<button class="btn small ghost" data-block="${esc(id)}">Block</button>`:""}</div>${cacheHTML(id)}`}
   </div>`;
 }
 function openPerson(id){ personId=id; watchOtherCache(id); renderPerson(); showTab("person"); }
@@ -1620,14 +1820,14 @@ function renderMembers(){
     $("#dirFilter").hidden = false; $("#dirSearchWrap").hidden = false;
     if(S.admin) note.innerHTML += `<p class="hint">Admin view: you see all ${Object.keys(S.members).length} accounts, including people who chose to stay hidden.</p>`;
     document.querySelectorAll("#dirFilter button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.dir===S.dir));
-    const incoming = Object.keys(S.members).filter(id=>buddyState(id)==="incoming");
+    const incoming = Object.keys(S.members).filter(id=>buddyState(id)==="incoming" && !isBlocked(id));
     $("#bbRequests").innerHTML = incoming.length ? `<div class="panel"><h3>Battle buddy requests ${tipBtn("battle","battle buddy")}</h3><div class="list" style="border-top:0">${incoming.map(id=>memberRow(id,S.members[id],"")).join("")}</div></div>` : "";
     const inDir = id => S.dir==="mil" ? MILITARY.includes(statusOf(S.members[id])) : S.dir==="bb" ? buddyState(id)==="buddy" : true;
     // Search covers what this viewer can see: name, status, branch, plus rank/MOS/unit for buddies.
     const q = ($("#dirSearch").value||"").trim().toLowerCase();
     const matches = id => { if(!q) return true; const m=fullProfile(id);
       return [m.name,statusOf(m),m.branch,m.rank,m.mos,m.unit].filter(Boolean).join(" ").toLowerCase().includes(q); };
-    const ids = Object.keys(S.members).filter(id=>(S.members[id].listed || buddyState(id)==="buddy" || S.admin) && ok(id) && inDir(id) && buddyState(id)!=="incoming" && matches(id))
+    const ids = Object.keys(S.members).filter(id=>(S.members[id].listed || buddyState(id)==="buddy" || S.admin) && ok(id) && inDir(id) && buddyState(id)!=="incoming" && (!isBlocked(id) || S.admin) && matches(id))
       .sort((a,b)=> (a===uid()?-1:b===uid()?1:0) || String(S.members[a].name||"").localeCompare(String(S.members[b].name||"")));
     $("#memberList").innerHTML = ids.length ? ids.map(id=>{
         const a=S.approvedIds[id];
@@ -1661,14 +1861,20 @@ function ago(ms){
 }
 function commentHTML(sid,c){
   const who=S.members[c.uid]||{name:c.name}; const canDel = c.uid===uid() || sid===uid() || S.admin;
+  const other = !!(S.user && c.uid && c.uid!==uid()), open = S.cmtMenu===c.id;
+  const acts = open ? [
+    canDel ? `<button class="x x-del" data-cmt-del="${esc(sid)}|${esc(c.id)}">Delete comment</button>` : "",
+    other ? `<button class="x" data-report="comment|${esc(sid)}|${esc(c.id)}">Report</button>` : "",
+    other ? `<button class="x" data-block="${esc(c.uid)}">Block ${esc(firstOf(c.uid))}</button>` : ""
+  ].filter(Boolean).join("") : "";
   return `<div class="cmt">${avatarHTML({...who,name:who.name||c.name},"acct-av")}
-    <div style="min-width:0"><div class="who">${esc(who.name||c.name||"Member")} <span class="when">· ${esc(ago(c.at||0))}</span></div>
-    <p>${esc(c.text)}</p>${canDel && S.cmtMenu===c.id?`<button class="x x-del" data-cmt-del="${esc(sid)}|${esc(c.id)}">Delete comment</button>`:""}</div>
-    ${canDel?`<button class="more more-sm" data-cmt-menu="${esc(c.id)}" aria-expanded="${S.cmtMenu===c.id}" aria-label="Comment options">⋯</button>`:""}</div>`;
+    <div style="min-width:0;flex:1"><div class="who">${esc(who.name||c.name||"Member")} <span class="when">· ${esc(ago(c.at||0))}</span></div>
+    <p>${esc(c.text)}</p>${acts?`<div class="cmt-acts">${acts}</div>`:""}</div>
+    ${canDel||other?`<button class="more more-sm" data-cmt-menu="${esc(c.id)}" aria-expanded="${open}" aria-label="Comment options">⋯</button>`:""}</div>`;
 }
 // Salute + comment row, shared by Fox Hole posts and devotionals.
 function threadHTML(id, what){
-  const sal=S.salutes[id]||new Set(), mine=sal.has(uid()), cm=(S.comments[id]||[]), open=S.openCmts.has(id);
+  const sal=S.salutes[id]||new Set(), mine=sal.has(uid()), cm=(S.comments[id]||[]).filter(c=>!isBlocked(c.uid)), open=S.openCmts.has(id);
   return `<div class="story-acts">
       <button class="pill" data-salute="${esc(id)}" aria-pressed="${mine}" aria-label="${mine?"Remove salute":"Salute this "+what}"><span class="emo" aria-hidden="true">🫡</span>${mine?"Saluted":"Salute"}${sal.size?` · ${sal.size}`:""}</button>
       <button class="pill" data-cmt-toggle="${esc(id)}" aria-expanded="${open}"><span class="emo" aria-hidden="true">💬</span>${cm.length?`${cm.length} comment${cm.length===1?"":"s"}`:"Comment"}</button>
@@ -1733,7 +1939,7 @@ function renderStories(){
   // keep a half-typed comment and its focus across live updates
   const act=document.activeElement, focusSid = act && act.dataset ? act.dataset.cmtInput : null;
   renderDevo();
-  const ids = Object.keys(S.stories).filter(id=>S.stories[id].text).sort((a,b)=>(S.stories[b].updatedAt||0)-(S.stories[a].updatedAt||0));
+  const ids = Object.keys(S.stories).filter(id=>S.stories[id].text && !isBlocked(id)).sort((a,b)=>(S.stories[b].updatedAt||0)-(S.stories[a].updatedAt||0));
   $("#storyList").innerHTML = ids.length ? ids.map(id=>{
     const s=S.stories[id], sal=S.salutes[id]||new Set(), mine=sal.has(uid()), cm=(S.comments[id]||[]), open=S.openCmts.has(id);
     const ph=S.photos[id];
@@ -1750,11 +1956,11 @@ function renderStories(){
           <div class="story-author${canOpen?" tap":""}"${canOpen?` data-person="${esc(id)}" tabindex="0"`:""}>${esc(auName)}${hookMark(id)}${atlasMark(id)}${id===uid()?" (you)":""}${buddyState(id)==="buddy"?` <span class="tag bb-tag">Battle buddy</span>`:""}</div>
           ${auSub?`<div class="meta">${esc(auSub)}</div>`:""}
         </div>
-        ${id===uid() || S.admin?`<button class="more" data-story-menu="${esc(id)}" aria-expanded="${S.storyMenu===id}" aria-label="Story options">⋯</button>`:""}
+        ${S.user?`<button class="more" data-story-menu="${esc(id)}" aria-expanded="${S.storyMenu===id}" aria-label="Post options">⋯</button>`:""}
       </div>
       ${S.storyMenu===id?`<div class="own-acts">${id===uid()
         ? `<button class="btn small ghost" data-my-story-edit="1">Edit post</button><button class="btn small ghost" data-my-stash="1">Stash to my cache</button><button class="btn small danger" data-my-story-del="1">Remove post</button>`
-        : `<button class="btn small danger" data-del-story="${esc(id)}">Remove post</button>`}</div>`:""}
+        : `<button class="btn small ghost" data-report="post|${esc(id)}|">Report post</button><button class="btn small ghost" data-block="${esc(id)}">Block ${esc(firstOf(id))}</button>${S.admin?`<button class="btn small danger" data-del-story="${esc(id)}">Remove post</button>`:""}`}</div>`:""}
       ${showPh?`<div class="photo-wrap"><img class="story-photo" src="${ph.photo}" alt="Photo shared with this story" loading="lazy">${flag?`<span class="photo-flag">${flag}</span>`:""}</div>`:""}
       <blockquote>${esc(s.text)}</blockquote>
       ${threadHTML(id,"post")}
@@ -2052,6 +2258,7 @@ function openAuth(){
     $("#whoId").textContent = S.user.uid;
     $("#adminNote").hidden = !S.realAdmin;
     $("#viewRow").hidden = !S.realAdmin; syncViewSeg();
+    $("#blockListBtn").hidden = !S.blocked.size; $("#blockListHint").textContent = `${S.blocked.size} blocked`;
     $("#whoAv").innerHTML = avatarHTML({...(S.members[uid()]||{}), name: myName()}, "me-av");
   }
   if(typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open","");
@@ -2316,7 +2523,7 @@ $("#delGo").addEventListener("click", async ()=>{
     err.textContent="Deleting your data…"; phase="data";
     // 2. Remove everything this person owns. Missing items are fine.
     const del = ref => deleteDoc(ref).catch(e=>console.warn("skip", ref.path, e.code));
-    const jobs=[ "members","private","contacts","rsvps","stories","storyPhotos","seen","reimb","cache" ].map(c=>del(doc(fs,c,me)));
+    const jobs=[ "members","private","contacts","rsvps","stories","storyPhotos","seen","reimb","cache","blocks","consent" ].map(c=>del(doc(fs,c,me)));
     Object.keys(S.cache||{}).forEach(pid=>jobs.push(del(doc(fs,"cache",me,"posts",pid))));
     Object.entries(S.buddies||{}).forEach(([pid])=>jobs.push(del(doc(fs,"buddies",pid))));
     Object.entries(S.salutes||{}).forEach(([sid,set])=>set.forEach(u=>{ if(u===me || sid===me) jobs.push(del(doc(fs,threadCol(sid),sid,"salutes",u))); }));
@@ -2509,6 +2716,16 @@ document.addEventListener("click", async ev=>{
     try{ await setDoc(doc(fs,"config","site"), {...S.config, merchHidden:hide}); toast(hide ? "Presale card hidden." : "Presale card showing."); }catch(e){ writeFailed(e); }
     return;
   }
+  if(t.dataset.report){ openReport(t.dataset.report); return; }
+  if(t.dataset.block){ setBlock(t.dataset.block, true); return; }
+  if(t.dataset.unblock){ setBlock(t.dataset.unblock, false); return; }
+  if(t.dataset.repRemove){
+    const id=t.dataset.repRemove, r={...((S.reports||{})[id]||{}), id}; if(!r.kind) return;
+    if(!confirm(`Remove this ${r.kind==="comment"?"comment":"post"} by ${r.authorName||"this member"}? This can't be undone.`)) return;
+    try{ await removeReported(r); await clearReports(r); toast("Removed. Thanks for keeping the Fox Hole safe."); }catch(e){ writeFailed(e); }
+    return;
+  }
+  if(t.dataset.repDismiss){ try{ await deleteDoc(doc(fs,"reports",t.dataset.repDismiss)); toast("Report cleared."); }catch(e){ writeFailed(e); } return; }
   if(t.dataset.storyMenu){ S.storyMenu = S.storyMenu===t.dataset.storyMenu ? null : t.dataset.storyMenu; renderStories(); return; }
   if(t.dataset.cmtMenu){ S.cmtMenu = S.cmtMenu===t.dataset.cmtMenu ? null : t.dataset.cmtMenu; renderStories(); return; }
   if(t.dataset.myStoryEdit){ openStoryEditor(); return; }
@@ -2816,7 +3033,7 @@ function cacheHTML(id){
       <blockquote>${esc(c.text||"")}</blockquote>
       <div class="meta">🫡 ${c.salutes||0} · 💬 ${(c.comments||[]).length}</div>
       ${(c.comments||[]).length?`<details><summary class="meta">Show comments</summary>${c.comments.map(x=>`<p class="cache-cmt"><b>${esc(x.name||"Member")}</b> ${esc(x.text||"")}</p>`).join("")}</details>`:""}
-      ${own?`<p style="margin-top:6px"><button class="linkish danger-text" data-cache-del="${esc(pid)}">Delete from cache</button></p>`:""}
+      ${own?`<p style="margin-top:6px"><button class="linkish danger-text" data-cache-del="${esc(pid)}">Delete from cache</button></p>`:(S.user?`<p style="margin-top:6px"><button class="linkish" data-report="cache|${esc(id)}|${esc(pid)}">Report this post</button></p>`:"")}
     </div>`).join("")}
   </details>`;
 }
@@ -3215,6 +3432,9 @@ function subscribeMembers(){
     watchPriv(u.uid);
     subs.push(onSnapshot(doc(fs,"reimb",u.uid), d=>{ S.myReimb=d.exists()?d.data():null; renderSupport(); }, e=>console.error("my reimb", e.code)));
   }
+  subs.push(onSnapshot(doc(fs,"blocks",u.uid), d=>{ S.blocked=new Set(d.exists()?(d.data().ids||[]):[]); render(); renderBlockList(); }, e=>console.warn("blocks", e.code)));
+  subs.push(onSnapshot(doc(fs,"consent",u.uid), d=>{ S.consent=d.exists()?d.data():null; S.consentErr=false; maybeConsent(); }, e=>{ console.warn("consent", e.code); S.consentErr=true; maybeConsent(); }));
+  if(S.realAdmin) subs.push(onSnapshot(collection(fs,"reports"), s=>{ S.reports=toMap(s); renderReports(); renderAdmin(); }, e=>console.warn("reports", e.code)));
   subs.push(onSnapshot(collection(fs,"cache",u.uid,"posts"), s=>{ S.cache=toMap(s); renderPerson(); }, e=>console.error("cache", e.code)));
   subs.push(onSnapshot(doc(fs,"cache",u.uid), d=>{ S.cacheSetting=d.exists()?d.data():null; renderPerson(); }, e=>console.error("cache setting", e.code)));
   subs.push(onSnapshot(collection(fs,"verified"), s=>{ S.verified=toMap(s); render(); }, e=>console.error("verified", e.code)));
@@ -3233,6 +3453,8 @@ onAuthStateChanged(auth, async u=>{
   ensured=false; ensuring=false; S.contact=null; welcomeShown=false; welcoming=false;
   endOnboarding(); welcomeShown=false;
   S.user=u; S.admin=false; S.realAdmin=false; S.memberView=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.allBuddies=null; S.allBuddiesErr=false; S.verified={}; S.hooks={}; S.atlas={}; S.hooksCall=null; S.hookEdit=false; if(hooksCallSub){ hooksCallSub(); hooksCallSub=null; } S.seen={}; S.cache={}; S.cacheSetting=null; S.otherCache=null; S.reimbAll={}; S.myReimb=null; S.awards={}; S.reimbErr=false; S.reimbOpen=false; reimbPhoto=undefined; S.myPrivLoaded=false; S.salutes={}; S.comments={}; S.photos={}; sPhotoDraft=undefined;
+  S.blocked=new Set(); S.reports={}; S.consent=undefined; S.consentErr=false; S.reportTarget=null;
+  ["#consentDlg","#reportDlg","#blockDlg"].forEach(q=>{ const d=$(q); if(d && d.open) d.close(); });
   clearSubs();
   renderMembers.filled=false; renderStories.filled=false; $("#storyEditor").hidden=true; S.storyMenu=null; S.cmtMenu=null;
   resetEventForm(); resetPartnerForm();
