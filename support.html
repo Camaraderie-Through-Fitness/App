@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CTF App Support</title>
+<meta name="description" content="Help and support for the Camaraderie Through Fitness community app.">
+<link rel="icon" type="image/png" href="logo.png">
+<meta name="theme-color" content="#3E4A2E">
+<script>try{var t=localStorage.getItem("ctfTheme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t;}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F3EE; --surface:#FFFFFF; --ink:#1E2419; --muted:#5D6555; --line:#D6D9CE;
+  --green:#3E4A2E; --brass:#A87A22; --brass-soft:#F3E6C8;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Source Sans 3","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#141811; --surface:#1D2219; --ink:#E9ECE2; --muted:#A3AB98; --line:#323A2B;
+    --green:#9DB37C; --brass:#D4A64A; --brass-soft:#3A3020; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141811; --surface:#1D2219; --ink:#E9ECE2; --muted:#A3AB98; --line:#323A2B;
+  --green:#9DB37C; --brass:#D4A64A; --brass-soft:#3A3020; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 1.05rem/1.6 var(--body);-webkit-text-size-adjust:100%}
+main{max-width:720px;margin:0 auto;padding:max(20px,env(safe-area-inset-top)) 16px 64px}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.top img{width:44px;height:44px}
+.back{margin-left:auto;font-weight:700;color:var(--green);text-decoration:none;white-space:nowrap}
+h1,h2{font-family:var(--display);line-height:1.1;margin:0}
+h1{font-size:2.3rem;margin-top:14px}
+h2{font-size:1.6rem;margin:34px 0 8px;padding-top:6px;border-top:1px solid var(--line)}
+h3{font-size:1.08rem;margin:20px 0 4px}
+p,ul{margin:8px 0}
+ul{padding-left:22px}
+li{margin:4px 0}
+a{color:var(--green)}
+.meta{color:var(--muted);font-size:.95rem}
+.toc{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:18px 0}
+.toc a{font-weight:600}
+.callout{background:var(--brass-soft);border-radius:14px;padding:12px 16px;margin:14px 0}
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:.98rem}
+th,td{text-align:left;vertical-align:top;padding:9px 8px;border-bottom:1px solid var(--line)}
+th{font-weight:700;color:var(--muted);font-size:.9rem;text-transform:uppercase;letter-spacing:.03em}
+td:first-child{font-weight:600;width:42%}
+@media (max-width:520px){ table,tbody,tr,td{display:block;width:100%} thead{display:none} tr{padding:8px 0;border-bottom:1px solid var(--line)} td{border:0;padding:2px 0} td:first-child{width:100%} }
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <img src="logo.png" alt="" width="44" height="44">
+    <div><b>Camaraderie Through Fitness</b><div class="meta">Community app</div></div>
+    <a class="back" href="./">‹ Open the app</a>
+  </div>
+  <h1>App Support</h1>
+  <p>Need help with the CTF app? Email <a href="mailto:CTF@camaraderietf.org?subject=App%20help">CTF@camaraderietf.org</a> and a CTF volunteer will get back to you, usually within a few days.</p>
+  <div class="callout"><b>In crisis right now?</b> Call the Veterans Crisis Line at <a href="tel:988">988 and press 1</a>, or text <a href="sms:838255">838255</a>. Free and confidential, 24/7. If someone is in immediate danger, call 911.</div>
+
+  <h2>Common questions</h2>
+  <h3>How do I sign in?</h3>
+  <p>The easiest way is <b>Continue with Google</b>. You can also create an account with your email and a password.</p>
+  <h3>I forgot my password</h3>
+  <p>On the sign-in screen, enter your email and tap <b>Forgot password?</b> We'll email you a reset link. Check your spam folder if you don't see it.</p>
+  <h3>I made my account with Google but want to use a password</h3>
+  <p>Enter your Gmail address on the sign-in screen and tap <b>Forgot password?</b> to set one.</p>
+  <h3>How do I change my profile or who can see it?</h3>
+  <p>Tap your picture at the top right, then <b>Edit profile</b>. You can hide yourself from the member list there. Your full profile is only visible to you, your battle buddies, and CTF admins.</p>
+  <h3>How do I report a post or block someone?</h3>
+  <p>Tap <b>⋯</b> on any post or comment, then choose <b>Report</b> or <b>Block</b>. CTF admins review reports within 24 hours. You can unblock people from your account menu.</p>
+  <h3>How do I turn off event reminder emails?</h3>
+  <p>Tap your picture, then <b>Edit profile</b>, and turn off the reminder setting.</p>
+  <h3>How do I delete my account?</h3>
+  <p>Tap your picture at the top right, then <b>Delete my account</b> at the bottom of the menu. This permanently removes your profile and your posts. See our <a href="privacy.html#delete">privacy policy</a> for details.</p>
+
+  <h2>More</h2>
+  <p><a href="privacy.html">Privacy policy &amp; community rules</a> · <a href="accessibility.html">Accessibility</a> · <a href="https://www.camaraderietf.org">camaraderietf.org</a></p>
+  <p>Camaraderie Through Fitness, Inc. · Gainesville, Florida</p>
+</main>
+</body>
+</html>
