@@ -46,8 +46,9 @@ service cloud.firestore {
     match /partners/{id} { allow read: if true; allow write: if isAdmin(); }
     match /config/{id}   { allow read: if true; allow write: if isAdmin(); }
 
+    // RSVPs, Fox Hole posts, and devotionals: signed-in members only.
     match /rsvps/{id} {
-      allow read: if true;
+      allow read: if signedIn();
       allow write: if isMe(id);
     }
 
@@ -120,7 +121,7 @@ service cloud.firestore {
 
     // Weekly devotional pinned in the Fox Hole: admins post; members salute and comment.
     match /devotionals/{id} {
-      allow read: if true;
+      allow read: if signedIn();
       allow create, update: if isAdmin() && request.resource.data.body is string && request.resource.data.body.size() <= 5000;
       allow delete: if isAdmin();
       match /salutes/{uid} {
@@ -171,7 +172,7 @@ service cloud.firestore {
     }
 
     match /stories/{id} {
-      allow read: if true;
+      allow read: if signedIn();
       allow create, update: if isMe(id) && isMember() && request.resource.data.text.size() <= 2000;
       allow delete: if isMe(id) || isAdmin();
 

@@ -3319,9 +3319,7 @@ $("#calAllBtn").addEventListener("click", ()=>{
 // ---------- Data ----------
 function loadFail(e){ console.error(e); S.loadError=true; render(); }
 onSnapshot(collection(fs,"events"), s=>{ S.events=mergeEvents(s.docs.map(d=>({id:d.id, ...d.data()}))); S.ready=true; S.loadError=false; render(); }, loadFail);
-onSnapshot(collection(fs,"rsvps"), s=>{ S.rsvps=toMap(s); render(); }, e=>console.error(e));
-onSnapshot(collection(fs,"stories"), s=>{ S.stories=toMap(s); render(); }, e=>console.error(e));
-onSnapshot(collection(fs,"devotionals"), s=>{ S.devos=toMap(s); renderStories(); }, e=>console.error("devotionals", e.code));
+// RSVPs, Fox Hole posts, and devotionals are members-only: they load in subscribeMembers() after sign-in.
 onSnapshot(collection(fs,"partners"), s=>{ S.partners=mergePartners(s.docs.map(d=>({id:d.id, ...d.data()}))); render(); }, e=>console.error(e));
 S.home={};
 onSnapshot(doc(fs,"config","home"), d=>{ S.home=d.exists() ? d.data() : {}; render(); }, e=>console.error("home", e.code));
@@ -3424,6 +3422,9 @@ function subscribeMembers(){
     S.approved = computeApproved(d.exists()?d.data():undefined);
     if(S.approved !== was) subscribeMembers(); else render();
   }, e=>console.error(e)));
+  subs.push(onSnapshot(collection(fs,"rsvps"), s=>{ S.rsvps=toMap(s); render(); }, e=>console.error("rsvps", e.code)));
+  subs.push(onSnapshot(collection(fs,"stories"), s=>{ S.stories=toMap(s); render(); }, e=>console.error("stories", e.code)));
+  subs.push(onSnapshot(collection(fs,"devotionals"), s=>{ S.devos=toMap(s); renderStories(); }, e=>console.error("devotionals", e.code)));
   subs.push(onSnapshot(collectionGroup(fs,"salutes"), s=>{
     const m={}, at={}; s.docs.forEach(d=>{ const sid=d.ref.parent.parent.id; (m[sid]=m[sid]||new Set()).add(d.id); (at[sid]=at[sid]||{})[d.id]=(d.data()||{}).at||0; }); S.salutes=m; S.saluteAt=at; renderStories();
   }, e=>console.error(e)));
@@ -3471,6 +3472,7 @@ onAuthStateChanged(auth, async u=>{
   ensured=false; ensuring=false; S.contact=null; welcomeShown=false; welcoming=false;
   endOnboarding(); welcomeShown=false;
   S.user=u; S.admin=false; S.realAdmin=false; S.memberView=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.allBuddies=null; S.allBuddiesErr=false; S.verified={}; S.hooks={}; S.atlas={}; S.hooksCall=null; S.hookEdit=false; if(hooksCallSub){ hooksCallSub(); hooksCallSub=null; } S.seen={}; S.cache={}; S.cacheSetting=null; S.otherCache=null; S.reimbAll={}; S.myReimb=null; S.awards={}; S.reimbErr=false; S.reimbOpen=false; reimbPhoto=undefined; S.myPrivLoaded=false; S.salutes={}; S.comments={}; S.photos={}; sPhotoDraft=undefined;
+  S.rsvps={}; S.stories={}; S.devos={};
   S.blocked=new Set(); S.reports={}; S.consent=undefined; S.consentErr=false; S.reportTarget=null;
   ["#consentDlg","#reportDlg","#blockDlg"].forEach(q=>{ const d=$(q); if(d && d.open) d.close(); });
   clearSubs();
