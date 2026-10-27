@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CTF Accessibility</title>
+<meta name="description" content="Accessibility statement for the Camaraderie Through Fitness community app.">
+<link rel="icon" type="image/png" href="logo.png">
+<meta name="theme-color" content="#3E4A2E">
+<script>try{var t=localStorage.getItem("ctfTheme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t;}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F3EE; --surface:#FFFFFF; --ink:#1E2419; --muted:#5D6555; --line:#D6D9CE;
+  --green:#3E4A2E; --brass:#A87A22; --brass-soft:#F3E6C8;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Source Sans 3","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#141811; --surface:#1D2219; --ink:#E9ECE2; --muted:#A3AB98; --line:#323A2B;
+    --green:#9DB37C; --brass:#D4A64A; --brass-soft:#3A3020; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141811; --surface:#1D2219; --ink:#E9ECE2; --muted:#A3AB98; --line:#323A2B;
+  --green:#9DB37C; --brass:#D4A64A; --brass-soft:#3A3020; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 1.05rem/1.6 var(--body);-webkit-text-size-adjust:100%}
+main{max-width:720px;margin:0 auto;padding:max(20px,env(safe-area-inset-top)) 16px 64px}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.top img{width:44px;height:44px}
+.back{margin-left:auto;font-weight:700;color:var(--green);text-decoration:none;white-space:nowrap}
+h1,h2{font-family:var(--display);line-height:1.1;margin:0}
+h1{font-size:2.3rem;margin-top:14px}
+h2{font-size:1.6rem;margin:34px 0 8px;padding-top:6px;border-top:1px solid var(--line)}
+h3{font-size:1.08rem;margin:20px 0 4px}
+p,ul{margin:8px 0}
+ul{padding-left:22px}
+li{margin:4px 0}
+a{color:var(--green)}
+.meta{color:var(--muted);font-size:.95rem}
+.toc{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:18px 0}
+.toc a{font-weight:600}
+.callout{background:var(--brass-soft);border-radius:14px;padding:12px 16px;margin:14px 0}
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:.98rem}
+th,td{text-align:left;vertical-align:top;padding:9px 8px;border-bottom:1px solid var(--line)}
+th{font-weight:700;color:var(--muted);font-size:.9rem;text-transform:uppercase;letter-spacing:.03em}
+td:first-child{font-weight:600;width:42%}
+@media (max-width:520px){ table,tbody,tr,td{display:block;width:100%} thead{display:none} tr{padding:8px 0;border-bottom:1px solid var(--line)} td{border:0;padding:2px 0} td:first-child{width:100%} }
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <img src="logo.png" alt="" width="44" height="44">
+    <div><b>Camaraderie Through Fitness</b><div class="meta">Community app</div></div>
+    <a class="back" href="./">‹ Back to the app</a>
+  </div>
+
+  <h1>Accessibility Statement</h1>
+  <p class="meta">Updated October 27, 2026</p>
+  <p>Camaraderie Through Fitness, Inc. wants every veteran, service member, family member, and supporter to be able to use the CTF community app, including people with disabilities. Many of the veterans we serve live with injuries and conditions from their service, so this matters to us.</p>
+
+  <h2>Our goal</h2>
+  <p>We aim to meet the <b>Web Content Accessibility Guidelines (WCAG) 2.1, Level AA</b>. This standard covers things like screen reader support, color contrast, text size, and being able to use the app without a mouse.</p>
+
+  <h2>What we've done</h2>
+  <ul>
+    <li>Buttons, icons, and form fields have labels that screen readers such as VoiceOver and TalkBack can read aloud.</li>
+    <li>Text and buttons meet WCAG contrast levels in both light and night mode.</li>
+    <li>The app can be zoomed and works on small screens without sideways scrolling.</li>
+    <li>Everything can be reached with a keyboard, and the item in focus is clearly outlined.</li>
+    <li>If your device is set to reduce motion, the app stops its animations. The moving partner logos on the Home page also have a Pause button.</li>
+    <li>Information isn't shown by color alone. For example, RSVPs say "Going" in words.</li>
+    <li>Error messages are announced to screen readers.</li>
+  </ul>
+  <p>We checked the app ourselves against WCAG 2.1 AA on October 27, 2026, using automated checks and hands-on testing. We have not had an outside accessibility audit.</p>
+
+  <h2>Known limits</h2>
+  <ul>
+    <li>Photos members share in the Fox Hole have a general description rather than a detailed one.</li>
+    <li>Links to partner websites, the donation page, Zoom, and other outside services lead to pages CTF doesn't control, and their accessibility may vary.</li>
+  </ul>
+
+  <h2>Tell us about a problem</h2>
+  <p>If something in the app is hard to use, or you need information in a different format, email <a href="mailto:CTF@camaraderietf.org?subject=Accessibility">CTF@camaraderietf.org</a> with "Accessibility" in the subject. Tell us what you were trying to do and what device you were using. We'll reply within 5 business days and work with you on a fix or another way to get what you need.</p>
+  <p>Camaraderie Through Fitness, Inc. · Gainesville, Florida</p>
+  <p style="margin-top:28px"><a class="back" href="./">‹ Back to the app</a></p>
+</main>
+</body>
+</html>

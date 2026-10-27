@@ -19,7 +19,7 @@
 <style>
 :root{
   --bg:#F2F3EE; --surface:#FFFFFF; --ink:#1E2419; --muted:#5D6555; --line:#D6D9CE;
-  --green:#3E4A2E; --green-ink:#FFFFFF; --brass:#A87A22; --brass-soft:#F3E6C8; --alert:#8E2B1E;
+  --green:#3E4A2E; --green-ink:#FFFFFF; --brass:#A87A22; --brass-soft:#F3E6C8; --alert:#8E2B1E; --brass-text:#86601A; --hooks-text:#2E6E8E;
   --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
   --body:"Source Sans 3","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   box-sizing:border-box;
@@ -30,13 +30,13 @@
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
     --bg:#141811; --surface:#1D2219; --ink:#E9ECE2; --muted:#A3AB98; --line:#323A2B;
-    --green:#7E9460; --green-ink:#10140D; --brass:#D4A64A; --brass-soft:#3A3020; --alert:#E08672;
+    --green:#7E9460; --green-ink:#10140D; --brass:#D4A64A; --brass-soft:#3A3020; --alert:#E08672; --brass-text:#D4A64A; --hooks-text:#7FB6D4;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#141811; --surface:#1D2219; --ink:#E9ECE2; --muted:#A3AB98; --line:#323A2B;
-  --green:#7E9460; --green-ink:#10140D; --brass:#D4A64A; --brass-soft:#3A3020; --alert:#E08672;
+  --green:#7E9460; --green-ink:#10140D; --brass:#D4A64A; --brass-soft:#3A3020; --alert:#E08672; --brass-text:#D4A64A; --hooks-text:#7FB6D4;
   color-scheme:dark;
 }
 *,*::before,*::after{box-sizing:inherit}
@@ -171,7 +171,7 @@ a.mi{text-decoration:none}
 .devo-head .more{margin-left:0}
 .devo-min{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px}
 .devo-min .linkish{margin-left:auto}
-.devo-kicker{font-size:.8rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--brass)}
+.devo-kicker{font-size:.8rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--brass-text)}
 .devo h3{font-size:1.4rem;margin:6px 0 2px}
 .devo-verse{font-style:italic;color:var(--muted);margin-bottom:8px}
 .esv-note{margin:10px 0 0;font-size:.74rem;line-height:1.4;color:var(--muted)}
@@ -207,7 +207,7 @@ body.onboarding nav.tabs, body.onboarding .wrap{display:none}
 .atlas-mark svg{width:100%;height:100%;display:block}
 .btn .atlas-mark{margin:0 2px 0 0}
 .hooks-call{margin-top:12px;padding:14px 16px;background:var(--surface);border:1px solid var(--edge, var(--line));border-left:4px solid #2E6E8E;border-radius:14px;box-shadow:var(--lift, none)}
-.hooks-kicker{font-size:.82rem;font-weight:700;color:#2E6E8E}
+.hooks-kicker{font-size:.82rem;font-weight:700;color:var(--hooks-text)}
 .hooks-call h3{font-size:1.2rem;margin:2px 0 2px}
 .hooks-call .meta{display:block;margin:0 0 10px}
 .ev-flash{animation:evflash 2.4s ease-out}
@@ -216,22 +216,25 @@ body.onboarding nav.tabs, body.onboarding .wrap{display:none}
 .pc{overflow:hidden;margin:0 -16px;padding:6px 0 10px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
 .pc-track{display:flex;width:max-content;animation:pcScroll linear infinite}
 .pc-dup{display:contents}
-.pc:hover .pc-track,.pc:active .pc-track,.pc:focus-within .pc-track{animation-play-state:paused}
+.pc:hover .pc-track,.pc:active .pc-track,.pc:focus-within .pc-track,.pc.paused .pc-track{animation-play-state:paused}
+.pc-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.pc-head h2{margin:0}
 @keyframes pcScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 .pc-tile{flex:none;width:120px;margin-right:12px;display:flex;flex-direction:column;align-items:center;gap:8px;background:none;border:0;padding:0;cursor:pointer;color:var(--ink)}
 .pc-logo{width:120px;height:84px;border-radius:14px;background:#fff;border:1px solid var(--edge, var(--line));box-shadow:var(--lift, 0 1px 2px rgba(0,0,0,.08));display:grid;place-items:center;overflow:hidden;padding:10px}
 .pc-logo img{max-width:100%;max-height:100%;object-fit:contain}
-.pc-word{font:700 1rem/1.15 var(--display);color:var(--green);text-align:center;padding:10px 12px}
+.pc-word{font:700 1rem/1.15 var(--display);color:#3E4A2E;text-align:center;padding:10px 12px}
 .pc-name{font-size:.78rem;font-weight:600;line-height:1.2;text-align:center;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-@media (prefers-reduced-motion:reduce){ .pc{overflow-x:auto;-webkit-mask-image:none;mask-image:none;padding-left:16px} .pc-track{animation:none} .pc-dup{display:none} }
+@media (prefers-reduced-motion:reduce){ .pc{overflow-x:auto;-webkit-mask-image:none;mask-image:none;padding-left:16px} .pc-track{animation:none} .pc-dup{display:none} .pc-pause{display:none} }
 .pt-logo-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .pt-logo-prev{width:96px;height:64px;border-radius:10px;background:#fff;border:1px solid var(--line);display:grid;place-items:center;overflow:hidden}
 .pt-logo-prev img{max-width:100%;max-height:100%;object-fit:contain}
+.pt-logo-prev .hint{color:#5D6555}
 .merch{display:flex;gap:14px;align-items:flex-start;margin-top:12px;padding:14px;background:var(--surface);border:1px solid var(--edge, var(--line));border-left:4px solid var(--brass);border-radius:14px;box-shadow:var(--lift, none)}
 .merch-img{flex:none;width:96px;height:96px;border-radius:10px;overflow:hidden;background:var(--bg);box-shadow:0 0 0 1px var(--line)}
 .merch-img img{width:100%;height:100%;object-fit:cover;display:block}
 .merch-txt{flex:1;min-width:0}
-.merch-tag{font-size:.82rem;font-weight:700;color:var(--brass)}
+.merch-tag{font-size:.82rem;font-weight:700;color:var(--brass-text)}
 .merch h3{font-size:1.2rem;margin:2px 0 4px}
 .merch .meta{display:block;margin:0 0 10px;font-size:.88rem}
 .merch-hide{display:block;margin-top:8px;font-size:.82rem;color:var(--muted)}
@@ -244,7 +247,7 @@ label{display:block;font-weight:600;font-size:.95rem;margin:12px 0 4px}
 input[type=text],input[type=url],input[type=number],input[type=date],input[type=time],select,textarea{width:100%;min-height:44px;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg)}
 textarea{min-height:110px;resize:vertical}
 .check{display:flex;gap:10px;align-items:center;font-weight:400;margin-top:14px}
-.check input{width:20px;height:20px}
+.check input{width:22px;height:22px;flex:none;margin:0}
 .hint{color:var(--muted);font-size:.9rem}
 .empty-note{color:var(--muted);padding:16px 0}
 .admin{border-style:dashed}
@@ -380,6 +383,7 @@ body.booting{overflow:hidden}
 .view-note{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--green);color:var(--green-ink);border-radius:14px;padding:10px 14px;margin:8px 0 4px;font-size:.92rem;font-weight:600}
 .view-note .btn{background:var(--green-ink);color:var(--green);border-color:var(--green-ink)}
 .verify-note{background:var(--brass-soft);color:var(--ink);border-radius:14px;padding:14px 16px;margin:8px 0 4px;font-size:.95rem}
+.verify-note .btn.ghost{color:var(--ink);border-color:var(--ink)}
 .verify-note p{margin:0}.verify-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px !important}
 .ios-note{background:var(--brass-soft);color:var(--ink);border-radius:12px;padding:12px 14px;font-size:.93rem;margin-bottom:14px}
 .dir-search{margin:0 0 10px}
@@ -391,7 +395,10 @@ body.booting{overflow:hidden}
 .face{width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid var(--bg);background:var(--brass-soft);display:grid;place-items:center;font:700 .78rem var(--display);color:var(--ink)}
 .faces.on-dark .face{border-color:var(--green)}
 .face.more{background:var(--line);color:var(--ink);font-size:.72rem}
-.linkish{background:none;border:0;padding:0;font:inherit;font-size:.88rem;cursor:pointer;text-decoration:underline}
+.linkish{background:none;border:0;padding:0;font:inherit;font-size:.88rem;cursor:pointer;text-decoration:underline;position:relative}
+.linkish::after,.tip::after,.more::after{content:"";position:absolute;inset:-6px -4px}
+.tip,.more{position:relative}
+summary{min-height:24px}
 .danger-text{color:var(--alert)}
 /* ---- Battle buddies ---- */
 nav.tabs button{position:relative}
@@ -586,7 +593,7 @@ input[type=text],input[type=url],input[type=number],input[type=date],input[type=
     <p class="gate-free">Creating an account is free. Workouts, RSVPs, and support resources cost nothing.</p>
     <p class="gate-give">Here to support veterans? <a id="gateDonate" href="https://www.camaraderietf.org/donate" target="_blank" rel="noopener">Donate to CTF</a><span class="gate-note">CTF is the fundraiser, not Apple or Google.</span></p>
     <p class="gate-crisis">In crisis right now? Call <a href="tel:988">988</a> and press 1, or text <a href="sms:838255">838255</a>.</p>
-    <p class="gate-legal"><a href="privacy.html">Privacy policy &amp; community rules</a></p>
+    <p class="gate-legal"><a href="privacy.html">Privacy policy &amp; community rules</a> · <a href="accessibility.html">Accessibility</a></p>
   </div>
 </section>
 
@@ -603,6 +610,7 @@ input[type=text],input[type=url],input[type=number],input[type=date],input[type=
     <p class="verify-btns"><button class="btn small" id="verifyDone">I've confirmed</button><button class="btn small ghost" id="verifyResend">Send link</button></p>
   </div>
 
+  <main id="main">
   <!-- HOME -->
   <section id="tab-home">
     <div id="homeHooks"></div>
@@ -760,7 +768,7 @@ input[type=text],input[type=url],input[type=number],input[type=date],input[type=
       <details class="drop" name="partners" id="dBiz"><summary><span class="drop-title">Businesses that back us</span><span class="drop-count" id="cBiz"></span><span class="chev" aria-hidden="true"></span></summary><div class="list" id="bizList"></div></details>
     </div>
     <p><a class="btn ghost wide" href="mailto:CTF@camaraderietf.org">Need something else? Email the CTF team</a></p>
-    <p class="hint" style="text-align:center"><a href="privacy.html">Privacy policy &amp; community rules</a></p>
+    <p class="hint" style="text-align:center"><a href="privacy.html">Privacy policy &amp; community rules</a> · <a href="accessibility.html">Accessibility</a></p>
   </section>
 
   <!-- GIVE -->
@@ -867,6 +875,7 @@ input[type=text],input[type=url],input[type=number],input[type=date],input[type=
     </div>
     <p id="seedWrap" hidden style="margin-top:14px"><button class="btn ghost" id="seedBtn">Load starter partners</button></p>
   </section>
+  </main>
 </div>
 
 <nav class="tabs" aria-label="Sections"><div class="inner">
@@ -877,7 +886,7 @@ input[type=text],input[type=url],input[type=number],input[type=date],input[type=
   <button data-tab="give"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18M16.5 7.5c0-1.7-2-3-4.5-3s-4.5 1.3-4.5 3 2 2.6 4.5 3 4.5 1.4 4.5 3.3-2 3.2-4.5 3.2-4.5-1.3-4.5-3"/></svg>Give</button>
 </div></nav>
 
-<dialog id="authDlg">
+<dialog id="authDlg" aria-labelledby="whoName">
   <button class="dlg-close" id="dlgClose" aria-label="Close">×</button>
   <div id="signedIn">
     <div class="me-head">
@@ -889,6 +898,7 @@ input[type=text],input[type=url],input[type=number],input[type=date],input[type=
       <button class="mi" id="adminBtn" hidden><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span><span class="mi-txt"><b>Admin tools</b><small id="adminBtnHint">Events, Home page, approvals, partners, links</small></span><span class="chev-r" aria-hidden="true"></span></button>
       <button class="mi" id="inviteBtn"><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-5.5 6.5-5.5s6.5 2 6.5 5.5"/><path d="M19 8v6M16 11h6"/></svg></span><span class="mi-txt"><b>Build the community</b><small>Invite a friend to the app</small></span><span class="chev-r" aria-hidden="true"></span></button>
       <a class="mi" href="privacy.html" target="_blank" rel="noopener"><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg></span><span class="mi-txt"><b>Privacy &amp; community rules</b><small>What we collect and the rules here</small></span><span class="chev-r" aria-hidden="true"></span></a>
+      <a class="mi" href="accessibility.html" target="_blank" rel="noopener"><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4.5" r="1.8"/><path d="M5 8.5l7 1.5 7-1.5M12 10v5M12 15l-3.5 6M12 15l3.5 6"/></svg></span><span class="mi-txt"><b>Accessibility</b><small>Our commitment and how to report a problem</small></span><span class="chev-r" aria-hidden="true"></span></a>
       <button class="mi" id="blockListBtn" hidden><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M5.7 5.7l12.6 12.6"/></svg></span><span class="mi-txt"><b>Blocked members</b><small id="blockListHint"></small></span><span class="chev-r" aria-hidden="true"></span></button>
       <div class="mi mi-static" id="viewRow" hidden><span class="mi-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="mi-txt"><b>App view</b><small id="viewHint">Seeing admin tools</small></span>
         <div class="seg" role="radiogroup" aria-label="App view"><button role="radio" data-view-set="admin">Admin</button><button role="radio" data-view-set="member">Member</button></div>
@@ -909,16 +919,16 @@ input[type=text],input[type=url],input[type=number],input[type=date],input[type=
   </div>
 </dialog>
 
-<dialog id="dateDlg">
+<dialog id="dateDlg" aria-labelledby="dateDlgH">
   <button class="dlg-close" id="dateClose" aria-label="Close">×</button>
-  <h3>Membership end date</h3>
+  <h3 id="dateDlgH">Membership end date</h3>
   <p class="hint" id="dateWho"></p>
   <label for="dateInput">Active through</label><input id="dateInput" type="date">
   <p style="margin-top:14px"><button class="btn" id="dateSave">Save date</button></p>
 </dialog>
 
-<dialog id="delDlg">
-  <h3>Delete your account?</h3>
+<dialog id="delDlg" aria-labelledby="delDlgH">
+  <h3 id="delDlgH">Delete your account?</h3>
   <p style="margin-top:8px">This permanently removes your profile, photo, RSVPs, story, comments, salutes, and battle buddy connections. It can't be undone.</p>
   <div id="delPwWrap" hidden><label for="delPw">Enter your password to confirm</label><input id="delPw" type="password" autocomplete="current-password"></div>
   <p class="hint" id="delGoogleNote" hidden>You'll be asked to sign in with Google once more to confirm.</p>
@@ -930,8 +940,8 @@ input[type=text],input[type=url],input[type=number],input[type=date],input[type=
   </p>
 </dialog>
 
-<dialog id="resetDlg">
-  <h3>Confirm your email</h3>
+<dialog id="resetDlg" aria-labelledby="resetDlgH">
+  <h3 id="resetDlgH">Confirm your email</h3>
   <p style="margin-top:8px">We'll send a password reset link to:</p>
   <p class="mono" id="resetEmail" style="font-size:1rem"></p>
   <p class="hint">Make sure it's spelled right. The link only goes to this address.</p>
@@ -941,9 +951,9 @@ input[type=text],input[type=url],input[type=number],input[type=date],input[type=
   </p>
 </dialog>
 
-<dialog id="shareDlg">
+<dialog id="shareDlg" aria-labelledby="shareDlgH">
   <button class="dlg-close" id="shareClose" aria-label="Close">×</button>
-  <h3>Build the community</h3>
+  <h3 id="shareDlgH">Build the community</h3>
   <p class="hint">Share the app with veterans and supporters. Signing up is free.</p>
   <div class="mono" id="shareUrl" style="margin-top:10px"></div>
   <figure class="qr">
@@ -1009,7 +1019,7 @@ input[type=text],input[type=url],input[type=number],input[type=date],input[type=
   <p style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="consentOk">I agree</button><button class="btn ghost" id="consentOut">Sign out</button></p>
 </dialog>
 
-<dialog id="receiptDlg">
+<dialog id="receiptDlg" aria-labelledby="receiptHead">
   <button class="dlg-close" id="receiptClose" aria-label="Close">×</button>
   <h3 id="receiptHead">Receipt</h3>
   <img id="receiptImg" alt="Receipt photo" style="display:block;width:100%;margin-top:12px;border-radius:10px">
@@ -1021,6 +1031,7 @@ input[type=text],input[type=url],input[type=number],input[type=date],input[type=
     <div id="obStep"></div>
   </div>
 </section>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><radialGradient id="atlasStoneG" cx="36%" cy="30%" r="72%"><stop offset="0" stop-color="#D4D0C8"/><stop offset=".5" stop-color="#97928A"/><stop offset="1" stop-color="#4F4B45"/></radialGradient></defs></svg>
 <div class="tip-pop" id="tipPop" role="tooltip" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -1603,9 +1614,11 @@ function renderPartnerCarousel(){
       <span class="pc-name">${esc(p.name)}</span></button>`
       : `<button class="pc-tile" data-go="support"><span class="pc-logo pc-word">${esc(p.name)}</span></button>`; };
   const tiles=list.map(tile).join("");
+  const dup=tiles.replace(/<button /g,'<button tabindex="-1" ');
   const dur=Math.max(18, list.length*4);
-  box.innerHTML=`<h2 style="margin-bottom:10px">Our partners</h2>
-    <div class="pc" aria-label="CTF partners"><div class="pc-track" style="animation-duration:${dur}s">${tiles}<span class="pc-dup" aria-hidden="true">${tiles}</span></div></div>
+  let paused=false; try{ paused=localStorage.getItem("ctfPcPause")==="1"; }catch{}
+  box.innerHTML=`<div class="pc-head"><h2>Our partners</h2><button class="btn small ghost pc-pause" data-pc-pause="1" aria-pressed="${paused}">${paused?"Play":"Pause"}</button></div>
+    <div class="pc${paused?" paused":""}" role="region" aria-label="CTF partners"><div class="pc-track" style="animation-duration:${dur}s">${tiles}<span class="pc-dup" aria-hidden="true">${dup}</span></div></div>
     <p style="margin-top:8px"><button class="btn ghost wide" data-go="support">See all partners</button></p>`;
 }
 // ---------- Admin screen ----------
@@ -1711,9 +1724,9 @@ function memberRow(id, _m, extra){
   const hiddenTag = S.admin && !m.listed && st!=="self" ? `<span class="tag" style="background:var(--line)">Hidden from list</span>` : "";
   const noProfile = S.admin && !status && st!=="self" ? `<span class="tag" style="background:var(--line)">Profile not filled in</span>` : "";
   return `<div class="row"><div class="member-head" style="flex:1">
-    <span class="tap" data-person="${esc(id)}" role="button" aria-label="Open ${esc(m.name||"member")}'s page">${avatarHTML(m,"avatar-md")}</span>
+    <span class="tap" data-person="${esc(id)}" aria-hidden="true">${avatarHTML(m,"avatar-md")}</span>
     <div class="body">
-      <h3 class="tap" data-person="${esc(id)}" tabindex="0">${mil && full && m.rank ? esc(m.rank)+" " : ""}${esc(m.name||"Member")}${hookMark(id)}${atlasMark(id)}${st==="self"?" (you)":""}</h3>
+      <h3 class="tap" data-person="${esc(id)}" tabindex="0" role="button" aria-label="${esc(m.name||"Member")}, open profile">${mil && full && m.rank ? esc(m.rank)+" " : ""}${esc(m.name||"Member")}${hookMark(id)}${atlasMark(id)}${st==="self"?" (you)":""}</h3>
       <div>${hiddenTag}${noProfile}${st==="buddy"?`<span class="tag bb-tag">Battle buddy</span>`:""}${vBadge(id)}${status?`<span class="tag">${esc(status)}</span>`:""}${mil && m.branch && m.branch!=="Family / supporter"?`<span class="tag">${esc(m.branch)}</span>`:""}</div>
       ${svc?`<div class="svc">${svc}</div>`:""}
       ${full && m.about?`<p style="margin-top:6px">${esc(m.about)}</p>`:""}
@@ -1951,9 +1964,9 @@ function renderStories(){
     const canOpen = !!S.members[id];
     return `<div class="story">
       <div class="story-head">
-        <span${canOpen?` class="tap" data-person="${esc(id)}" role="button" aria-label="Open ${esc(auName)}'s page"`:""}>${avatarHTML({...au,name:auName},"avatar-md")}</span>
+        <span${canOpen?` class="tap" data-person="${esc(id)}" aria-hidden="true"`:""}>${avatarHTML({...au,name:auName},"avatar-md")}</span>
         <div style="min-width:0;flex:1">
-          <div class="story-author${canOpen?" tap":""}"${canOpen?` data-person="${esc(id)}" tabindex="0"`:""}>${esc(auName)}${hookMark(id)}${atlasMark(id)}${id===uid()?" (you)":""}${buddyState(id)==="buddy"?` <span class="tag bb-tag">Battle buddy</span>`:""}</div>
+          <div class="story-author${canOpen?" tap":""}"${canOpen?` data-person="${esc(id)}" tabindex="0" role="button"`:""}>${esc(auName)}${hookMark(id)}${atlasMark(id)}${id===uid()?" (you)":""}${buddyState(id)==="buddy"?` <span class="tag bb-tag">Battle buddy</span>`:""}</div>
           ${auSub?`<div class="meta">${esc(auSub)}</div>`:""}
         </div>
         ${S.user?`<button class="more" data-story-menu="${esc(id)}" aria-expanded="${S.storyMenu===id}" aria-label="Post options">⋯</button>`:""}
@@ -2069,7 +2082,7 @@ function renderHooksCall(){
   </div>`;
 }
 // ---------- Atlas Clinics participants: atlas stone badge ----------
-const ATLAS_STONE=`<svg viewBox="0 0 20 20" aria-hidden="true"><defs><radialGradient id="atlasStoneG" cx="36%" cy="30%" r="72%"><stop offset="0" stop-color="#D4D0C8"/><stop offset=".5" stop-color="#97928A"/><stop offset="1" stop-color="#4F4B45"/></radialGradient></defs><ellipse cx="10" cy="18.6" rx="6.8" ry="1.1" fill="#000" opacity=".2"/><circle cx="10" cy="10" r="8.2" fill="url(#atlasStoneG)"/><circle cx="7" cy="12.5" r=".55" fill="#3E3B36" opacity=".45"/><circle cx="12.6" cy="13.4" r=".45" fill="#3E3B36" opacity=".4"/><circle cx="13.3" cy="7.6" r=".4" fill="#3E3B36" opacity=".35"/></svg>`;
+const ATLAS_STONE=`<svg viewBox="0 0 20 20" aria-hidden="true"><ellipse cx="10" cy="18.6" rx="6.8" ry="1.1" fill="#000" opacity=".2"/><circle cx="10" cy="10" r="8.2" fill="url(#atlasStoneG)"/><circle cx="7" cy="12.5" r=".55" fill="#3E3B36" opacity=".45"/><circle cx="12.6" cy="13.4" r=".45" fill="#3E3B36" opacity=".4"/><circle cx="13.3" cy="7.6" r=".4" fill="#3E3B36" opacity=".35"/></svg>`;
 function atlasIcon(){ return `<span class="atlas-mark">${ATLAS_STONE}</span>`; }
 function isAtlas(id){ return !!(S.atlas||{})[id]; }
 function atlasMark(id){ return isAtlas(id) ? ` <span class="atlas-mark" title="Atlas Clinics participant" aria-label="Atlas Clinics participant" role="img">${ATLAS_STONE}</span>` : ""; }
@@ -2400,7 +2413,7 @@ $("#resetSend").addEventListener("click", async ()=>{
 });
 $("#editProfileBtn").addEventListener("click", ()=>{ closeAuth(); openProfile(); });
 
-document.addEventListener("keydown", e=>{ if(e.key==="Enter" && e.target.dataset && e.target.dataset.person) openPerson(e.target.dataset.person); });
+document.addEventListener("keydown", e=>{ if((e.key==="Enter"||e.key===" ") && e.target.dataset && e.target.dataset.person && e.target.tagName!=="BUTTON"){ e.preventDefault(); openPerson(e.target.dataset.person); } });
 document.addEventListener("input", e=>{ const sid=e.target.dataset && e.target.dataset.cmtInput; if(sid) S.cmtDrafts[sid]=e.target.value; });
 
 $("#dirSearch").addEventListener("input", ()=>renderMembers());
@@ -2714,6 +2727,11 @@ document.addEventListener("click", async ev=>{
   if(t.dataset.merchHide){
     const hide=t.dataset.merchHide==="1";
     try{ await setDoc(doc(fs,"config","site"), {...S.config, merchHidden:hide}); toast(hide ? "Presale card hidden." : "Presale card showing."); }catch(e){ writeFailed(e); }
+    return;
+  }
+  if(t.dataset.pcPause){
+    const on=t.getAttribute("aria-pressed")!=="true"; try{ localStorage.setItem("ctfPcPause", on?"1":"0"); }catch{}
+    t.setAttribute("aria-pressed", on); t.textContent = on ? "Play" : "Pause"; const pc=$("#homePartners .pc"); if(pc) pc.classList.toggle("paused", on);
     return;
   }
   if(t.dataset.report){ openReport(t.dataset.report); return; }
