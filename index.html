@@ -177,6 +177,9 @@ a.mi{text-decoration:none}
 .esv-note{margin:10px 0 0;font-size:.74rem;line-height:1.4;color:var(--muted)}
 .esv-note a{color:inherit}
 .devo-body{white-space:pre-wrap;line-height:1.55}
+.devo-passage{margin:0 0 12px;padding:10px 14px;border-left:3px solid var(--brass);background:var(--brass-soft);border-radius:0 10px 10px 0;white-space:pre-wrap;line-height:1.6;font-family:Georgia,"Times New Roman",serif}
+.esv-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.esv-key{margin-top:10px;padding:10px 12px;border:1px dashed var(--line);border-radius:10px}
 .devo-past{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
 .devo-past summary{cursor:pointer}
 .devo-old{padding:8px 0;border-top:1px solid var(--line)}.devo-old:first-of-type{border-top:0}
@@ -1907,11 +1910,37 @@ function devoForm(d){
   return `<div class="panel admin" id="devoForm">
     <h3>${d.id?"Edit devotional":"Post this week's devotional"}</h3>
     <label for="dvTitle">Title</label><input id="dvTitle" type="text" maxlength="120" value="${esc(d.title||"")}">
-    <label for="dvScripture">Scripture</label><input id="dvScripture" type="text" maxlength="200" placeholder="Joshua 1:9" value="${esc(d.scripture||"")}">
+    <label for="dvScripture">Scripture</label><input id="dvScripture" type="text" maxlength="200" placeholder="Joshua 1:9 or Psalm 23" value="${esc(d.scripture||"")}">
+    <div class="esv-row"><button class="btn small" data-esv-lookup="1">Look up in ESV</button><span class="hint" id="esvStatus" role="status" aria-live="polite"></span></div>
+    <div id="esvKeyBox">${esvKeyHTML()}</div>
+    <label for="dvPassage">Scripture text</label><textarea id="dvPassage" maxlength="4000" style="min-height:110px" placeholder="Fills in when you look up a passage. You can also paste it in.">${esc(d.passage||"")}</textarea>
     <label for="dvBody">Message</label><textarea id="dvBody" maxlength="5000" style="min-height:160px">${esc(d.body||"")}</textarea>
     <label for="dvAuthor">Written by (optional)</label><input id="dvAuthor" type="text" maxlength="80" value="${esc(d.author||"")}">
     <p style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-devo-save="${esc(d.id||"")}">${d.id?"Save changes":"Post devotional"}</button><button class="btn ghost" data-devo-cancel="1">Cancel</button></p>
   </div>`;
+}
+// ESV API key: stored in an admin-only Firestore doc (secrets/esv), never in this public file.
+function esvKeyHTML(){
+  if(S.esvKey===undefined) return "";
+  if(S.esvKey && !S.esvKeyEdit) return `<p class="hint" style="margin:6px 0 0">ESV key saved (admins only). <button class="linkish" data-esv-key-edit="1">Change key</button></p>`;
+  return `<div class="esv-key"><label for="esvKeyIn" style="margin-top:0">ESV API key</label>
+    <input id="esvKeyIn" type="password" autocomplete="off" spellcheck="false" placeholder="Paste the key from Crossway's email">
+    <p class="hint" style="margin:6px 0 0">Saved where only CTF admins can read it. Members never see it.</p>
+    <p style="margin:8px 0 0;display:flex;gap:8px;flex-wrap:wrap"><button class="btn small" data-esv-key-save="1">Save key</button>${S.esvKey?`<button class="btn small ghost" data-esv-key-cancel="1">Cancel</button>`:""}</p></div>`;
+}
+function refreshEsvKeyBox(){ const b=$("#esvKeyBox"); if(b) b.innerHTML=esvKeyHTML(); }
+async function esvLookup(ref){
+  const q=new URLSearchParams({q:ref,"include-passage-references":"false","include-headings":"false","include-footnotes":"false",
+    "include-short-copyright":"false","include-verse-numbers":"true","include-first-verse-numbers":"false","indent-paragraphs":"0","indent-poetry":"false"});
+  let r;
+  try{ r=await fetch("https://api.esv.org/v3/passage/text/?"+q, {headers:{Authorization:"Token "+S.esvKey}}); }
+  catch(e){ throw new Error("network"); }
+  if(r.status===401||r.status===403) throw new Error("key");
+  if(!r.ok) throw new Error("http"+r.status);
+  const j=await r.json();
+  const text=(j.passages||[]).join("\n\n").replace(/\n{3,}/g,"\n\n").trim();
+  if(!text) throw new Error("notfound");
+  return {ref:j.canonical||ref, text:text.slice(0,4000)};
 }
 function devoBody(d, full){
   const text=String(d.body||"");
@@ -1936,12 +1965,13 @@ function renderDevo(){
       ${menu?`<div class="own-acts"><button class="btn small ghost" data-devo-edit="${esc(cur.id)}">Edit</button><button class="btn small danger" data-devo-del="${esc(cur.id)}">Delete</button></div>`:""}
       <h3>${esc(cur.title||"This week")}</h3>
       ${cur.scripture?`<div class="devo-verse">${esc(cur.scripture)}</div>`:""}
+      ${cur.passage?`<blockquote class="devo-passage">${esc(cur.passage)}</blockquote>`:""}
       ${devoBody(cur, exp)}
       ${cur.author?`<div class="meta" style="margin-top:8px">${esc(cur.author)}</div>`:""}
-      ${/\bESV\b/i.test((cur.scripture||"")+" "+(cur.body||""))?ESV_NOTE:""}
+      ${cur.passage || /\bESV\b/i.test((cur.scripture||"")+" "+(cur.body||""))?ESV_NOTE:""}
       ${threadHTML(cur.id,"devotional")}
       ${past.length?`<details class="devo-past"><summary class="meta">Past weeks (${past.length})</summary>${past.map(d=>`<details class="devo-old"><summary><b>${esc(d.title||"Devotional")}</b> <span class="meta">${esc(fmtDay(d.at||0))}${d.scripture?` · ${esc(d.scripture)}`:""}</span></summary>
-        <div class="devo-body" style="margin-top:6px">${esc(d.body||"")}</div>${d.author?`<div class="meta" style="margin-top:6px">${esc(d.author)}</div>`:""}
+        ${d.passage?`<blockquote class="devo-passage" style="margin-top:8px">${esc(d.passage)}</blockquote>`:""}<div class="devo-body" style="margin-top:6px">${esc(d.body||"")}</div>${d.author?`<div class="meta" style="margin-top:6px">${esc(d.author)}</div>`:""}
         ${S.admin?`<p style="margin-top:6px"><button class="linkish danger-text" data-devo-del="${esc(d.id)}">Delete</button></p>`:""}</details>`).join("")}</details>`:""}
     </div>`;
   }
@@ -2685,13 +2715,40 @@ document.addEventListener("click", async ev=>{
   if(t.dataset.devoHide){ try{ localStorage.setItem("ctfDevoHide", t.dataset.devoHide); }catch{} renderDevo(); return; }
   if(t.dataset.devoShow){ try{ localStorage.removeItem("ctfDevoHide"); }catch{} renderDevo(); return; }
   if(t.dataset.devoMore){ S.devoOpen.add(t.dataset.devoMore); renderDevo(); return; }
+  if(t.dataset.esvKeyEdit){ S.esvKeyEdit=true; refreshEsvKeyBox(); const i=$("#esvKeyIn"); if(i) i.focus(); return; }
+  if(t.dataset.esvKeyCancel){ S.esvKeyEdit=false; refreshEsvKeyBox(); return; }
+  if(t.dataset.esvKeySave){
+    const k=($("#esvKeyIn").value||"").trim();
+    if(!/^[A-Za-z0-9]{20,80}$/.test(k)){ toast("That doesn't look like an ESV key. Copy it again from the email."); return; }
+    t.disabled=true;
+    try{ await setDoc(doc(fs,"secrets","esv"), {key:k, at:Date.now()}); S.esvKey=k; S.esvKeyEdit=false; refreshEsvKeyBox(); toast("ESV key saved."); }
+    catch(e){ console.error(e); toast(e && e.code==="permission-denied" ? "Couldn't save. Publish the latest Firestore rules first." : "Couldn't save. Check your connection."); }
+    finally{ t.disabled=false; }
+    return;
+  }
+  if(t.dataset.esvLookup){
+    const ref=$("#dvScripture").value.replace(/\s*\(ESV\)\s*$/i,"").trim(), st=$("#esvStatus");
+    if(!ref){ st.textContent="Type a reference first, like John 3:16."; $("#dvScripture").focus(); return; }
+    if(!S.esvKey){ st.textContent="Save the ESV key below first."; S.esvKeyEdit=true; refreshEsvKeyBox(); return; }
+    t.disabled=true; st.textContent="Looking up…";
+    try{
+      const r=await esvLookup(ref);
+      $("#dvScripture").value=`${r.ref} (ESV)`; $("#dvPassage").value=r.text; st.textContent="Filled in. Check it, then add your message.";
+    }catch(e){
+      st.textContent = e.message==="key" ? "ESV didn't accept the key. Tap Change key and paste it again."
+        : e.message==="notfound" ? "ESV couldn't find that passage. Check the spelling, like 1 Corinthians 13:4-7."
+        : e.message==="network" ? "Couldn't reach ESV from this browser. Paste the scripture text in yourself for now."
+        : "ESV lookup failed. Try again in a minute.";
+    }finally{ t.disabled=false; }
+    return;
+  }
   if(t.dataset.devoSave!==undefined){
-    const id=t.dataset.devoSave, title=$("#dvTitle").value.trim().slice(0,120), scripture=$("#dvScripture").value.trim().slice(0,200), body=$("#dvBody").value.trim().slice(0,5000), author=$("#dvAuthor").value.trim().slice(0,80);
+    const id=t.dataset.devoSave, title=$("#dvTitle").value.trim().slice(0,120), scripture=$("#dvScripture").value.trim().slice(0,200), body=$("#dvBody").value.trim().slice(0,5000), author=$("#dvAuthor").value.trim().slice(0,80), passage=$("#dvPassage").value.trim().slice(0,4000);
     if(!title || !body){ toast("Add a title and a message."); return; }
     t.disabled=true;
     try{
-      if(id) await updateDoc(doc(fs,"devotionals",id), {title, scripture, body, author});
-      else await addDoc(collection(fs,"devotionals"), {title, scripture, body, author, by:myName(), at:Date.now()});
+      if(id) await updateDoc(doc(fs,"devotionals",id), {title, scripture, passage, body, author});
+      else await addDoc(collection(fs,"devotionals"), {title, scripture, passage, body, author, by:myName(), at:Date.now()});
       S.devoEditing=undefined; $("#devoBox").innerHTML=""; renderDevo(); toast(id ? "Devotional updated." : "Devotional posted.");
     }catch(e){ writeFailed(e); } finally{ t.disabled=false; }
     return;
@@ -3453,6 +3510,7 @@ function subscribeMembers(){
   }
   subs.push(onSnapshot(doc(fs,"blocks",u.uid), d=>{ S.blocked=new Set(d.exists()?(d.data().ids||[]):[]); render(); renderBlockList(); }, e=>console.warn("blocks", e.code)));
   subs.push(onSnapshot(doc(fs,"consent",u.uid), d=>{ S.consent=d.exists()?d.data():null; S.consentErr=false; maybeConsent(); }, e=>{ console.warn("consent", e.code); S.consentErr=true; maybeConsent(); }));
+  if(S.realAdmin) subs.push(onSnapshot(doc(fs,"secrets","esv"), d=>{ S.esvKey = d.exists() ? String(d.data().key||"") : ""; refreshEsvKeyBox(); }, e=>{ console.warn("esv key", e.code); S.esvKey=""; refreshEsvKeyBox(); }));
   if(S.realAdmin) subs.push(onSnapshot(collection(fs,"reports"), s=>{ S.reports=toMap(s); renderReports(); renderAdmin(); }, e=>console.warn("reports", e.code)));
   subs.push(onSnapshot(collection(fs,"cache",u.uid,"posts"), s=>{ S.cache=toMap(s); renderPerson(); }, e=>console.error("cache", e.code)));
   subs.push(onSnapshot(doc(fs,"cache",u.uid), d=>{ S.cacheSetting=d.exists()?d.data():null; renderPerson(); }, e=>console.error("cache setting", e.code)));
@@ -3472,7 +3530,7 @@ onAuthStateChanged(auth, async u=>{
   ensured=false; ensuring=false; S.contact=null; welcomeShown=false; welcoming=false;
   endOnboarding(); welcomeShown=false;
   S.user=u; S.admin=false; S.realAdmin=false; S.memberView=false; S.approved=false; S.members={}; S.approvedIds={}; S.priv={}; S.buddies={}; S.allBuddies=null; S.allBuddiesErr=false; S.verified={}; S.hooks={}; S.atlas={}; S.hooksCall=null; S.hookEdit=false; if(hooksCallSub){ hooksCallSub(); hooksCallSub=null; } S.seen={}; S.cache={}; S.cacheSetting=null; S.otherCache=null; S.reimbAll={}; S.myReimb=null; S.awards={}; S.reimbErr=false; S.reimbOpen=false; reimbPhoto=undefined; S.myPrivLoaded=false; S.salutes={}; S.comments={}; S.photos={}; sPhotoDraft=undefined;
-  S.rsvps={}; S.stories={}; S.devos={};
+  S.rsvps={}; S.stories={}; S.devos={}; S.esvKey=undefined; S.esvKeyEdit=false;
   S.blocked=new Set(); S.reports={}; S.consent=undefined; S.consentErr=false; S.reportTarget=null;
   ["#consentDlg","#reportDlg","#blockDlg"].forEach(q=>{ const d=$(q); if(d && d.open) d.close(); });
   clearSubs();

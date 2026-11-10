@@ -122,7 +122,8 @@ service cloud.firestore {
     // Weekly devotional pinned in the Fox Hole: admins post; members salute and comment.
     match /devotionals/{id} {
       allow read: if signedIn();
-      allow create, update: if isAdmin() && request.resource.data.body is string && request.resource.data.body.size() <= 5000;
+      allow create, update: if isAdmin() && request.resource.data.body is string && request.resource.data.body.size() <= 5000
+        && (!('passage' in request.resource.data) || (request.resource.data.passage is string && request.resource.data.passage.size() <= 4000));
       allow delete: if isAdmin();
       match /salutes/{uid} {
         allow create: if isMe(uid) && isMember() && request.resource.data.keys().hasOnly(['at']);
@@ -149,6 +150,11 @@ service cloud.firestore {
       allow read: if signedIn();
       allow write: if isAdmin();
     }
+    // ESV API key and other keys: CTF admins only.
+    match /secrets/{id} {
+      allow read, write: if isAdmin();
+    }
+
     // Weekly Zoom link: only Hooks alumni and admins can read it.
     match /hooksCall/{doc} {
       allow read: if isAdmin() || (signedIn() && exists(/databases/$(database)/documents/hooks/$(request.auth.uid)));
