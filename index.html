@@ -428,7 +428,7 @@ nav.tabs button{position:relative}
 .svc{color:var(--muted);font-size:.93rem;margin-top:2px}
 .links{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 /* ---- Redesign: header, Home, Events, Community, Give, Admin ---- */
-.donate-pill{flex:none;min-height:40px;padding:0 14px;border-radius:99px;border:0;background:var(--brass);color:#1A1405;font-weight:700;cursor:pointer}
+.donate-pill{flex:none;min-height:40px;padding:0 14px;border-radius:99px;border:0;background:var(--brass);color:#1A1405;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;text-decoration:none}
 .acct-wrap{position:relative;flex:none;display:inline-flex}
 .acct-wrap .badge{left:auto;right:-4px;top:-4px}
 @media (max-width:430px){ header.top .acct span{display:none} header.top .acct{padding:0 4px} header.top .donate-pill{padding:0 12px} }
@@ -604,7 +604,7 @@ input[type=text],input[type=url],input[type=number],input[type=date],input[type=
   <header class="top">
     <img class="mark" src="logo.png" alt="" width="48" height="48">
     <div><div class="name">Camaraderie Through Fitness</div><div class="sub">Veterans community</div></div>
-    <button class="donate-pill" data-go="give">Donate</button>
+    <a class="donate-pill donate-link" href="https://www.camaraderietf.org/donate" target="_blank" rel="noopener">Donate<span class="sr-only"> (opens camaraderietf.org)</span></a>
     <span class="acct-wrap"><button class="acct" id="acctBtn" aria-label="Your profile and settings">Sign in</button><span class="badge" id="adminBadge" hidden></span></span>
   </header>
   <div class="view-note" id="viewNote" hidden><span>Viewing the app as a member. Admin tools are hidden.</span><button class="btn small" data-view-set="admin">Back to admin view</button></div>
@@ -621,7 +621,7 @@ input[type=text],input[type=url],input[type=number],input[type=date],input[type=
     <div id="homeHero"></div>
     <h1 class="home-title" id="homeTitle"></h1>
     <p class="home-mission" id="homeMission"></p>
-    <div class="two-btns"><button class="btn" data-go="events">See events</button><button class="btn brass" data-go="give">Donate</button></div>
+    <div class="two-btns"><button class="btn" data-go="events">See events</button><a class="btn brass donate-link" href="https://www.camaraderietf.org/donate" target="_blank" rel="noopener">Donate<span class="sr-only"> (opens camaraderietf.org)</span></a></div>
     <div class="stats" id="homeStats" hidden></div>
     <div id="homeNext"></div>
     <div id="homeStory"></div>
@@ -2285,6 +2285,7 @@ function renderGive(){
     : `<span class="hint">Online giving opens soon.</span>`;
   $("#giveWhere").textContent = url===DEFAULT_DONATE_URL ? "Opens the donate page on camaraderietf.org." : "Opens CTF's secure giving page.";
   $("#gateDonate").href = url;
+  document.querySelectorAll("a.donate-link").forEach(a=>{ a.href = url; });
   const ph=homePhoto();
   $("#giveHero").innerHTML = ph ? `<div class="home-hero" style="margin-bottom:14px"><img src="${ph}" alt="CTF members at a recent event"></div>` : "";
   $("#giveQuote").innerHTML = quoteHTML();
